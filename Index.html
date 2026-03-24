@@ -1,160 +1,284 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Mad Fire – Burning City</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Escape: The Abyss Run</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #050208;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<style>
-body{
-  margin:0;
-  overflow:hidden;
-  background:black;
-  font-family:Arial;
-}
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #050208 100%);
+            border: 2px solid #331a4d;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+            overflow: hidden;
+        }
 
-#game{
-  position:relative;
-  width:100%;
-  height:100vh;
-  overflow:hidden;
-}
+        canvas { display: block; }
 
-/* 🔥 Animated Burning Sky */
-#background{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:linear-gradient(to top,#1a0000,#660000,#ff3300);
-  animation: skyPulse 4s infinite alternate;
-}
+        /* UI Overlays */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10;
+        }
 
-@keyframes skyPulse{
-  from{ filter:brightness(1); }
-  to{ filter:brightness(1.2); }
-}
+        .hidden { display: none !important; }
 
-/* 🌆 Moving Ground */
-#ground{
-  position:absolute;
-  bottom:0;
-  width:200%;
-  height:150px;
-  background:linear-gradient(to right,#111,#222,#111);
-  animation: moveGround 2s linear infinite;
-}
+        h1 { color: #e0d1ff; text-shadow: 0 0 10px #8a2be2; margin-bottom: 5px; }
+        p { margin-bottom: 20px; font-size: 0.9em; color: #bbb; }
 
-@keyframes moveGround{
-  from{ transform:translateX(0); }
-  to{ transform:translateX(-50%); }
-}
+        .char-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-/* 🔥 Player */
-#player{
-  position:absolute;
-  bottom:150px;
-  left:50%;
-  width:80px;
-  height:100px;
-  transform:translateX(-50%);
-  transition:left 0.2s ease;
-  filter: drop-shadow(0 0 20px orange);
-}
+        .char-btn {
+            padding: 10px;
+            border: 1px solid #8a2be2;
+            background: #1a0b2e;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 5px;
+            width: 80px;
+            text-align: center;
+        }
 
-/* 🚧 Obstacles */
-.obstacle{
-  position:absolute;
-  bottom:150px;
-  width:70px;
-  height:90px;
-  background:linear-gradient(red,darkred);
-  border-radius:10px;
-  box-shadow:0 0 20px red;
-}
+        .char-btn:hover { background: #331a4d; box-shadow: 0 0 10px #8a2be2; }
+        .char-btn.selected { background: #8a2be2; font-weight: bold; }
 
-#score{
-  position:absolute;
-  top:15px;
-  left:15px;
-  color:white;
-  font-size:22px;
-}
+        #score-board {
+            position: absolute;
+            top: 10px; left: 10px;
+            font-size: 18px; font-weight: bold;
+            color: #fff; text-shadow: 1px 1px 2px #000;
+            z-index: 5;
+        }
 
-</style>
+        button#start-btn {
+            padding: 12px 30px;
+            font-size: 1.2em;
+            background: #ff4500;
+            border: none;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.4);
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="game">
-  <div id="background"></div>
-  <div id="ground"></div>
+<div id="game-container">
+    <div id="score-board">Distance: 0m</div>
 
-  <div id="score">Score: 0</div>
+    <div id="start-screen" class="overlay">
+        <h1>COSMIC ESCAPE</h1>
+        <p>Run from Reyshi. Use Arrow Keys to move.</p>
+        <div class="char-select">
+            <div class="char-btn selected" onclick="selectChar('Ron', '#ff4500', this)">RON</div>
+            <div class="char-btn" onclick="selectChar('Den', '#00d4ff', this)">DEN</div>
+            <div class="char-btn" onclick="selectChar('Lapse', '#bd00ff', this)">LAPSE</div>
+        </div>
+        <button id="start-btn" onclick="startGame()">START RUN</button>
+    </div>
 
-  <!-- Replace with your ninja image -->
-  <img id="player" src="https://i.imgur.com/6X12QxR.png">
+    <div id="game-over" class="overlay hidden">
+        <h2 style="color: #ff0055;">CONSUMED BY THE ABYSS</h2>
+        <p id="final-score">Distance: 0m</p>
+        <button id="start-btn" onclick="location.reload()">RETRY</button>
+    </div>
 
+    <canvas id="gameCanvas"></canvas>
 </div>
 
 <script>
-let player = document.getElementById("player");
-let game = document.getElementById("game");
-let scoreDisplay = document.getElementById("score");
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 400;
+    canvas.height = 600;
 
-let lanes = [25,50,75];
-let currentLane = 1;
-let score = 0;
-let speed = 6;
-let running = true;
+    let gameActive = false;
+    let score = 0;
+    let speed = 3;
+    let frames = 0;
 
-function setLane(){
-  player.style.left = lanes[currentLane] + "%";
-}
-setLane();
+    let player = {
+        x: 200,
+        y: 450,
+        w: 25,
+        h: 25,
+        color: '#ff4500',
+        targetX: 200
+    };
 
-/* Controls */
-document.addEventListener("keydown", e=>{
-  if(e.key==="ArrowLeft" && currentLane>0) currentLane--;
-  if(e.key==="ArrowRight" && currentLane<2) currentLane++;
-  setLane();
-});
+    let reyshiY = 700; // Starts off-screen
+    let reyshiSpeed = 1.8;
 
-/* Obstacles */
-function createObstacle(){
-  let obs = document.createElement("div");
-  obs.classList.add("obstacle");
-  let lane = Math.floor(Math.random()*3);
-  obs.style.left = lanes[lane] + "%";
-  obs.style.bottom = "150px";
-  obs.dataset.lane = lane;
-  game.appendChild(obs);
-}
-setInterval(createObstacle,1000);
+    let tiles = [];
+    const tileWidth = 80;
+    const tileHeight = 40;
 
-function loop(){
-  if(!running) return;
-  let obstacles = document.querySelectorAll(".obstacle");
-
-  obstacles.forEach(obs=>{
-    obs.style.bottom = (parseInt(obs.style.bottom)+speed) + "px";
-
-    if(parseInt(obs.style.bottom) > window.innerHeight){
-      obs.remove();
-      score++;
-      scoreDisplay.innerText="Score: "+score;
+    function selectChar(name, color, el) {
+        player.color = color;
+        document.querySelectorAll('.char-btn').forEach(btn => btn.classList.remove('selected'));
+        el.classList.add('selected');
+        
+        // Speed adjustments per character
+        if(name === 'Den') speed = 4; else speed = 3;
     }
 
-    if(obs.dataset.lane==currentLane &&
-       parseInt(obs.style.bottom) > window.innerHeight-260){
-        running=false;
-        alert("Game Over! Score: "+score);
-        location.reload();
+    function createTile(y, isStart = false) {
+        // Create a horizontal offset to simulate "twists and turns"
+        const offset = Math.sin(y * 0.01) * 100;
+        return {
+            x: 200 + offset - (tileWidth / 2),
+            y: y,
+            w: tileWidth,
+            h: tileHeight
+        };
     }
-  });
 
-  requestAnimationFrame(loop);
-}
-loop();
+    // Initialize first set of tiles
+    for (let i = 0; i < 20; i++) {
+        tiles.push(createTile(600 - (i * 50)));
+    }
+
+    function drawPlayer() {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = player.color;
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
+        ctx.shadowBlur = 0;
+    }
+
+    function drawReyshi() {
+        // Reyshi is represented by a rising red void
+        let gradient = ctx.createLinearGradient(0, reyshiY, 0, reyshiY + 200);
+        gradient.addColorStop(0, 'rgba(255, 0, 0, 0.6)');
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, reyshiY, canvas.width, 300);
+        
+        // Eyes of the Abyss
+        ctx.fillStyle = "white";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "red";
+        ctx.beginPath();
+        ctx.arc(canvas.width/2 - 40, reyshiY + 50, 5, 0, Math.PI*2);
+        ctx.arc(canvas.width/2 + 40, reyshiY + 50, 5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    function update() {
+        if (!gameActive) return;
+
+        frames++;
+        score++;
+        document.getElementById('score-board').innerText = `Distance: ${Math.floor(score/10)}m`;
+
+        // Move player towards target (mouse or touch)
+        player.x += (player.targetX - player.x) * 0.15;
+
+        // Move tiles down (scrolling effect)
+        tiles.forEach(tile => {
+            tile.y += speed;
+        });
+
+        // Add new tiles at top
+        if (tiles[tiles.length - 1].y > 0) {
+            tiles.push(createTile(tiles[tiles.length - 1].y - 50));
+        }
+
+        // Remove old tiles
+        if (tiles[0].y > canvas.height) tiles.shift();
+
+        // Reyshi logic: He slowly catches up
+        if (reyshiY > 500) reyshiY -= 0.5; // Approach phase
+        
+        // Check if player is on a tile
+        let onTile = false;
+        tiles.forEach(tile => {
+            if (player.x > tile.x && player.x < tile.x + tile.w &&
+                player.y > tile.y && player.y < tile.y + tile.h) {
+                onTile = true;
+            }
+        });
+
+        // Game Over Conditions
+        if (!onTile || player.y > reyshiY) {
+            endGame();
+        }
+
+        // Increase difficulty
+        if (frames % 500 === 0) speed += 0.2;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Tiles
+        tiles.forEach(tile => {
+            ctx.fillStyle = "#2a1442";
+            ctx.strokeStyle = "#8a2be2";
+            ctx.lineWidth = 2;
+            ctx.fillRect(tile.x, tile.y, tile.w, tile.h);
+            ctx.strokeRect(tile.x, tile.y, tile.w, tile.h);
+        });
+
+        drawReyshi();
+        drawPlayer();
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        gameActive = true;
+    }
+
+    function endGame() {
+        gameActive = false;
+        document.getElementById('game-over').classList.remove('hidden');
+        document.getElementById('final-score').innerText = `Distance Covered: ${Math.floor(score/10)}m`;
+    }
+
+    // Controls
+    window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        player.targetX = e.clientX - rect.left;
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if(e.key === "ArrowLeft") player.targetX -= 40;
+        if(e.key === "ArrowRight") player.targetX += 40;
+    });
+
+    gameLoop();
+
 </script>
-
 </body>
 </html>

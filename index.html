@@ -3,108 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS: NEBULA DASH</title>
+    <title>COSMIC LEGENDS: ELEMENTAL OVERDRIVE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; }
-        canvas { display: block; }
-        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
-        .hud { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 0 10px #0ff; font-size: 20px; font-weight: 900; }
-        #boss-overlay { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 85%; max-width: 600px; display: none; text-align: center; }
-        .health-bar { width: 100%; height: 20px; background: #111; border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
-        #health-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0044, #ff6600); transition: width 0.1s; }
-        #menu { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
-        .hero-grid { display: flex; gap: 15px; margin: 30px 0; }
-        .card { width: 100px; padding: 20px 10px; background: #0a0a0a; border: 2px solid #333; border-radius: 15px; cursor: pointer; text-align: center; color: white; }
-        .card.selected { border-color: #0ff; box-shadow: 0 0 20px #0ff; background: #001a1a; }
-        .btn { padding: 15px 50px; font-size: 24px; background: #0ff; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; border-radius: 8px; cursor: pointer; opacity: 0.2; }
-        .btn.active { opacity: 1; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; height: 100%; }
+        canvas { display: block; z-index: 1; position: relative; }
+
+        /* COOLER LOBBY UI */
+        #menu { 
+            position: absolute; inset: 0; 
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 200; transition: 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+        }
+        
+        .lobby-header {
+            text-align: center; margin-bottom: 40px;
+        }
+        
+        .lobby-header h1 {
+            font-size: clamp(30px, 8vw, 60px); color: #fff; margin: 0;
+            letter-spacing: 12px; text-shadow: 0 0 30px rgba(0,255,255,0.6);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow { from { text-shadow: 0 0 10px #0ff; } to { text-shadow: 0 0 40px #0ff, 0 0 10px #fff; } }
+
+        .hero-grid { display: flex; gap: 20px; padding: 20px; }
+        
+        .card { 
+            width: 120px; padding: 30px 10px; 
+            background: rgba(255,255,255,0.03); 
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px; cursor: pointer; color: white;
+            transition: 0.4s; backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center;
+        }
+        
+        .card:hover { transform: translateY(-10px); border-color: #fff; background: rgba(255,255,255,0.1); }
+        .card.selected { border-color: #0ff; box-shadow: 0 0 30px #0ff; transform: scale(1.1); background: rgba(0,255,255,0.15); }
+        .card .icon { font-size: 40px; margin-bottom: 10px; filter: drop-shadow(0 0 10px inherit); }
+        .card h3 { font-size: 14px; margin: 0; letter-spacing: 2px; }
+
+        #start-btn { 
+            margin-top: 50px; padding: 18px 60px; 
+            background: none; color: #fff; border: 2px solid #fff;
+            font-family: 'Orbitron'; font-weight: 900; font-size: 20px;
+            cursor: pointer; border-radius: 50px; transition: 0.3s;
+            opacity: 0.2; pointer-events: none;
+        }
+        #start-btn.active { opacity: 1; pointer-events: auto; background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+
+        /* IN-GAME HUD */
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 100; color: #fff; pointer-events: none; }
+        #boss-ui { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 80%; display: none; z-index: 110; text-align: center; }
+        .hp-cont { width: 100%; height: 15px; background: #200; border: 2px solid #fff; border-radius: 20px; overflow: hidden; }
+        #hp-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #f00, #f0f); }
     </style>
 </head>
-<body onmousedown="handleInput()" ontouchstart="handleInput()">
+<body onmousedown="jump()" ontouchstart="jump()">
 
-<div id="ui-layer">
-    <div class="hud">TILE: <span id="tile-stat">0</span>/100</div>
-    <div id="boss-overlay">
-        <h1 id="boss-id" style="color: #ff0044; margin: 0; text-shadow: 0 0 15px red;">BLACK DEATH</h1>
-        <div class="health-bar"><div id="health-fill"></div></div>
-    </div>
+<div id="hud">TILE: <span id="t-val">0</span>/100</div>
+
+<div id="boss-ui">
+    <h2 id="b-name" style="color:#ff0044; margin:0 0 10px;">BLACK DEATH</h2>
+    <div class="hp-cont"><div id="hp-bar"></div></div>
 </div>
 
 <div id="menu">
-    <h1 style="color: #fff; text-shadow: 0 0 20px #0ff; font-size: 32px;">COSMIC LEGENDS</h1>
+    <div class="lobby-header">
+        <h1>COSMIC LEGENDS</h1>
+        <p style="color:#888; font-size: 12px; letter-spacing: 4px;">CHOOSE YOUR ELEMENT</p>
+    </div>
+    
     <div class="hero-grid">
-        <div class="card" onclick="pick('ron', '#ff4400', '☀️', 1.0, 0.9, '#441100')">
-            <div style="font-size: 40px;">☀️</div><h3>RON</h3>
+        <div class="card" onclick="pick('ron', '#ff4400', '☀️', 1.0, 0.9, 'fire')">
+            <div class="icon">☀️</div><h3>RON</h3>
         </div>
-        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0, '#002244')">
-            <div style="font-size: 40px;">⚡</div><h3>DEN</h3>
+        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0, 'lightning')">
+            <div class="icon">⚡</div><h3>DEN</h3>
         </div>
-        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6, '#220044')">
-            <div style="font-size: 40px;">🌌</div><h3>LAPSE</h3>
+        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6, 'galaxy')">
+            <div class="icon">🌌</div><h3>LAPSE</h3>
         </div>
     </div>
-    <button id="start-btn" class="btn" onclick="startGame()">START</button>
+    
+    <button id="start-btn" onclick="go()">INITIATE SEQUENCE</button>
 </div>
 
-<canvas id="stage"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById('stage');
+const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 
-let active = false, boss = false, hp = 100, tile = 0, camX = 0;
-let hero = { id: '', color: '#fff', icon: '', sM: 1, gM: 1, bg: '#000' };
-let platforms = [], spikes = [], stars = [];
-let bossSteps = [30, 55, 75, 100];
+let active = false, bossMode = false, hp = 100, camX = 0, currentTile = 0;
+let hero = { id:'', color:'#fff', icon:'', s:1, g:1, mode:'' };
+let platforms = [], spikes = [], bgElements = [];
+let bosses = [30, 55, 75, 100];
 
 const p = { x: 100, y: 0, w: 45, h: 45, vx: 0, vy: 0, rot: 0, gr: false };
 
-function pick(id, color, icon, s, g, bg) {
-    hero = { id, color, icon, sM: s, gM: g, bg };
+function pick(id, color, icon, s, g, mode) {
+    hero = { id, color, icon, s, g, mode };
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
     event.currentTarget.classList.add('selected');
     document.getElementById('start-btn').classList.add('active');
 }
 
-function startGame() {
-    if(!hero.id) return;
-    document.getElementById('menu').style.display = 'none';
-    active = true; p.y = canvas.height - 300;
-    platforms = [{x: 0, y: canvas.height-100, w: 2000}];
-    for(let i=0; i<100; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*3, p: Math.random()*0.5});
+function go() {
+    document.getElementById('menu').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('menu').style.display = 'none';
+        active = true; p.y = canvas.height - 200;
+        platforms = [{x: 0, y: canvas.height-100, w: 2500}];
+    }, 800);
 }
 
-function handleInput() {
+function jump() {
     if(!active) return;
-    if(boss) {
-        hp -= 5;
-        if(hp <= 0) { boss = false; document.getElementById('boss-overlay').style.display = 'none'; }
-    } else if(p.gr) {
-        p.vy = -17; p.gr = false;
-    }
+    if(bossMode) {
+        hp -= 4;
+        if(hp <= 0) { bossMode = false; document.getElementById('boss-ui').style.display='none'; }
+    } else if(p.gr) { p.vy = -17; p.gr = false; }
 }
+
+window.onkeydown = (e) => { if(e.code === 'Space' || e.code === 'KeyX') jump(); };
 
 function update() {
     if(!active) return;
-    if(!boss) {
-        p.vx = 9 * hero.sM;
-        p.vy += 0.8 * hero.gM;
-    } else {
-        p.vx = 0; p.vy += 0.8;
-    }
-    p.x += p.vx; p.y += p.vy;
-    p.rot += p.gr ? 0 : 0.18;
-    camX = p.x - 100;
-    tile = Math.floor(p.x / 450);
-    document.getElementById('tile-stat').innerText = tile;
+    if(!bossMode) { p.vx = 9 * hero.s; p.vy += 0.8 * hero.g; } 
+    else { p.vx = 0; p.vy += 0.8; }
 
-    if(bossSteps.length > 0 && tile >= bossSteps[0]) {
-        boss = true; hp = 100; 
-        document.getElementById('boss-overlay').style.display = 'block';
-        document.getElementById('boss-id').innerText = (bossSteps[0] === 100) ? "REYSHI" : "BLACK DEATH";
-        bossSteps.shift();
+    p.x += p.vx; p.y += p.vy;
+    p.rot += p.gr ? 0 : 0.2;
+    camX = p.x - 100;
+    currentTile = Math.floor(p.x / 450);
+    document.getElementById('t-val').innerText = currentTile;
+
+    if(bosses.length > 0 && currentTile >= bosses[0]) {
+        bossMode = true; hp = 100;
+        document.getElementById('boss-ui').style.display = 'block';
+        document.getElementById('b-name').innerText = bosses[0] === 100 ? "REYSHI" : "BLACK DEATH";
+        bosses.shift();
     }
 
     p.gr = false;
@@ -127,47 +171,36 @@ function update() {
         if(Math.random() > 0.5) spikes.push({x: nx + nw/2, y: ny});
     }
     if(p.y > canvas.height) location.reload();
-    document.getElementById('health-fill').style.width = hp + "%";
+}
+
+function drawBackground() {
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width, canvas.height);
+    
+    // THE 3 ELEMENTAL MODES
+    if(hero.mode === 'fire') {
+        for(let i=0; i<10; i++) {
+            ctx.fillStyle = `rgba(255, 50, 0, ${Math.random()*0.2})`;
+            ctx.fillRect(Math.random()*canvas.width, 0, Math.random()*100, canvas.height);
+        }
+    } else if(hero.mode === 'lightning') {
+        if(Math.random() > 0.9) {
+            ctx.strokeStyle = '#0ff'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(Math.random()*canvas.width, 0);
+            ctx.lineTo(Math.random()*canvas.width, canvas.height); ctx.stroke();
+        }
+    } else if(hero.mode === 'galaxy') {
+        ctx.fillStyle = '#fff';
+        for(let i=0; i<50; i++) {
+            let x = (Math.sin(Date.now()*0.001 + i)*200) + canvas.width/2;
+            let y = (Math.cos(Date.now()*0.001 + i)*200) + canvas.height/2;
+            ctx.fillRect(x, y, 2, 2);
+        }
+    }
 }
 
 function draw() {
-    // 1. NEBULA BACKGROUND
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-    
-    let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, '#000');
-    grad.addColorStop(0.5, hero.bg);
-    grad.addColorStop(1, '#000');
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-
-    // 2. PARALLAX STARS
-    ctx.fillStyle = "#fff";
-    stars.forEach(s => {
-        s.x -= (p.vx * s.p);
-        if(s.x < 0) s.x = canvas.width;
-        ctx.fillRect(s.x, s.y, s.s, s.s);
-    });
-
-    // 3. GRID EFFECT
-    ctx.strokeStyle = hero.color;
-    ctx.globalAlpha = 0.1;
-    ctx.beginPath();
-    for(let i = 0; i < canvas.width; i += 50) {
-        let offset = (camX % 50);
-        ctx.moveTo(i - offset, 0); ctx.lineTo(i - offset, canvas.height);
-    }
-    for(let j = 0; j < canvas.height; j += 50) {
-        ctx.moveTo(0, j); ctx.lineTo(canvas.width, j);
-    }
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    ctx.save();
-    ctx.translate(-camX, 0);
+    drawBackground();
+    ctx.save(); ctx.translate(-camX, 0);
 
     // SPIKES
     ctx.fillStyle = "#ff4444";
@@ -176,24 +209,24 @@ function draw() {
     });
 
     // PLATFORMS
-    ctx.lineWidth = 3; ctx.strokeStyle = hero.color; ctx.fillStyle = "#0a0a0a";
-    platforms.forEach(plat => { ctx.fillRect(plat.x, plat.y, plat.w, 80); ctx.strokeRect(plat.x, plat.y, plat.w, 80); });
+    ctx.lineWidth = 3; ctx.strokeStyle = hero.color; ctx.fillStyle = "rgba(10,10,10,0.8)";
+    platforms.forEach(plat => { ctx.fillRect(plat.x, plat.y, plat.w, 100); ctx.strokeRect(plat.x, plat.y, plat.w, 100); });
 
     // BOSS
-    if(boss) {
-        ctx.fillStyle = "red"; ctx.font = "120px Orbitron";
+    if(bossMode) {
+        ctx.fillStyle = "red"; ctx.font = "150px Orbitron";
         ctx.fillText(hp > 0 ? "💀" : "💥", p.x + 400, canvas.height/2);
     }
 
     // PLAYER
-    ctx.save();
-    ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
-    ctx.shadowBlur = 20; ctx.shadowColor = hero.color; ctx.fillStyle = hero.color;
+    ctx.save(); ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
+    ctx.shadowBlur = 25; ctx.shadowColor = hero.color; ctx.fillStyle = hero.color;
     ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-    ctx.fillStyle = "#fff"; ctx.font = "20px Orbitron"; ctx.fillText(hero.icon, -10, 8);
+    ctx.fillStyle = "#fff"; ctx.font = "24px Orbitron"; ctx.fillText(hero.icon, -12, 10);
     ctx.restore();
 
     ctx.restore();
+    document.getElementById('hp-bar').style.width = hp + "%";
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }

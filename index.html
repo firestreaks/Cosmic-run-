@@ -3,50 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS: ELITE DASH</title>
+    <title>COSMIC LEGENDS: NEBULA DASH</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; }
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; }
         canvas { display: block; }
-        
-        #game-ui { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
         .hud { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 0 10px #0ff; font-size: 20px; font-weight: 900; }
-        
         #boss-overlay { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 85%; max-width: 600px; display: none; text-align: center; }
         .health-bar { width: 100%; height: 20px; background: #111; border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
         #health-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0044, #ff6600); transition: width 0.1s; }
-
-        #menu { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-        .hero-grid { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin: 30px 0; }
-        .card { width: 100px; padding: 20px 10px; background: #0a0a0a; border: 2px solid #333; border-radius: 15px; cursor: pointer; text-align: center; color: white; transition: 0.3s; }
+        #menu { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .hero-grid { display: flex; gap: 15px; margin: 30px 0; }
+        .card { width: 100px; padding: 20px 10px; background: #0a0a0a; border: 2px solid #333; border-radius: 15px; cursor: pointer; text-align: center; color: white; }
         .card.selected { border-color: #0ff; box-shadow: 0 0 20px #0ff; background: #001a1a; }
-        .card h3 { font-size: 12px; margin: 10px 0 0; }
-
         .btn { padding: 15px 50px; font-size: 24px; background: #0ff; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; border-radius: 8px; cursor: pointer; opacity: 0.2; }
         .btn.active { opacity: 1; }
     </style>
 </head>
 <body onmousedown="handleInput()" ontouchstart="handleInput()">
 
-<div id="game-ui">
+<div id="ui-layer">
     <div class="hud">TILE: <span id="tile-stat">0</span>/100</div>
     <div id="boss-overlay">
         <h1 id="boss-id" style="color: #ff0044; margin: 0; text-shadow: 0 0 15px red;">BLACK DEATH</h1>
         <div class="health-bar"><div id="health-fill"></div></div>
-        <p style="color: #fff; font-size: 12px; margin-top: 5px;">TAP REPEATEDLY TO ATTACK</p>
     </div>
 </div>
 
 <div id="menu">
-    <h1 style="color: #fff; text-shadow: 0 0 20px #0ff; font-size: 32px; text-align: center;">COSMIC LEGENDS</h1>
+    <h1 style="color: #fff; text-shadow: 0 0 20px #0ff; font-size: 32px;">COSMIC LEGENDS</h1>
     <div class="hero-grid">
-        <div class="card" onclick="pick('ron', '#ff4400', '☀️', 1.0, 0.9, 'rgba(255, 68, 0, 0.1)')">
+        <div class="card" onclick="pick('ron', '#ff4400', '☀️', 1.0, 0.9, '#441100')">
             <div style="font-size: 40px;">☀️</div><h3>RON</h3>
         </div>
-        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0, 'rgba(0, 242, 255, 0.1)')">
+        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0, '#002244')">
             <div style="font-size: 40px;">⚡</div><h3>DEN</h3>
         </div>
-        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6, 'rgba(188, 0, 255, 0.1)')">
+        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6, '#220044')">
             <div style="font-size: 40px;">🌌</div><h3>LAPSE</h3>
         </div>
     </div>
@@ -62,15 +56,10 @@ canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 
 let active = false, boss = false, hp = 100, tile = 0, camX = 0;
 let hero = { id: '', color: '#fff', icon: '', sM: 1, gM: 1, bg: '#000' };
-let platforms = [], spikes = [], particles = [], stars = [];
+let platforms = [], spikes = [], stars = [];
 let bossSteps = [30, 55, 75, 100];
 
 const p = { x: 100, y: 0, w: 45, h: 45, vx: 0, vy: 0, rot: 0, gr: false };
-
-// Particle System
-function createPart(x, y, color) {
-    for(let i=0; i<5; i++) particles.push({x, y, c: color, s: Math.random()*4, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, a: 1});
-}
 
 function pick(id, color, icon, s, g, bg) {
     hero = { id, color, icon, sM: s, gM: g, bg };
@@ -84,20 +73,18 @@ function startGame() {
     document.getElementById('menu').style.display = 'none';
     active = true; p.y = canvas.height - 300;
     platforms = [{x: 0, y: canvas.height-100, w: 2000}];
-    for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, z: Math.random()*2});
+    for(let i=0; i<100; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*3, p: Math.random()*0.5});
 }
 
 function handleInput() {
     if(!active) return;
     if(boss) {
-        hp -= 4; createPart(p.x+400, canvas.height/2, 'red');
+        hp -= 5;
         if(hp <= 0) { boss = false; document.getElementById('boss-overlay').style.display = 'none'; }
     } else if(p.gr) {
         p.vy = -17; p.gr = false;
     }
 }
-
-window.onkeydown = (e) => { if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyX') handleInput(); };
 
 function update() {
     if(!active) return;
@@ -107,7 +94,6 @@ function update() {
     } else {
         p.vx = 0; p.vy += 0.8;
     }
-
     p.x += p.vx; p.y += p.vy;
     p.rot += p.gr ? 0 : 0.18;
     camX = p.x - 100;
@@ -117,7 +103,7 @@ function update() {
     if(bossSteps.length > 0 && tile >= bossSteps[0]) {
         boss = true; hp = 100; 
         document.getElementById('boss-overlay').style.display = 'block';
-        document.getElementById('boss-id').innerText = bossSteps[0] === 100 ? "REYSHI" : "BLACK DEATH";
+        document.getElementById('boss-id').innerText = (bossSteps[0] === 100) ? "REYSHI" : "BLACK DEATH";
         bossSteps.shift();
     }
 
@@ -129,66 +115,85 @@ function update() {
     });
 
     spikes.forEach(s => {
-        let dx = p.x + p.w/2 - s.x;
-        let dy = p.y + p.h/2 - s.y;
-        if(Math.sqrt(dx*dx + dy*dy) < 30) location.reload();
+        if(p.x < s.x + 20 && p.x + p.w > s.x - 20 && p.y < s.y && p.y + p.h > s.y - 40) location.reload();
     });
 
     if(platforms[platforms.length-1].x < camX + canvas.width + 500) {
         let last = platforms[platforms.length-1];
         let nw = 400 + Math.random()*600;
-        let nx = last.x + last.w + 120 + Math.random()*100;
+        let nx = last.x + last.w + 130 + Math.random()*100;
         let ny = canvas.height - 100 - Math.random()*150;
         platforms.push({x: nx, y: ny, w: nw});
-        if(Math.random() > 0.4) spikes.push({x: nx + nw/2, y: ny});
+        if(Math.random() > 0.5) spikes.push({x: nx + nw/2, y: ny});
     }
-
     if(p.y > canvas.height) location.reload();
     document.getElementById('health-fill').style.width = hp + "%";
 }
 
 function draw() {
-    // Gradient Background based on Hero
-    let g = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 10, canvas.width/2, canvas.height/2, canvas.width);
-    g.addColorStop(0, hero.bg); g.addColorStop(1, '#000');
-    ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width, canvas.height);
+    // 1. NEBULA BACKGROUND
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    
+    let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#000');
+    grad.addColorStop(0.5, hero.bg);
+    grad.addColorStop(1, '#000');
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
 
-    // Stars
+    // 2. PARALLAX STARS
     ctx.fillStyle = "#fff";
-    stars.forEach(s => { s.x -= p.vx*0.1; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.z, s.z); });
+    stars.forEach(s => {
+        s.x -= (p.vx * s.p);
+        if(s.x < 0) s.x = canvas.width;
+        ctx.fillRect(s.x, s.y, s.s, s.s);
+    });
 
-    ctx.save(); ctx.translate(-camX, 0);
+    // 3. GRID EFFECT
+    ctx.strokeStyle = hero.color;
+    ctx.globalAlpha = 0.1;
+    ctx.beginPath();
+    for(let i = 0; i < canvas.width; i += 50) {
+        let offset = (camX % 50);
+        ctx.moveTo(i - offset, 0); ctx.lineTo(i - offset, canvas.height);
+    }
+    for(let j = 0; j < canvas.height; j += 50) {
+        ctx.moveTo(0, j); ctx.lineTo(canvas.width, j);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
 
-    // Spikes (Geometry Dash Style)
+    ctx.save();
+    ctx.translate(-camX, 0);
+
+    // SPIKES
     ctx.fillStyle = "#ff4444";
     spikes.forEach(s => {
         ctx.beginPath(); ctx.moveTo(s.x-20, s.y); ctx.lineTo(s.x+20, s.y); ctx.lineTo(s.x, s.y-40); ctx.fill();
     });
 
-    // Platforms
+    // PLATFORMS
     ctx.lineWidth = 3; ctx.strokeStyle = hero.color; ctx.fillStyle = "#0a0a0a";
-    platforms.forEach(plat => { ctx.fillRect(plat.x, plat.y, plat.w, 60); ctx.strokeRect(plat.x, plat.y, plat.w, 60); });
+    platforms.forEach(plat => { ctx.fillRect(plat.x, plat.y, plat.w, 80); ctx.strokeRect(plat.x, plat.y, plat.w, 80); });
 
-    // Boss
+    // BOSS
     if(boss) {
         ctx.fillStyle = "red"; ctx.font = "120px Orbitron";
         ctx.fillText(hp > 0 ? "💀" : "💥", p.x + 400, canvas.height/2);
     }
 
-    // Player
-    ctx.save(); ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
+    // PLAYER
+    ctx.save();
+    ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
     ctx.shadowBlur = 20; ctx.shadowColor = hero.color; ctx.fillStyle = hero.color;
     ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
     ctx.fillStyle = "#fff"; ctx.font = "20px Orbitron"; ctx.fillText(hero.icon, -10, 8);
     ctx.restore();
 
     ctx.restore();
-    for(let i=particles.length-1; i>=0; i--) {
-        let pt = particles[i]; pt.x += pt.vx; pt.y += pt.vy; pt.a -= 0.05;
-        if(pt.a <= 0) particles.splice(i, 1);
-        else { ctx.globalAlpha = pt.a; ctx.fillStyle = pt.c; ctx.fillRect(pt.x, pt.y, pt.s, pt.s); }
-    }
-    ctx.globalAlpha = 1;
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }

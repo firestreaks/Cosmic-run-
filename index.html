@@ -3,177 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS MOBILE</title>
+    <title>COSMIC LEGENDS: ELITE DASH</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; touch-action: none; }
+        canvas { display: block; }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Orbitron', sans-serif; height: 100%; width: 100%; }
-        canvas { display: block; touch-action: none; }
-
-        /* NEON UI */
-        #ui { position: absolute; top: 10px; left: 10px; z-index: 10; pointer-events: none; }
-        .stat-text { color: #0ff; text-shadow: 0 0 10px #0ff; font-weight: 900; font-size: 18px; margin: 0; }
-
-        /* BOSS SYSTEM */
-        #boss-ui { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 80%; display: none; text-align: center; z-index: 20; }
-        .hp-bar { width: 100%; height: 20px; background: #200; border: 2px solid #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 15px #f00; }
-        #hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0044, #ff00cc); }
-
-        /* SELECTION SCREEN */
-        #menu { position: absolute; inset: 0; background: radial-gradient(circle, #1a0033 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 20px; }
-        .hero-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 20px 0; }
-        .card { width: 100px; padding: 15px 5px; background: rgba(255,255,255,0.05); border: 1px solid #444; border-radius: 10px; color: #fff; cursor: pointer; transition: 0.2s; }
-        .card.active { border-color: #0ff; box-shadow: 0 0 15px #0ff; background: rgba(0,255,255,0.1); }
-        .card h3 { font-size: 12px; margin: 5px 0 0; }
+        #game-ui { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+        .hud { position: absolute; top: 20px; left: 20px; color: #fff; text-shadow: 0 0 10px #0ff; font-size: 20px; font-weight: 900; }
         
-        #start-btn { padding: 15px 40px; background: #0ff; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; border-radius: 5px; font-size: 20px; margin-top: 20px; display: none; }
+        #boss-overlay { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 85%; max-width: 600px; display: none; text-align: center; }
+        .health-bar { width: 100%; height: 20px; background: #111; border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
+        #health-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0044, #ff6600); transition: width 0.1s; }
+
+        #menu { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+        .hero-grid { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin: 30px 0; }
+        .card { width: 100px; padding: 20px 10px; background: #0a0a0a; border: 2px solid #333; border-radius: 15px; cursor: pointer; text-align: center; color: white; transition: 0.3s; }
+        .card.selected { border-color: #0ff; box-shadow: 0 0 20px #0ff; background: #001a1a; }
+        .card h3 { font-size: 12px; margin: 10px 0 0; }
+
+        .btn { padding: 15px 50px; font-size: 24px; background: #0ff; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; border-radius: 8px; cursor: pointer; opacity: 0.2; }
+        .btn.active { opacity: 1; }
     </style>
 </head>
-<body onclick="handleTouch()">
+<body onmousedown="handleInput()" ontouchstart="handleInput()">
 
-<div id="ui">
-    <p class="stat-text">TILE: <span id="tile-val">0</span>/100</p>
-    <p id="hero-tag" style="color: #fff; font-size: 10px; letter-spacing: 2px;"></p>
-</div>
-
-<div id="boss-ui">
-    <h2 id="boss-name" style="color: #ff0044; text-shadow: 0 0 10px #f00; margin: 0 0 10px;">BLACK DEATH</h2>
-    <div class="hp-bar"><div id="hp-fill"></div></div>
-    <p style="color: #fff; font-size: 10px; margin-top: 5px;">TAP SCREEN TO ATTACK!</p>
+<div id="game-ui">
+    <div class="hud">TILE: <span id="tile-stat">0</span>/100</div>
+    <div id="boss-overlay">
+        <h1 id="boss-id" style="color: #ff0044; margin: 0; text-shadow: 0 0 15px red;">BLACK DEATH</h1>
+        <div class="health-bar"><div id="health-fill"></div></div>
+        <p style="color: #fff; font-size: 12px; margin-top: 5px;">TAP REPEATEDLY TO ATTACK</p>
+    </div>
 </div>
 
 <div id="menu">
-    <h1 style="color: #fff; text-shadow: 0 0 20px #0ff; margin-bottom: 0;">COSMIC LEGENDS</h1>
-    <p style="color: #aaa; font-size: 12px;">TOUCH A HERO TO SELECT</p>
-    <div class="hero-row">
-        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0)">
-            <div style="font-size:30px">⚡</div>
-            <h3>DEN</h3>
+    <h1 style="color: #fff; text-shadow: 0 0 20px #0ff; font-size: 32px; text-align: center;">COSMIC LEGENDS</h1>
+    <div class="hero-grid">
+        <div class="card" onclick="pick('ron', '#ff4400', '☀️', 1.0, 0.9, 'rgba(255, 68, 0, 0.1)')">
+            <div style="font-size: 40px;">☀️</div><h3>RON</h3>
         </div>
-        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6)">
-            <div style="font-size:30px">🌌</div>
-            <h3>LAPSE</h3>
+        <div class="card" onclick="pick('den', '#00f2ff', '⚡', 1.2, 1.0, 'rgba(0, 242, 255, 0.1)')">
+            <div style="font-size: 40px;">⚡</div><h3>DEN</h3>
         </div>
-        <div class="card" onclick="pick('ron', '#ff9900', '☀️', 1.0, 0.9)">
-            <div style="font-size:30px">☀️</div>
-            <h3>RON</h3>
+        <div class="card" onclick="pick('lapse', '#bc00ff', '🌌', 0.9, 0.6, 'rgba(188, 0, 255, 0.1)')">
+            <div style="font-size: 40px;">🌌</div><h3>LAPSE</h3>
         </div>
     </div>
-    <button id="start-btn" onclick="playGame()">LAUNCH MISSION</button>
+    <button id="start-btn" class="btn" onclick="startGame()">START</button>
 </div>
 
-<canvas id="c"></canvas>
+<canvas id="stage"></canvas>
 
 <script>
-const canvas = document.getElementById('c');
+const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 
-let active = false, bossMode = false, bossHP = 100, tile = 0, camX = 0;
-let hero = { id: '', color: '#fff', icon: '', s: 1, g: 1 };
-let stars = Array.from({length: 80}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2}));
-let world = [{x: 0, y: canvas.height - 100, w: 2000, h: 50}];
-let bossCheck = [30, 42, 58, 75, 100];
+let active = false, boss = false, hp = 100, tile = 0, camX = 0;
+let hero = { id: '', color: '#fff', icon: '', sM: 1, gM: 1, bg: '#000' };
+let platforms = [], spikes = [], particles = [], stars = [];
+let bossSteps = [30, 55, 75, 100];
 
-const p = { x: 80, y: 0, w: 40, h: 40, vx: 0, vy: 0, rot: 0, gr: false };
+const p = { x: 100, y: 0, w: 45, h: 45, vx: 0, vy: 0, rot: 0, gr: false };
 
-function pick(id, color, icon, s, g) {
-    hero = { id, color, icon, s, g };
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('start-btn').style.display = 'block';
+// Particle System
+function createPart(x, y, color) {
+    for(let i=0; i<5; i++) particles.push({x, y, c: color, s: Math.random()*4, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, a: 1});
 }
 
-function playGame() {
+function pick(id, color, icon, s, g, bg) {
+    hero = { id, color, icon, sM: s, gM: g, bg };
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    document.getElementById('start-btn').classList.add('active');
+}
+
+function startGame() {
+    if(!hero.id) return;
     document.getElementById('menu').style.display = 'none';
-    document.getElementById('hero-tag').innerText = hero.id.toUpperCase();
-    p.y = canvas.height - 200;
-    active = true;
+    active = true; p.y = canvas.height - 300;
+    platforms = [{x: 0, y: canvas.height-100, w: 2000}];
+    for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, z: Math.random()*2});
 }
 
-function handleTouch() {
+function handleInput() {
     if(!active) return;
-    if(bossMode) {
-        bossHP -= 5;
-        if(bossHP <= 0) { bossMode = false; document.getElementById('boss-ui').style.display = 'none'; p.vx = 8 * hero.s; }
+    if(boss) {
+        hp -= 4; createPart(p.x+400, canvas.height/2, 'red');
+        if(hp <= 0) { boss = false; document.getElementById('boss-overlay').style.display = 'none'; }
     } else if(p.gr) {
-        p.vy = -16; p.gr = false;
+        p.vy = -17; p.gr = false;
     }
 }
+
+window.onkeydown = (e) => { if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyX') handleInput(); };
 
 function update() {
     if(!active) return;
-
-    if(!bossMode) {
-        p.vx = 8 * hero.s;
+    if(!boss) {
+        p.vx = 9 * hero.sM;
+        p.vy += 0.8 * hero.gM;
     } else {
-        p.vx = 0;
+        p.vx = 0; p.vy += 0.8;
     }
 
-    p.vy += 0.8 * hero.g; p.x += p.vx; p.y += p.vy;
-    p.rot += p.gr ? 0 : 0.15;
-    camX = p.x - 60;
+    p.x += p.vx; p.y += p.vy;
+    p.rot += p.gr ? 0 : 0.18;
+    camX = p.x - 100;
+    tile = Math.floor(p.x / 450);
+    document.getElementById('tile-stat').innerText = tile;
 
-    tile = Math.floor(p.x / 400);
-    document.getElementById('tile-val').innerText = tile;
-
-    if(bossCheck.length > 0 && tile >= bossCheck[0]) {
-        bossMode = true; bossHP = 100;
-        document.getElementById('boss-ui').style.display = 'block';
-        document.getElementById('boss-name').innerText = tile === 100 ? "REYSHI" : "BLACK DEATH";
-        bossCheck.shift();
+    if(bossSteps.length > 0 && tile >= bossSteps[0]) {
+        boss = true; hp = 100; 
+        document.getElementById('boss-overlay').style.display = 'block';
+        document.getElementById('boss-id').innerText = bossSteps[0] === 100 ? "REYSHI" : "BLACK DEATH";
+        bossSteps.shift();
     }
 
     p.gr = false;
-    world.forEach(t => {
-        if(p.x+p.w > t.x && p.x < t.x+t.w && p.y+p.h > t.y && p.y+p.h < t.y+p.vy+10) {
-            p.y = t.y-p.h; p.vy = 0; p.gr = true; p.rot = 0;
+    platforms.forEach(plat => {
+        if(p.x+p.w > plat.x && p.x < plat.x+plat.w && p.y+p.h > plat.y && p.y+p.h < plat.y+p.vy+10) {
+            p.y = plat.y-p.h; p.vy = 0; p.gr = true; p.rot = 0;
         }
     });
 
-    if(world[world.length-1].x < camX + canvas.width + 500) {
-        let l = world[world.length-1];
-        world.push({x: l.x+l.w+Math.random()*100+50, y: canvas.height-100-Math.random()*150, w: 400+Math.random()*400, h: 50});
+    spikes.forEach(s => {
+        let dx = p.x + p.w/2 - s.x;
+        let dy = p.y + p.h/2 - s.y;
+        if(Math.sqrt(dx*dx + dy*dy) < 30) location.reload();
+    });
+
+    if(platforms[platforms.length-1].x < camX + canvas.width + 500) {
+        let last = platforms[platforms.length-1];
+        let nw = 400 + Math.random()*600;
+        let nx = last.x + last.w + 120 + Math.random()*100;
+        let ny = canvas.height - 100 - Math.random()*150;
+        platforms.push({x: nx, y: ny, w: nw});
+        if(Math.random() > 0.4) spikes.push({x: nx + nw/2, y: ny});
     }
 
     if(p.y > canvas.height) location.reload();
-    document.getElementById('hp-fill').style.width = bossHP + "%";
+    document.getElementById('health-fill').style.width = hp + "%";
 }
 
 function draw() {
-    ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width, canvas.height);
+    // Gradient Background based on Hero
+    let g = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 10, canvas.width/2, canvas.height/2, canvas.width);
+    g.addColorStop(0, hero.bg); g.addColorStop(1, '#000');
+    ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width, canvas.height);
 
-    // Parallax Stars
-    ctx.fillStyle = '#fff';
-    stars.forEach(s => {
-        s.x -= (p.vx * 0.1); if(s.x < 0) s.x = canvas.width;
-        ctx.fillRect(s.x, s.y, s.s, s.s);
-    });
+    // Stars
+    ctx.fillStyle = "#fff";
+    stars.forEach(s => { s.x -= p.vx*0.1; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.z, s.z); });
 
     ctx.save(); ctx.translate(-camX, 0);
 
-    // World
-    world.forEach(t => {
-        ctx.fillStyle = '#111'; ctx.strokeStyle = hero.color; ctx.lineWidth = 2;
-        ctx.fillRect(t.x, t.y, t.w, t.h); ctx.strokeRect(t.x, t.y, t.w, t.h);
+    // Spikes (Geometry Dash Style)
+    ctx.fillStyle = "#ff4444";
+    spikes.forEach(s => {
+        ctx.beginPath(); ctx.moveTo(s.x-20, s.y); ctx.lineTo(s.x+20, s.y); ctx.lineTo(s.x, s.y-40); ctx.fill();
     });
 
+    // Platforms
+    ctx.lineWidth = 3; ctx.strokeStyle = hero.color; ctx.fillStyle = "#0a0a0a";
+    platforms.forEach(plat => { ctx.fillRect(plat.x, plat.y, plat.w, 60); ctx.strokeRect(plat.x, plat.y, plat.w, 60); });
+
     // Boss
-    if(bossMode) {
-        ctx.font = '80px Orbitron';
-        ctx.fillText(bossHP > 0 ? "💀" : "💥", p.x + 250, canvas.height/2);
+    if(boss) {
+        ctx.fillStyle = "red"; ctx.font = "120px Orbitron";
+        ctx.fillText(hp > 0 ? "💀" : "💥", p.x + 400, canvas.height/2);
     }
 
     // Player
     ctx.save(); ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
-    ctx.fillStyle = hero.color; ctx.shadowBlur = 15; ctx.shadowColor = hero.color;
+    ctx.shadowBlur = 20; ctx.shadowColor = hero.color; ctx.fillStyle = hero.color;
     ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-    ctx.fillStyle = '#fff'; ctx.font = '20px Orbitron'; ctx.fillText(hero.icon, -10, 8);
+    ctx.fillStyle = "#fff"; ctx.font = "20px Orbitron"; ctx.fillText(hero.icon, -10, 8);
     ctx.restore();
 
     ctx.restore();
+    for(let i=particles.length-1; i>=0; i--) {
+        let pt = particles[i]; pt.x += pt.vx; pt.y += pt.vy; pt.a -= 0.05;
+        if(pt.a <= 0) particles.splice(i, 1);
+        else { ctx.globalAlpha = pt.a; ctx.fillStyle = pt.c; ctx.fillRect(pt.x, pt.y, pt.s, pt.s); }
+    }
+    ctx.globalAlpha = 1;
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }

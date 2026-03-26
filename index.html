@@ -3,126 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS: WARP RUNNER</title>
+    <title>COSMIC LEGENDS: THE PERFECT RUNNER</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Press Start 2P', cursive; }
         canvas { display: block; image-rendering: pixelated; }
-        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #fff; z-index: 10; font-size: 12px; pointer-events: none; }
-        #menu { position: absolute; inset: 0; background: #000; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .lane-btn { padding: 20px; margin: 10px; background: #111; border: 4px solid #444; color: #fff; cursor: pointer; }
-        .lane-btn.active { border-color: #0ff; box-shadow: 0 0 15px #0ff; }
+
+        /* HUD & MENU */
+        #hud { position: absolute; top: 20px; width: 100%; text-align: center; color: #fff; font-size: 10px; z-index: 10; pointer-events: none; text-shadow: 2px 2px #000; }
+        #menu { 
+            position: absolute; inset: 0; background: #050505; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 8px solid #222;
+        }
+        .hero-select { display: flex; gap: 10px; margin: 20px; }
+        .p-card { 
+            width: 100px; padding: 20px 5px; border: 4px solid #444; 
+            background: #111; color: #fff; cursor: pointer; text-align: center; font-size: 8px;
+        }
+        .p-card.active { border-color: #0ff; box-shadow: 0 0 20px #0ff; transform: scale(1.1); }
+        .p-card span { font-size: 24px; display: block; margin-bottom: 10px; }
+        
+        #start-btn { 
+            margin-top: 30px; padding: 15px 30px; background: #fff; border: 4px solid #000; 
+            font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; display: none;
+        }
     </style>
 </head>
-<body>
+<body onmousedown="input(event)" ontouchstart="input(event)">
 
-<div id="ui">DISTANCE: <span id="dist">0</span>m</div>
+<div id="hud">DISTANCE: <span id="dist">0</span>m</div>
 
 <div id="menu">
-    <h1 style="color: #0ff; font-size: 18px; margin-bottom: 20px;">COSMIC RUNNER</h1>
-    <div style="display: flex;">
-        <div class="lane-btn" onclick="sel('ron','#f50','☀️')">RON</div>
-        <div class="lane-btn" onclick="sel('den','#0ff','⚡')">DEN</div>
-        <div class="lane-btn" onclick="sel('lapse','#b0f','🌌')">LAPSE</div>
+    <h1 style="color: #fff; font-size: 16px; margin-bottom: 10px;">COSMIC LEGENDS</h1>
+    <p style="color: #888; font-size: 8px; margin-bottom: 20px;">3D WARP PROTOCOL</p>
+    <div class="hero-select">
+        <div class="p-card" onclick="select('ron','#f50','☀️','fire')"><span>☀️</span>RON</div>
+        <div class="p-card" onclick="select('den','#0ff','⚡','light')"><span>⚡</span>DEN</div>
+        <div class="p-card" onclick="select('lapse','#b0f','🌌','galaxy')"><span>🌌</span>LAPSE</div>
     </div>
-    <button id="start" style="margin-top: 30px; font-family: 'Press Start 2P'; padding: 10px; display: none;" onclick="start()">WARP START</button>
+    <button id="start-btn" onclick="go()">INITIATE RUN</button>
 </div>
 
-<canvas id="g"></canvas>
+<canvas id="game"></canvas>
 
 <script>
-const cvs = document.getElementById('g');
+const cvs = document.getElementById('game');
 const ctx = cvs.getContext('2d');
-const vW = 400, vH = 240;
+
+// Virtual resolution for that chunky pixel feel
+const vW = 400; const vH = 240;
 cvs.width = vW; cvs.height = vH;
 cvs.style.width = '100vw'; cvs.style.height = '100vh';
 
-let run = false, score = 0, hero = {}, obstacles = [], lanes = [-80, 0, 80];
-let playerLane = 1; // 0: Left, 1: Middle, 2: Right
-let targetX = 0;
-let currentX = 0;
+let run = false, score = 0, shake = 0, hero = {};
+let lane = 1; // 0, 1, 2
+let lerpX = 200; 
+let obstacles = [], stars = [], particles = [];
 
-function sel(id, col, icon) {
-    hero = { id, col, icon };
-    document.querySelectorAll('.lane-btn').forEach(b => b.classList.remove('active'));
+function select(id, col, icon, mode) {
+    hero = { id, col, icon, mode };
+    document.querySelectorAll('.p-card').forEach(c => c.classList.remove('active'));
     event.currentTarget.classList.add('active');
-    document.getElementById('start').style.display = 'block';
+    document.getElementById('start-btn').style.display = 'block';
 }
 
-function start() { document.getElementById('menu').style.display = 'none'; run = true; }
+function go() { document.getElementById('menu').style.display = 'none'; run = true; }
 
-// Input: Click left half to move left, right half to move right
-window.addEventListener('mousedown', (e) => {
+function input(e) {
     if(!run) return;
-    if(e.clientX < window.innerWidth / 2) {
-        if(playerLane > 0) playerLane--;
-    } else {
-        if(playerLane < 2) playerLane++;
-    }
-});
+    const x = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+    if(x < window.innerWidth / 2) { if(lane > 0) lane--; }
+    else { if(lane < 2) lane++; }
+    // Squash effect on move
+    pScaleX = 1.4; pScaleY = 0.6;
+}
+
+// Player visuals
+let pScaleX = 1, pScaleY = 1;
+
+// Init Stars
+for(let i=0; i<60; i++) stars.push({x: Math.random()*vW, y: Math.random()*vH, z: Math.random()*vW});
 
 function update() {
     if(!run) return;
     score++;
     document.getElementById('dist').innerText = Math.floor(score/10);
 
-    // Smooth lane transition
-    targetX = lanes[playerLane];
-    currentX += (targetX - currentX) * 0.2;
+    // Smooth movement (Lerp)
+    let targetX = [100, 200, 300][lane];
+    lerpX += (targetX - lerpX) * 0.2;
 
-    // Spawn obstacles
-    if(score % 40 === 0) {
-        obstacles.push({
-            lane: Math.floor(Math.random()*3),
-            z: 500, // Distance away
-            w: 40, h: 40
-        });
+    // Reset squash/stretch
+    pScaleX += (1 - pScaleX) * 0.2;
+    pScaleY += (1 - pScaleY) * 0.2;
+
+    // Background Stars / Warp
+    stars.forEach(s => {
+        s.z -= 4 + (score/500);
+        if(s.z <= 0) s.z = vW;
+    });
+
+    // Spawn Obstacles
+    if(score % 25 === 0) {
+        obstacles.push({ lane: Math.floor(Math.random()*3), z: 400 });
     }
 
     obstacles.forEach((o, i) => {
-        o.z -= 8; // Move toward player
-        if(o.z < -50) obstacles.splice(i, 1);
-
-        // Simple collision
-        if(o.z < 20 && o.z > -20 && o.lane === playerLane) {
-            location.reload(); // Game Over
+        o.z -= 5 + (score/1000);
+        if(o.z < 0) obstacles.splice(i, 1);
+        
+        // Collision (Perfected hitbox)
+        if(o.z < 25 && o.z > 5 && o.lane === lane) {
+            shake = 20;
+            setTimeout(() => location.reload(), 150);
         }
     });
+
+    if(shake > 0) shake *= 0.9;
 }
 
 function draw() {
-    ctx.fillStyle = '#050005';
-    ctx.fillRect(0, 0, vW, vH);
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = '#050005'; ctx.fillRect(0,0,vW,vH);
 
-    // Draw 3D Lanes (Pseudo-perspective)
-    ctx.strokeStyle = '#222';
-    ctx.beginPath();
-    lanes.forEach(l => {
-        ctx.moveTo(vW/2 + l/4, 100);
-        ctx.lineTo(vW/2 + l*2, vH);
-    });
-    ctx.stroke();
-
-    // Draw Obstacles
-    obstacles.forEach(o => {
-        let scale = 200 / (o.z + 1); // Perspective scale
-        let ox = vW/2 + (lanes[o.lane] * (400 - o.z) / 400);
-        let oy = 100 + (120 * (400 - o.z) / 400);
-        
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(ox - (o.w*scale)/2, oy - (o.h*scale)/2, o.w*scale, o.h*scale);
-    });
-
-    // Draw Player
-    ctx.save();
-    let px = vW/2 + currentX;
-    let py = vH - 40;
+    // ELEMENTAL BACKGROUNDS (YOUR LINKS)
+    ctx.globalAlpha = 0.2;
     ctx.fillStyle = hero.col;
+    if(hero.mode === 'fire') { // Flowing Fire
+        for(let i=0; i<5; i++) ctx.fillRect(Math.random()*vW, 0, 2, vH);
+    } else if(hero.mode === 'light') { // Bursting Lightning
+        if(Math.random() > 0.96) ctx.fillRect(0,0,vW,vH);
+    } else if(hero.mode === 'galaxy') { // Moving Galaxy
+        ctx.globalAlpha = 0.4;
+        stars.forEach(s => {
+            let sx = (s.x - vW/2) * (vW/s.z) + vW/2;
+            let sy = (s.y - vH/2) * (vW/s.z) + vH/2;
+            ctx.fillRect(sx, sy, 2, 2);
+        });
+    }
+    ctx.globalAlpha = 1;
+
+    // Apply Shake
+    ctx.translate(Math.random()*shake, Math.random()*shake);
+
+    // Draw 3D Grid Lanes
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+    [50, 150, 250, 350].forEach(lx => {
+        ctx.beginPath();
+        ctx.moveTo(vW/2 + (lx - vW/2)*0.05, 100);
+        ctx.lineTo(lx, vH);
+        ctx.stroke();
+    });
+
+    // Draw Obstacles (Space Mines)
+    obstacles.forEach(o => {
+        let perspective = vW / (o.z + 1);
+        let ox = vW/2 + ([100, 200, 300][o.lane] - vW/2) * (perspective/5);
+        let oy = 100 + (o.z * -0.5) + 120;
+        let size = 500 / o.z;
+        
+        ctx.fillStyle = '#f00'; ctx.fillRect(ox - size/2, oy - size/2, size, size);
+        ctx.fillStyle = '#800'; ctx.fillRect(ox - size/4, oy - size/4, size/2, size/2);
+    });
+
+    // Draw Hero (With Squash & Stretch)
+    ctx.save();
+    let py = vH - 60;
+    ctx.translate(lerpX, py);
+    ctx.scale(pScaleX, pScaleY);
+    
     ctx.shadowBlur = 15; ctx.shadowColor = hero.col;
-    ctx.fillRect(px - 15, py - 15, 30, 30);
+    ctx.fillStyle = hero.col;
+    ctx.fillRect(-15, -15, 30, 30);
+    
     ctx.fillStyle = '#fff';
-    ctx.font = '10px Arial';
-    ctx.fillText(hero.icon, px - 8, py + 5);
+    ctx.font = '14px Arial';
+    ctx.fillText(hero.icon, -9, 8);
     ctx.restore();
 }
 

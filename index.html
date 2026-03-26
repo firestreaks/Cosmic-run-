@@ -1,192 +1,921 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS: THE PERFECT RUNNER</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Press Start 2P', cursive; }
-        canvas { display: block; image-rendering: pixelated; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REYSHI CHASE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:wght@400;700;900&display=swap');
 
-        /* HUD & MENU */
-        #hud { position: absolute; top: 20px; width: 100%; text-align: center; color: #fff; font-size: 10px; z-index: 10; pointer-events: none; text-shadow: 2px 2px #000; }
-        #menu { 
-            position: absolute; inset: 0; background: #050505; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border: 8px solid #222;
-        }
-        .hero-select { display: flex; gap: 10px; margin: 20px; }
-        .p-card { 
-            width: 100px; padding: 20px 5px; border: 4px solid #444; 
-            background: #111; color: #fff; cursor: pointer; text-align: center; font-size: 8px;
-        }
-        .p-card.active { border-color: #0ff; box-shadow: 0 0 20px #0ff; transform: scale(1.1); }
-        .p-card span { font-size: 24px; display: block; margin-bottom: 10px; }
-        
-        #start-btn { 
-            margin-top: 30px; padding: 15px 30px; background: #fff; border: 4px solid #000; 
-            font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; display: none;
-        }
-    </style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;overflow:hidden;height:100vh;width:100vw;font-family:‘Exo 2’,sans-serif;}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s,transform .4s;}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(.97);}
+
+/* ── INTRO ── */
+#intro{background:linear-gradient(170deg,#060010 0%,#0a0020 50%,#150005 100%);}
+.intro-bg{position:absolute;inset:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;animation:twinkle var(–d,3s) infinite alternate;}
+@keyframes twinkle{from{opacity:.1}to{opacity:.9}}
+
+.game-logo{font-family:‘Bebas Neue’,cursive;font-size:clamp(70px,14vw,140px);letter-spacing:8px;line-height:.9;text-align:center;position:relative;z-index:2;}
+.logo-reyshi{color:#ff2255;text-shadow:0 0 30px #ff2255,0 0 80px #ff000066;animation:logoPulse 2s infinite alternate;}
+.logo-chase{color:#fff;text-shadow:0 0 20px rgba(255,255,255,.3);}
+@keyframes logoPulse{from{text-shadow:0 0 20px #ff2255}to{text-shadow:0 0 50px #ff2255,0 0 100px #ff000055,0 0 200px #ff000022}}
+
+.tagline{color:#aaa;letter-spacing:6px;font-size:14px;text-transform:uppercase;margin:12px 0 48px;z-index:2;}
+
+.btn{font-family:‘Bebas Neue’,cursive;letter-spacing:4px;border:none;cursor:pointer;border-radius:6px;transition:transform .15s,box-shadow .15s;}
+.btn:hover{transform:scale(1.06);}
+.btn:active{transform:scale(.95);}
+.btn-big{font-size:32px;padding:16px 72px;background:linear-gradient(135deg,#ff2255,#ff5500);color:#fff;box-shadow:0 0 40px #ff225566;z-index:2;}
+.btn-big:hover{box-shadow:0 0 60px #ff2255aa;}
+
+/* reyshi intro silhouette */
+.intro-reyshi{position:absolute;bottom:0;right:5%;opacity:.18;filter:drop-shadow(0 0 40px #ff2255);animation:lurk 4s ease-in-out infinite;}
+@keyframes lurk{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+/* ── HERO SELECT ── */
+#hero-select{background:linear-gradient(160deg,#080018 0%,#100020 60%,#08001a 100%);}
+.select-title{font-family:‘Bebas Neue’,cursive;font-size:clamp(36px,7vw,64px);letter-spacing:6px;color:#fff;margin-bottom:6px;}
+.select-sub{color:#556;letter-spacing:4px;font-size:13px;text-transform:uppercase;margin-bottom:40px;}
+
+.heroes{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
+.hcard{width:170px;border-radius:14px;padding:22px 16px 18px;cursor:pointer;border:2px solid transparent;
+background:rgba(255,255,255,.04);backdrop-filter:blur(6px);
+transition:transform .3s,border-color .3s,box-shadow .3s;text-align:center;position:relative;overflow:hidden;}
+.hcard:hover{transform:translateY(-10px);}
+.hcard.sel{transform:translateY(-14px) scale(1.04);}
+.hcard-glow{position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:14px;}
+.hcard:hover .hcard-glow,.hcard.sel .hcard-glow{opacity:1;}
+
+.hcard-canvas{display:block;margin:0 auto 14px;}
+.hcard-name{font-family:‘Bebas Neue’,cursive;font-size:26px;letter-spacing:3px;color:#fff;margin-bottom:4px;}
+.hcard-power{font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
+.hcard-desc{font-size:11px;color:#778;line-height:1.5;}
+.sel-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:1px;background:#fff;color:#000;opacity:0;transition:opacity .3s;}
+.hcard.sel .sel-badge{opacity:1;}
+
+.btn-go2{font-size:26px;padding:14px 56px;margin-top:36px;background:linear-gradient(135deg,#7700ff,#3300cc);color:#fff;box-shadow:0 0 30px #7700ff55;}
+.btn-go2:hover{box-shadow:0 0 60px #7700ffaa;}
+.btn-go2:disabled{opacity:.3;cursor:not-allowed;transform:none;}
+
+/* ── GAME ── */
+#game{background:#000;}
+#gc{display:block;}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;padding:14px 20px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:10;}
+.hud-box{text-align:center;}
+.hud-label{font-size:10px;letter-spacing:4px;color:#445;text-transform:uppercase;}
+.hud-val{font-family:‘Bebas Neue’,cursive;font-size:38px;color:#fff;letter-spacing:2px;line-height:1;text-shadow:0 0 10px var(–hc,#fff);}
+.hearts{display:flex;gap:6px;margin-top:4px;}
+.heart{font-size:24px;transition:all .2s;}
+.heart.dead{opacity:.2;filter:grayscale(1);transform:scale(.8);}
+
+/* controls hint */
+#hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#223;font-size:12px;letter-spacing:3px;pointer-events:none;text-transform:uppercase;}
+
+/* countdown overlay */
+#cdOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:15;pointer-events:none;}
+#cdNum{font-family:‘Bebas Neue’,cursive;font-size:220px;color:#fff;text-shadow:0 0 60px #fff;opacity:0;transform:scale(2);transition:all .25s;}
+#cdNum.show{opacity:1;transform:scale(1);}
+#cdNum.go{color:#00ffaa;text-shadow:0 0 60px #00ffaa;}
+
+/* GAMEOVER */
+#gameover{background:rgba(0,0,0,.92);backdrop-filter:blur(12px);z-index:20;}
+.go-head{font-family:‘Bebas Neue’,cursive;font-size:clamp(70px,12vw,110px);color:#ff2255;text-shadow:0 0 40px #ff2255;animation:goShake .12s infinite;}
+@keyframes goShake{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1deg)}}
+.go-dist{font-family:‘Bebas Neue’,cursive;font-size:52px;color:#ffd700;letter-spacing:4px;margin:8px 0;}
+.go-best{font-size:16px;color:#558;letter-spacing:3px;margin-bottom:44px;text-transform:uppercase;}
+.go-row{display:flex;gap:16px;}
+.btn-retry{font-size:26px;padding:14px 44px;background:linear-gradient(135deg,#ff2255,#ff6600);color:#fff;box-shadow:0 0 30px #ff225566;}
+.btn-menu2{font-size:26px;padding:14px 44px;background:rgba(255,255,255,.06);color:#aaa;border:1px solid #223;}
+</style>
+
 </head>
-<body onmousedown="input(event)" ontouchstart="input(event)">
+<body>
 
-<div id="hud">DISTANCE: <span id="dist">0</span>m</div>
+<!-- INTRO -->
 
-<div id="menu">
-    <h1 style="color: #fff; font-size: 16px; margin-bottom: 10px;">COSMIC LEGENDS</h1>
-    <p style="color: #888; font-size: 8px; margin-bottom: 20px;">3D WARP PROTOCOL</p>
-    <div class="hero-select">
-        <div class="p-card" onclick="select('ron','#f50','☀️','fire')"><span>☀️</span>RON</div>
-        <div class="p-card" onclick="select('den','#0ff','⚡','light')"><span>⚡</span>DEN</div>
-        <div class="p-card" onclick="select('lapse','#b0f','🌌','galaxy')"><span>🌌</span>LAPSE</div>
-    </div>
-    <button id="start-btn" onclick="go()">INITIATE RUN</button>
+<div id="intro" class="screen">
+  <div class="intro-bg" id="introBg"></div>
+  <svg class="intro-reyshi" width="200" height="280" viewBox="0 0 200 280">
+    <ellipse cx="100" cy="55" rx="36" ry="40" fill="#ff1133"/>
+    <rect x="64" y="90" width="72" height="100" rx="10" fill="#cc0022"/>
+    <rect x="36" y="96" width="30" height="72" rx="12" fill="#cc0022"/>
+    <rect x="134" y="96" width="30" height="72" rx="12" fill="#cc0022"/>
+    <rect x="66" y="190" width="28" height="82" rx="12" fill="#aa0011"/>
+    <rect x="106" y="190" width="28" height="82" rx="12" fill="#aa0011"/>
+    <polygon points="78,22 84,0 90,22" fill="#880011"/>
+    <polygon points="110,22 116,0 122,22" fill="#880011"/>
+    <circle cx="86" cy="50" r="9" fill="#ff6688"/>
+    <circle cx="114" cy="50" r="9" fill="#ff6688"/>
+  </svg>
+  <div class="game-logo">
+    <div class="logo-reyshi">REYSHI</div>
+    <div class="logo-chase">CHASE</div>
+  </div>
+  <div class="tagline">Run. Dodge. Survive the darkness.</div>
+  <button class="btn btn-big" onclick="goHeroSelect()">▶ PLAY</button>
 </div>
 
-<canvas id="game"></canvas>
+<!-- HERO SELECT -->
+
+<div id="hero-select" class="screen hidden">
+  <div class="select-title">CHOOSE YOUR HERO</div>
+  <div class="select-sub">Each hero has a unique power element</div>
+  <div class="heroes" id="heroesContainer"></div>
+  <button class="btn btn-go2" id="btnStart" disabled onclick="beginCountdown()">RUN!</button>
+</div>
+
+<!-- GAME -->
+
+<div id="game" class="screen hidden">
+  <canvas id="gc"></canvas>
+  <div id="hud">
+    <div class="hud-box">
+      <div class="hud-label">distance</div>
+      <div class="hud-val" id="hudDist" style="--hc:#fff">0m</div>
+    </div>
+    <div class="hud-box" style="text-align:right">
+      <div class="hud-label">lives</div>
+      <div class="hearts" id="hudHearts"></div>
+    </div>
+  </div>
+  <div id="cdOverlay"><div id="cdNum">3</div></div>
+  <div id="hint">← → CHANGE LANE &nbsp;|&nbsp; ↑ SPACE JUMP &nbsp;|&nbsp; ↓ SLIDE</div>
+</div>
+
+<!-- GAMEOVER -->
+
+<div id="gameover" class="screen hidden">
+  <div class="go-head">CAUGHT!</div>
+  <div class="go-dist" id="goDist">0 M</div>
+  <div class="go-best" id="goBest">Best: 0 m</div>
+  <div class="go-row">
+    <button class="btn btn-retry" onclick="restartRun()">↺ TRY AGAIN</button>
+    <button class="btn btn-menu2" onclick="goHeroSelect()">⌂ MENU</button>
+  </div>
+</div>
 
 <script>
-const cvs = document.getElementById('game');
-const ctx = cvs.getContext('2d');
+// ────────────────────────────────────────────────────────
+//  HEROES
+// ────────────────────────────────────────────────────────
+const HEROES = [
+  {
+    id:'ron', name:'RON', element:'FIRE',
+    col:'#ff5500', col2:'#ff2200', glow:'#ff5500',
+    jumpMul:1.0, speedMul:1.15,
+    desc:'Blazing speed, medium jump',
+    drawFn: drawRon
+  },
+  {
+    id:'lapse', name:'LAPSE', element:'GALAXY',
+    col:'#aa44ff', col2:'#5500cc', glow:'#aa44ff',
+    jumpMul:1.3, speedMul:0.95,
+    desc:'High jump, trails stardust',
+    drawFn: drawLapse
+  },
+  {
+    id:'den', name:'DEN', element:'LIGHTNING',
+    col:'#ffee00', col2:'#ff9900', glow:'#ffee00',
+    jumpMul:0.95, speedMul:1.25,
+    desc:'Fastest runner, electric dash',
+    drawFn: drawDen
+  },
+  {
+    id:'blackdeath', name:'BLACKDEATH', element:'VOID',
+    col:'#8800ff', col2:'#220044', glow:'#cc00ff',
+    jumpMul:1.15, speedMul:1.05,
+    desc:'Void walker, absorbs hits',
+    drawFn: drawBlackdeath
+  },
+];
 
-// Virtual resolution for that chunky pixel feel
-const vW = 400; const vH = 240;
-cvs.width = vW; cvs.height = vH;
-cvs.style.width = '100vw'; cvs.style.height = '100vh';
-
-let run = false, score = 0, shake = 0, hero = {};
-let lane = 1; // 0, 1, 2
-let lerpX = 200; 
-let obstacles = [], stars = [], particles = [];
-
-function select(id, col, icon, mode) {
-    hero = { id, col, icon, mode };
-    document.querySelectorAll('.p-card').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('start-btn').style.display = 'block';
+// ────────────────────────────────────────────────────────
+//  HERO DRAW FUNCTIONS (mini card previews)
+// ────────────────────────────────────────────────────────
+function drawRon(ctx, cx, cy, t, scale=1){
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale);
+  // fire aura
+  for(let i=0;i<6;i++){
+    const a=t*.05+i*1.05, r=18+Math.sin(t*.08+i)*5;
+    ctx.globalAlpha=.15+Math.sin(t*.06+i)*.08;
+    ctx.fillStyle='#ff6600';
+    ctx.beginPath(); ctx.arc(Math.cos(a)*r*.6, Math.sin(a)*r*.4-5, 7, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  // body
+  ctx.fillStyle='#cc3300'; ctx.beginPath(); ctx.roundRect(-14,-40,28,44,6); ctx.fill();
+  // head
+  ctx.fillStyle='#ff5500'; ctx.beginPath(); ctx.arc(0,-50,16,0,Math.PI*2); ctx.fill();
+  // hair flame
+  ctx.fillStyle='#ffaa00';
+  ctx.beginPath(); ctx.moveTo(-8,-62); ctx.lineTo(0,-80); ctx.lineTo(8,-62); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#ff4400';
+  ctx.beginPath(); ctx.moveTo(-4,-64); ctx.lineTo(0,-76); ctx.lineTo(4,-64); ctx.closePath(); ctx.fill();
+  // eyes
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff3300'; ctx.beginPath(); ctx.arc(-4,-51,2.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-51,2.5,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawLapse(ctx, cx, cy, t, scale=1){
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale);
+  // galaxy particles
+  for(let i=0;i<8;i++){
+    const a=t*.04+i*.78, r=20+i*2;
+    ctx.globalAlpha=.4+Math.sin(t*.07+i)*.2;
+    ctx.fillStyle=i%2?'#aa44ff':'#ffffff';
+    ctx.beginPath(); ctx.arc(Math.cos(a)*r,Math.sin(a)*r*.5-5,1.5+Math.sin(i)*.5,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#6600cc'; ctx.beginPath(); ctx.roundRect(-14,-40,28,44,6); ctx.fill();
+  ctx.fillStyle='#aa44ff'; ctx.beginPath(); ctx.arc(0,-50,16,0,Math.PI*2); ctx.fill();
+  // cosmic swirl on head
+  ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(0,-50,8,0,Math.PI*1.5); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-5,-51,3.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5,-51,3.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#cc88ff'; ctx.beginPath(); ctx.arc(-4,-51,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-51,2,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawDen(ctx, cx, cy, t, scale=1){
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale);
+  // lightning bolts
+  if(Math.floor(t*.15)%2===0){
+    ctx.strokeStyle='#ffff00'; ctx.lineWidth=2; ctx.globalAlpha=.7;
+    ctx.beginPath(); ctx.moveTo(-20,-20); ctx.lineTo(-10,-5); ctx.lineTo(-18,5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(20,-20); ctx.lineTo(10,-5); ctx.lineTo(18,5); ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  ctx.fillStyle='#cc8800'; ctx.beginPath(); ctx.roundRect(-14,-40,28,44,6); ctx.fill();
+  ctx.fillStyle='#ffee00'; ctx.beginPath(); ctx.arc(0,-50,16,0,Math.PI*2); ctx.fill();
+  // spiky hair
+  ctx.fillStyle='#fff700';
+  [[-10,-64],[-4,-70],[4,-70],[10,-64]].forEach(([x,y])=>{
+    ctx.beginPath(); ctx.moveTo(x-4,-62); ctx.lineTo(x,y); ctx.lineTo(x+4,-62); ctx.closePath(); ctx.fill();
+  });
+  ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffee00'; ctx.beginPath(); ctx.arc(-4,-51,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-51,2,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawBlackdeath(ctx, cx, cy, t, scale=1){
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale);
+  // void ripples
+  for(let i=0;i<3;i++){
+    ctx.globalAlpha=.12+i*.05;
+    ctx.strokeStyle='#8800ff'; ctx.lineWidth=2;
+    const r=16+i*8+Math.sin(t*.06+i)*3;
+    ctx.beginPath(); ctx.arc(0,-5,r,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#220033'; ctx.beginPath(); ctx.roundRect(-14,-40,28,44,6); ctx.fill();
+  ctx.fillStyle='#440066'; ctx.beginPath(); ctx.arc(0,-50,16,0,Math.PI*2); ctx.fill();
+  // mask/hood effect
+  ctx.fillStyle='rgba(0,0,0,.6)'; ctx.beginPath(); ctx.arc(0,-52,14,Math.PI,0); ctx.fill();
+  // glowing eyes
+  ctx.shadowBlur=10; ctx.shadowColor='#cc00ff';
+  ctx.fillStyle='#cc00ff'; ctx.beginPath(); ctx.arc(-5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5,-51,4,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.restore();
 }
 
-function go() { document.getElementById('menu').style.display = 'none'; run = true; }
-
-function input(e) {
-    if(!run) return;
-    const x = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-    if(x < window.innerWidth / 2) { if(lane > 0) lane--; }
-    else { if(lane < 2) lane++; }
-    // Squash effect on move
-    pScaleX = 1.4; pScaleY = 0.6;
+// ────────────────────────────────────────────────────────
+//  SCREENS
+// ────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
 }
 
-// Player visuals
-let pScaleX = 1, pScaleY = 1;
+// ── INTRO STARS ──
+(function buildStars(){
+  const bg=document.getElementById('introBg');
+  for(let i=0;i<120;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2.5+.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;
+      background:#fff;opacity:${Math.random()*.6+.1};--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s`;
+    bg.appendChild(s);
+  }
+})();
 
-// Init Stars
-for(let i=0; i<60; i++) stars.push({x: Math.random()*vW, y: Math.random()*vH, z: Math.random()*vW});
+// ── HERO SELECT ──
+let selectedHero=-1;
+let bestScore=0;
 
-function update() {
-    if(!run) return;
-    score++;
-    document.getElementById('dist').innerText = Math.floor(score/10);
+function goHeroSelect(){
+  showScreen('hero-select');
+  selectedHero=-1;
+  document.getElementById('btnStart').disabled=true;
+  buildHeroUI();
+}
 
-    // Smooth movement (Lerp)
-    let targetX = [100, 200, 300][lane];
-    lerpX += (targetX - lerpX) * 0.2;
+let cardTimers={};
+function buildHeroUI(){
+  const con=document.getElementById('heroesContainer');
+  con.innerHTML='';
+  HEROES.forEach((h,i)=>{
+    const card=document.createElement('div');
+    card.className='hcard';
+    card.innerHTML=`
+      <div class="hcard-glow" style="background:radial-gradient(ellipse at 50% 100%,${h.glow}22,transparent 70%)"></div>
+      <span class="sel-badge">✓ CHOSEN</span>
+      <canvas class="hcard-canvas" width="140" height="110" id="hc${i}"></canvas>
+      <div class="hcard-name" style="color:${h.col}">${h.name}</div>
+      <div class="hcard-power" style="color:${h.glow};text-shadow:0 0 8px ${h.glow}66">${h.element}</div>
+      <div class="hcard-desc">${h.desc}</div>
+    `;
+    card.onclick=()=>pickHero(i);
+    card.style.borderColor=selectedHero===i?h.col:'transparent';
+    con.appendChild(card);
 
-    // Reset squash/stretch
-    pScaleX += (1 - pScaleX) * 0.2;
-    pScaleY += (1 - pScaleY) * 0.2;
-
-    // Background Stars / Warp
-    stars.forEach(s => {
-        s.z -= 4 + (score/500);
-        if(s.z <= 0) s.z = vW;
-    });
-
-    // Spawn Obstacles
-    if(score % 25 === 0) {
-        obstacles.push({ lane: Math.floor(Math.random()*3), z: 400 });
+    // animate card canvas
+    const cv=document.getElementById('hc'+i);
+    const cx2=cv.getContext('2d');
+    let t=i*30;
+    if(cardTimers[i]) cancelAnimationFrame(cardTimers[i]);
+    function tick(){
+      cx2.clearRect(0,0,140,110);
+      h.drawFn(cx2,70,90,t,1.1);
+      t++;
+      cardTimers[i]=requestAnimationFrame(tick);
     }
-
-    obstacles.forEach((o, i) => {
-        o.z -= 5 + (score/1000);
-        if(o.z < 0) obstacles.splice(i, 1);
-        
-        // Collision (Perfected hitbox)
-        if(o.z < 25 && o.z > 5 && o.lane === lane) {
-            shake = 20;
-            setTimeout(() => location.reload(), 150);
-        }
-    });
-
-    if(shake > 0) shake *= 0.9;
+    tick();
+  });
 }
 
-function draw() {
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.fillStyle = '#050005'; ctx.fillRect(0,0,vW,vH);
+function pickHero(i){
+  selectedHero=i;
+  document.querySelectorAll('.hcard').forEach((c,j)=>{
+    c.classList.toggle('sel',j===i);
+    c.style.borderColor=j===i?HEROES[j].col:'transparent';
+    c.style.boxShadow=j===i?`0 0 30px ${HEROES[j].glow}44`:'none';
+  });
+  document.getElementById('btnStart').disabled=false;
+}
 
-    // ELEMENTAL BACKGROUNDS (YOUR LINKS)
-    ctx.globalAlpha = 0.2;
-    ctx.fillStyle = hero.col;
-    if(hero.mode === 'fire') { // Flowing Fire
-        for(let i=0; i<5; i++) ctx.fillRect(Math.random()*vW, 0, 2, vH);
-    } else if(hero.mode === 'light') { // Bursting Lightning
-        if(Math.random() > 0.96) ctx.fillRect(0,0,vW,vH);
-    } else if(hero.mode === 'galaxy') { // Moving Galaxy
-        ctx.globalAlpha = 0.4;
-        stars.forEach(s => {
-            let sx = (s.x - vW/2) * (vW/s.z) + vW/2;
-            let sy = (s.y - vH/2) * (vW/s.z) + vH/2;
-            ctx.fillRect(sx, sy, 2, 2);
-        });
+// ────────────────────────────────────────────────────────
+//  COUNTDOWN
+// ────────────────────────────────────────────────────────
+function beginCountdown(){
+  // stop card animations
+  Object.values(cardTimers).forEach(id=>cancelAnimationFrame(id));
+  cardTimers={};
+  showScreen('game');
+  initGame();
+  let n=3;
+  const el=document.getElementById('cdNum');
+  el.className=''; el.textContent=n; el.style.color='#fff'; el.style.textShadow='0 0 60px #fff';
+  void el.offsetWidth; el.classList.add('show');
+
+  const iv=setInterval(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>{
+      n--;
+      if(n>0){
+        el.textContent=n; el.classList.add('show');
+      } else {
+        el.textContent='GO!'; el.className='show go';
+        setTimeout(()=>{ el.classList.remove('show'); clearInterval(iv); running=true; }, 700);
+      }
+    },300);
+  },900);
+}
+
+// ────────────────────────────────────────────────────────
+//  GAME STATE
+// ────────────────────────────────────────────────────────
+const gc=document.getElementById('gc');
+const gx=gc.getContext('2d');
+let W,H, running=false, raf;
+let score=0, lives=3, spd=5, frame=0;
+let lane=1; // 0=left, 1=mid, 2=right
+let pX=0,pY=0,pVY=0,jumping=false,sliding=false,slideT=0,invincible=0,laneX=0;
+let obstacles=[],coins=[],particles=[];
+let spawnT=0, spawnRate=70;
+let rDist=260; // reyshi distance behind player center
+let bgOffset=0;
+
+// 3D projection helpers
+const VP_Y_RATIO=0.42; // vanishing point Y ratio
+const GROUND_Y_RATIO=0.85;
+const LANE_WIDTH_BASE=320;
+
+function project(worldX,worldZ){
+  // worldZ: 0=at player, +big=far away
+  const vpY=H*VP_Y_RATIO;
+  const groundY=H*GROUND_Y_RATIO;
+  const depth=worldZ+1;
+  const scale=1/depth;
+  const screenY=groundY-(groundY-vpY)*scale;
+  const screenX=W/2+worldX*scale*(W*.5);
+  return {x:screenX, y:screenY, scale:scale};
+}
+
+function laneWorldX(l){ return (l-1)*1.1; } // -1.1,0,1.1
+
+function resize(){
+  W=gc.width=window.innerWidth;
+  H=gc.height=window.innerHeight;
+}
+
+function initGame(){
+  resize();
+  score=0; lives=3; spd=4.5; frame=0;
+  jumping=false; sliding=false; invincible=0; slideT=0;
+  lane=1; laneX=0; pX=W/2; pVY=0;
+  pY=H*GROUND_Y_RATIO;
+  obstacles=[]; coins=[]; particles=[];
+  spawnT=0; spawnRate=72; rDist=280; bgOffset=0;
+  running=false;
+  updateHUD(); buildHearts();
+  if(raf) cancelAnimationFrame(raf);
+  loop();
+}
+
+function loop(){
+  raf=requestAnimationFrame(loop);
+  gx.clearRect(0,0,W,H);
+  drawWorld();
+  if(running){
+    frame++; score+=spd*.04; spd+=.0008;
+    spawnRate=Math.max(38,72-score*.25);
+    spawnT++;
+    if(spawnT>=spawnRate){ spawnT=0; spawnThings(); }
+    moveThings(); checkHits();
+    updateHUD();
+  }
+  drawObstacles();
+  drawCoins();
+  drawPlayerChar();
+  drawReyshiChaser();
+  drawParticles();
+}
+
+// ────────────────────────────────────────────────────────
+//  WORLD DRAW  (3D perspective road)
+// ────────────────────────────────────────────────────────
+function drawWorld(){
+  // SKY
+  const skyG=gx.createLinearGradient(0,0,0,H*VP_Y_RATIO+40);
+  skyG.addColorStop(0,'#020008');
+  skyG.addColorStop(1,'#080015');
+  gx.fillStyle=skyG; gx.fillRect(0,0,W,H*VP_Y_RATIO+40);
+
+  // STARS in sky
+  gx.fillStyle='#ffffff';
+  for(let i=0;i<60;i++){
+    const sx=(Math.sin(i*137.5)*W+W)%W;
+    const sy=(Math.cos(i*97)*H*.38+H*.38)%(H*.38);
+    const ss=.5+Math.sin(frame*.04+i)*.4;
+    gx.globalAlpha=.3+Math.sin(frame*.03+i*.5)*.2;
+    gx.beginPath(); gx.arc(sx,sy,ss,0,Math.PI*2); gx.fill();
+  }
+  gx.globalAlpha=1;
+
+  // MOON
+  gx.save(); gx.shadowBlur=40; gx.shadowColor='#aaccff';
+  gx.fillStyle='#ddeeff';
+  gx.beginPath(); gx.arc(W*.78,H*.1,26,0,Math.PI*2); gx.fill();
+  gx.restore();
+
+  // SIDE BUILDINGS (left & right)
+  drawBuildings();
+
+  // ROAD GROUND
+  const vpY=H*VP_Y_RATIO;
+  const gndY=H*GROUND_Y_RATIO;
+  const roadG=gx.createLinearGradient(0,vpY,0,H);
+  roadG.addColorStop(0,'#0a1018');
+  roadG.addColorStop(.5,'#111820');
+  roadG.addColorStop(1,'#080c12');
+  gx.fillStyle=roadG;
+  gx.beginPath();
+  gx.moveTo(0,H); gx.lineTo(W,H); gx.lineTo(W,vpY); gx.lineTo(0,vpY);
+  gx.closePath(); gx.fill();
+
+  // ROAD LANE LINES (converging)
+  const laneOffsets=[-1.1,0,1.1]; // world X of lane dividers
+  const dividers=[-1.65,-0.55,0.55,1.65];
+  dividers.forEach(wx=>{
+    gx.strokeStyle='rgba(255,255,255,.06)';
+    gx.lineWidth=2;
+    const near=project(wx,0.01);
+    const far=project(wx,12);
+    gx.beginPath(); gx.moveTo(near.x,near.y); gx.lineTo(far.x,far.y); gx.stroke();
+  });
+
+  // CENTER DASHES (animated)
+  const dashCount=18;
+  for(let i=0;i<dashCount;i++){
+    const z=(i/dashCount)*11 + ((frame*spd*.004)%( 11/dashCount));
+    if(z<=0||z>11) continue;
+    const near=project(0,z);
+    const far=project(0,z+.3);
+    const alpha=Math.min(1,(1-z/11)*2)*.25;
+    gx.strokeStyle=`rgba(255,255,255,${alpha})`;
+    gx.lineWidth=Math.max(1,near.scale*8);
+    gx.beginPath(); gx.moveTo(near.x,near.y); gx.lineTo(far.x,far.y); gx.stroke();
+  }
+
+  // GROUND GLOW under player
+  const hero=HEROES[selectedHero]||HEROES[0];
+  const pgG=gx.createRadialGradient(W/2,pY+4,0,W/2,pY+4,60);
+  pgG.addColorStop(0,hero.glow+'33');
+  pgG.addColorStop(1,'transparent');
+  gx.fillStyle=pgG; gx.fillRect(W/2-80,pY-10,160,30);
+}
+
+let buildings=[];
+function drawBuildings(){
+  if(buildings.length===0){
+    for(let i=0;i<20;i++) buildings.push(makeBldg(i/20,true));
+  }
+  const vpY=H*VP_Y_RATIO;
+  buildings.forEach(b=>{
+    b.offset=(b.offset+spd*b.spd*.003)%1;
+    const xL=b.offset*W*2-W*.15;
+    const xR=W-xL+b.w;
+    const bh=b.h*H*.35;
+    const by=vpY-bh+10;
+    // left building
+    gx.fillStyle=b.col;
+    gx.fillRect(xL-b.w,by,b.w,bh);
+    // windows
+    gx.fillStyle=`rgba(255,220,100,${.08+Math.sin(frame*.02+b.seed)*.04})`;
+    for(let wy=by+10;wy<vpY-10;wy+=14)
+      for(let wx2=xL-b.w+6;wx2<xL-6;wx2+=10)
+        if((wy+wx2)%3!==0) gx.fillRect(wx2,wy,5,8);
+    // right building
+    gx.fillStyle=b.col;
+    gx.fillRect(xR,by,b.w,bh);
+    for(let wy=by+10;wy<vpY-10;wy+=14)
+      for(let wx2=xR+6;wx2<xR+b.w-6;wx2+=10)
+        if((wy+wx2)%3!==0) gx.fillRect(wx2,wy,5,8);
+  });
+}
+function makeBldg(off,init){
+  return{ offset:init?off:1, spd:.4+Math.random()*.4,
+    h:.4+Math.random()*.6, w:30+Math.random()*50,
+    col:`hsl(${210+Math.random()*30},25%,${7+Math.random()*10}%)`,
+    seed:Math.random()*100 };
+}
+
+// ────────────────────────────────────────────────────────
+//  OBSTACLES & COINS
+// ────────────────────────────────────────────────────────
+function spawnThings(){
+  // pick 1 or 2 lanes to block
+  const type=['spike','barrier','lowbar'][Math.floor(Math.random()*3)];
+  const l=Math.floor(Math.random()*3);
+  obstacles.push({type,lane:l,z:11,dy:0});
+  // also sometimes block adjacent lane
+  if(Math.random()<.35){
+    const l2=(l+1+(Math.floor(Math.random()*2)))%3;
+    if(l2!==l) obstacles.push({type,lane:l2,z:11,dy:0});
+  }
+  // coin row
+  if(Math.random()<.5){
+    const cl=Math.floor(Math.random()*3);
+    for(let i=0;i<4;i++) coins.push({lane:cl,z:11-i*1.2,collected:false});
+  }
+}
+
+function moveThings(){
+  const dz=spd*.012;
+  obstacles.forEach(o=>{ o.z-=dz; });
+  obstacles=obstacles.filter(o=>o.z>-0.5);
+  coins.forEach(c=>{ if(!c.collected) c.z-=dz; });
+  coins=coins.filter(c=>c.z>-0.5&&!c.collected);
+}
+
+function drawObstacles(){
+  obstacles.forEach(o=>{
+    if(o.z<0.05||o.z>12) return;
+    const wx=laneWorldX(o.lane);
+    const p=project(wx,o.z);
+    const s=p.scale;
+    const ox=p.x, oy=p.y;
+
+    gx.save();
+    if(o.type==='spike'){
+      gx.shadowBlur=20*s; gx.shadowColor='#ff2244';
+      const count=5, bw=50*s/count;
+      gx.fillStyle='#ff1133';
+      for(let i=0;i<count;i++){
+        const sx=ox-25*s+i*bw+bw/2;
+        gx.beginPath();
+        gx.moveTo(sx-bw*.45,oy);
+        gx.lineTo(sx+bw*.45,oy);
+        gx.lineTo(sx,oy-40*s);
+        gx.closePath(); gx.fill();
+      }
+      // base plate
+      gx.fillStyle='#aa0022';
+      gx.fillRect(ox-26*s,oy-4*s,52*s,8*s);
+    } else if(o.type==='barrier'){
+      gx.shadowBlur=18*s; gx.shadowColor='#ff6600';
+      const bg2=gx.createLinearGradient(ox-24*s,0,ox+24*s,0);
+      bg2.addColorStop(0,'#cc3300'); bg2.addColorStop(.5,'#ff6600'); bg2.addColorStop(1,'#cc3300');
+      gx.fillStyle=bg2;
+      gx.beginPath(); gx.roundRect(ox-24*s,oy-58*s,48*s,60*s,4); gx.fill();
+      // WARNING stripes
+      gx.globalAlpha=.25; gx.fillStyle='#000';
+      for(let i=0;i<4;i++) gx.fillRect(ox-24*s+i*14*s,oy-58*s,7*s,60*s);
+      gx.globalAlpha=1;
+      // TOP LABEL
+      gx.fillStyle='#ffcc00'; gx.font=`bold ${10*s}px Exo 2`;
+      gx.textAlign='center'; gx.fillText('STOP',ox,oy-62*s);
+    } else if(o.type==='lowbar'){
+      gx.shadowBlur=14*s; gx.shadowColor='#ffcc00';
+      gx.fillStyle='#ffaa00';
+      gx.beginPath(); gx.roundRect(ox-30*s,oy-28*s,60*s,18*s,4); gx.fill();
+      // arrows suggesting slide
+      gx.fillStyle='#fff3'; gx.font=`${12*s}px Exo 2`;
+      gx.textAlign='center'; gx.fillText('↓ SLIDE',ox,oy-14*s);
     }
-    ctx.globalAlpha = 1;
-
-    // Apply Shake
-    ctx.translate(Math.random()*shake, Math.random()*shake);
-
-    // Draw 3D Grid Lanes
-    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
-    [50, 150, 250, 350].forEach(lx => {
-        ctx.beginPath();
-        ctx.moveTo(vW/2 + (lx - vW/2)*0.05, 100);
-        ctx.lineTo(lx, vH);
-        ctx.stroke();
-    });
-
-    // Draw Obstacles (Space Mines)
-    obstacles.forEach(o => {
-        let perspective = vW / (o.z + 1);
-        let ox = vW/2 + ([100, 200, 300][o.lane] - vW/2) * (perspective/5);
-        let oy = 100 + (o.z * -0.5) + 120;
-        let size = 500 / o.z;
-        
-        ctx.fillStyle = '#f00'; ctx.fillRect(ox - size/2, oy - size/2, size, size);
-        ctx.fillStyle = '#800'; ctx.fillRect(ox - size/4, oy - size/4, size/2, size/2);
-    });
-
-    // Draw Hero (With Squash & Stretch)
-    ctx.save();
-    let py = vH - 60;
-    ctx.translate(lerpX, py);
-    ctx.scale(pScaleX, pScaleY);
-    
-    ctx.shadowBlur = 15; ctx.shadowColor = hero.col;
-    ctx.fillStyle = hero.col;
-    ctx.fillRect(-15, -15, 30, 30);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = '14px Arial';
-    ctx.fillText(hero.icon, -9, 8);
-    ctx.restore();
+    gx.restore();
+  });
 }
 
-function loop() { update(); draw(); requestAnimationFrame(loop); }
-loop();
+function drawCoins(){
+  coins.forEach(c=>{
+    if(c.collected||c.z>12||c.z<0.05) return;
+    const wx=laneWorldX(c.lane);
+    const p=project(wx,c.z);
+    const s=p.scale;
+    const bob=Math.sin(frame*.12+c.z)*3*s;
+    gx.save();
+    gx.shadowBlur=12; gx.shadowColor='#ffd700';
+    const cg=gx.createRadialGradient(p.x,p.y+bob,0,p.x,p.y+bob,10*s);
+    cg.addColorStop(0,'#fff8a0'); cg.addColorStop(1,'#ffa500');
+    gx.fillStyle=cg;
+    gx.beginPath(); gx.arc(p.x,p.y+bob-10*s,10*s,0,Math.PI*2); gx.fill();
+    gx.fillStyle='rgba(255,255,255,.4)';
+    gx.beginPath(); gx.arc(p.x-2*s,p.y+bob-13*s,3*s,0,Math.PI*2); gx.fill();
+    gx.restore();
+  });
+}
+
+// ────────────────────────────────────────────────────────
+//  PLAYER
+// ────────────────────────────────────────────────────────
+function drawPlayerChar(){
+  const hero=HEROES[selectedHero]||HEROES[0];
+  // smooth lane
+  const targetX=W/2+(lane-1)*(W*.22);
+  pX+=(targetX-pX)*.18;
+
+  // gravity
+  if(jumping){
+    pVY+=.55;
+    pY+=pVY;
+    if(pY>=H*GROUND_Y_RATIO){ pY=H*GROUND_Y_RATIO; jumping=false; pVY=0; }
+  }
+  if(sliding){ slideT--; if(slideT<=0) sliding=false; }
+  if(invincible>0) invincible--;
+
+  const alpha=invincible>0?(.5+Math.sin(frame*.4)*.4):1;
+  gx.save();
+  gx.globalAlpha=alpha;
+
+  const scale=1.8;
+  if(sliding){
+    gx.save();
+    gx.translate(pX,pY);
+    gx.scale(1,.45);
+    gx.shadowBlur=20; gx.shadowColor=hero.glow;
+    gx.fillStyle=hero.col;
+    gx.beginPath(); gx.roundRect(-26,-18,52,36,8); gx.fill();
+    gx.restore();
+  } else {
+    // running bob
+    const bob=jumping?0:Math.sin(frame*.22)*4;
+    // draw hero at pX, pY
+    hero.drawFn(gx, pX, pY+bob, frame, scale);
+    // ground shadow
+    gx.globalAlpha=alpha*.25;
+    gx.fillStyle='#000';
+    gx.beginPath(); gx.ellipse(pX,pY+4,18,6,0,0,Math.PI*2); gx.fill();
+    gx.globalAlpha=alpha;
+    // running legs (separate from hero draw)
+    const legSwing=Math.sin(frame*.28)*14;
+    gx.strokeStyle=hero.col2||hero.col; gx.lineWidth=10; gx.lineCap='round';
+    gx.shadowBlur=8; gx.shadowColor=hero.glow;
+    gx.beginPath(); gx.moveTo(pX-10,pY-20*scale); gx.lineTo(pX-16,pY+legSwing); gx.stroke();
+    gx.beginPath(); gx.moveTo(pX+10,pY-20*scale); gx.lineTo(pX+16,pY-legSwing); gx.stroke();
+  }
+
+  // elemental trail
+  if(frame%2===0){
+    const h=hero;
+    particles.push({x:pX+(-10+Math.random()*20),y:pY+(Math.random()*20-50*scale),
+      vx:(Math.random()-.5)*1.5, vy:-(Math.random()*1.5+.5),
+      life:30+Math.random()*20, maxLife:50, col:h.glow, r:3+Math.random()*4});
+  }
+  gx.restore();
+}
+
+function drawParticles(){
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.life--;
+    if(p.life<=0) return;
+    const a=(p.life/p.maxLife)*.6;
+    gx.globalAlpha=a;
+    gx.fillStyle=p.col;
+    gx.beginPath(); gx.arc(p.x,p.y,p.r*(p.life/p.maxLife),0,Math.PI*2); gx.fill();
+  });
+  particles=particles.filter(p=>p.life>0);
+  gx.globalAlpha=1;
+}
+
+// ────────────────────────────────────────────────────────
+//  REYSHI CHASER
+// ────────────────────────────────────────────────────────
+function drawReyshiChaser(){
+  // reyshi is drawn below/behind player, shrunk to simulate distance
+  const anger=Math.min(1,score/250);
+  if(rDist>140+( (1-anger)*100)) rDist-=.04;
+
+  const scale=Math.max(.5, 1-(rDist/500));
+  const ry=H*GROUND_Y_RATIO;
+  const rx=pX; // same lane roughly
+
+  const t=frame;
+  const runB=Math.sin(t*.3)*8*scale;
+  const bobR=Math.sin(t*.2)*4*scale;
+
+  gx.save();
+  gx.globalAlpha=.85+anger*.15;
+  gx.shadowBlur=30+anger*40; gx.shadowColor='#ff2244';
+
+  const rColor=`hsl(345,${75+anger*25}%,${38+anger*12}%)`;
+  const rlx=rx-(rDist*scale*.7); // x offset behind
+
+  // body
+  gx.fillStyle=rColor;
+  gx.beginPath(); gx.roundRect(rlx-18*scale,(ry-60*scale),36*scale,48*scale,8); gx.fill();
+  // head
+  gx.fillStyle=rColor;
+  gx.beginPath(); gx.arc(rlx,ry-76*scale+bobR,20*scale,0,Math.PI*2); gx.fill();
+  // horns
+  gx.fillStyle='#880011';
+  gx.beginPath(); gx.moveTo(rlx-10*scale,ry-90*scale+bobR); gx.lineTo(rlx-5*scale,ry-110*scale+bobR); gx.lineTo(rlx-1*scale,ry-90*scale+bobR); gx.closePath(); gx.fill();
+  gx.beginPath(); gx.moveTo(rlx+1*scale,ry-90*scale+bobR); gx.lineTo(rlx+6*scale,ry-110*scale+bobR); gx.lineTo(rlx+11*scale,ry-90*scale+bobR); gx.closePath(); gx.fill();
+  // eyes (glow with anger)
+  gx.shadowBlur=10+anger*20; gx.shadowColor='#ff0000';
+  gx.fillStyle=`rgba(255,${Math.floor(200-anger*200)},0,${.7+anger*.3})`;
+  gx.beginPath(); gx.arc(rlx-6*scale,ry-77*scale+bobR,4*scale,0,Math.PI*2); gx.fill();
+  gx.beginPath(); gx.arc(rlx+6*scale,ry-77*scale+bobR,4*scale,0,Math.PI*2); gx.fill();
+  gx.shadowBlur=0;
+  // arms
+  gx.strokeStyle=rColor; gx.lineWidth=10*scale; gx.lineCap='round';
+  gx.beginPath(); gx.moveTo(rlx-18*scale,ry-46*scale); gx.lineTo(rlx-34*scale,ry-28*scale+runB); gx.stroke();
+  gx.beginPath(); gx.moveTo(rlx+18*scale,ry-46*scale); gx.lineTo(rlx+34*scale,ry-28*scale-runB); gx.stroke();
+  // legs
+  const rl=Math.sin(t*.3)*15*scale;
+  gx.beginPath(); gx.moveTo(rlx-8*scale,ry-12*scale); gx.lineTo(rlx-14*scale,ry+rl); gx.stroke();
+  gx.beginPath(); gx.moveTo(rlx+8*scale,ry-12*scale); gx.lineTo(rlx+14*scale,ry-rl); gx.stroke();
+
+  // WARNING: claws if very close
+  if(rDist<180){
+    const ca=(1-(rDist-100)/80)*.7;
+    gx.strokeStyle=`rgba(255,50,80,${ca})`; gx.lineWidth=2;
+    for(let c=0;c<3;c++){
+      gx.beginPath(); gx.moveTo(rlx+34*scale,ry-28*scale-runB+c*6*scale);
+      gx.lineTo(rlx+46*scale,ry-22*scale+c*6*scale); gx.stroke();
+    }
+  }
+
+  // REYSHI label
+  if(rDist<200){
+    gx.globalAlpha=(1-(rDist-100)/100)*.8;
+    gx.fillStyle='#ff2244';
+    gx.font=`bold ${12*scale+8}px Bebas Neue`;
+    gx.textAlign='center';
+    gx.fillText('REYSHI',rlx,ry-116*scale+bobR);
+  }
+
+  gx.restore();
+}
+
+// ────────────────────────────────────────────────────────
+//  COLLISIONS
+// ────────────────────────────────────────────────────────
+function checkHits(){
+  if(invincible>0) return;
+  const hero=HEROES[selectedHero]||HEROES[0];
+
+  obstacles.forEach((o,i)=>{
+    if(o.z>1.2||o.z<0.2) return;
+    if(o.lane!==lane) return;
+
+    let hit=false;
+    if(o.type==='spike'&&!jumping) hit=true;
+    if(o.type==='barrier'&&!jumping) hit=true;
+    if(o.type==='lowbar'&&!sliding&&!jumping) hit=true;
+
+    if(hit){
+      obstacles.splice(i,1);
+      takeDamage();
+    }
+  });
+
+  // coins
+  coins.forEach(c=>{
+    if(c.collected||c.z>1.2||c.z<0.2) return;
+    if(c.lane!==lane) return;
+    c.collected=true;
+    score+=10;
+    // sparkle
+    for(let i=0;i<8;i++) particles.push({
+      x:pX+(-15+Math.random()*30),y:pY-20,
+      vx:(Math.random()-.5)*3, vy:-(Math.random()*2+1),
+      life:25, maxLife:25, col:'#ffd700', r:3
+    });
+  });
+}
+
+function takeDamage(){
+  lives--;
+  invincible=90;
+  buildHearts();
+  // flash red
+  gx.save(); gx.fillStyle='rgba(255,0,50,.35)'; gx.fillRect(0,0,W,H); gx.restore();
+  // screen shake via canvas offset
+  gc.style.transform='translateX(10px)';
+  setTimeout(()=>gc.style.transform='translateX(-10px)',80);
+  setTimeout(()=>gc.style.transform='',160);
+  if(lives<=0) die();
+}
+
+function die(){
+  running=false;
+  const s=Math.floor(score);
+  if(s>bestScore) bestScore=s;
+  document.getElementById('goDist').textContent=s+' M';
+  document.getElementById('goBest').textContent='Best: '+bestScore+' m';
+  setTimeout(()=>showScreen('gameover'),600);
+}
+
+function updateHUD(){
+  document.getElementById('hudDist').textContent=Math.floor(score)+'m';
+}
+function buildHearts(){
+  const el=document.getElementById('hudHearts');
+  el.innerHTML='';
+  for(let i=0;i<3;i++){
+    const h=document.createElement('div');
+    h.className='heart'+(i>=lives?' dead':'');
+    h.textContent='❤';
+    el.appendChild(h);
+  }
+}
+
+// ────────────────────────────────────────────────────────
+//  INPUT
+// ────────────────────────────────────────────────────────
+function doJump(){ if(!running||jumping) return; jumping=true; pVY=-13*(HEROES[selectedHero]?.jumpMul||1); }
+function doSlide(){ if(!running||jumping) return; sliding=true; slideT=45; }
+function doLeft(){ if(!running) return; lane=Math.max(0,lane-1); }
+function doRight(){ if(!running) return; lane=Math.min(2,lane+1); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp'||e.key==='w'||e.key===' '){ e.preventDefault(); doJump(); }
+  if(e.key==='ArrowDown'||e.key==='s') doSlide();
+  if(e.key==='ArrowLeft'||e.key==='a') doLeft();
+  if(e.key==='ArrowRight'||e.key==='d') doRight();
+});
+
+let tx=0,ty=0;
+document.addEventListener('touchstart',e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; });
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  const dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy)){ dx>0?doRight():doLeft(); }
+  else { dy<0?doJump():doSlide(); }
+});
+
+window.addEventListener('resize',()=>{ if(!document.getElementById('game').classList.contains('hidden')) resize(); });
+
+function restartRun(){ beginCountdown(); }
+
+// START
+showScreen('intro');
 </script>
+
 </body>
 </html>

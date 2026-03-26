@@ -3,56 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC LEGENDS: PIXEL OVERDRIVE</title>
+    <title>COSMIC LEGENDS: DEFINITIVE EDITION</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Press Start 2P', cursive; }
-        canvas { display: block; image-rendering: pixelated; } /* FORCING PIXEL LOOK */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: 'Press Start 2P', cursive; height: 100%; }
+        canvas { display: block; image-rendering: pixelated; background: #050505; touch-action: none; }
 
-        /* RETRO LOBBY */
+        /* PRO PIXEL LOBBY */
         #menu { 
-            position: absolute; inset: 0; z-index: 1000;
-            background: #050505; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            border: 10px solid #222;
+            position: absolute; inset: 0; z-index: 1000; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 8px solid #222;
         }
-        .pixel-title { font-size: 24px; color: #fff; margin-bottom: 50px; text-align: center; line-height: 1.5; color: #0ff; }
-        .hero-row { display: flex; gap: 15px; }
-        .pixel-card { 
-            width: 100px; padding: 20px 5px; border: 4px solid #444; 
-            background: #111; color: #fff; cursor: pointer; text-align: center;
+        .header { font-size: 18px; color: #0ff; margin-bottom: 30px; text-shadow: 4px 4px #005555; text-align: center; line-height: 1.6; }
+        .hero-grid { display: flex; gap: 10px; margin-bottom: 30px; }
+        .p-card { 
+            width: 100px; padding: 15px 5px; border: 4px solid #444; 
+            background: #111; color: #fff; cursor: pointer; text-align: center; font-size: 8px;
+            transition: 0.2s;
         }
-        .pixel-card:hover { border-color: #fff; }
-        .pixel-card.selected { border-color: #0ff; background: #003333; box-shadow: 0 0 0 4px #0ff; }
-        .pixel-card span { font-size: 30px; display: block; margin-bottom: 10px; }
-        .pixel-card h3 { font-size: 8px; margin: 0; }
-
-        .start-btn { 
-            margin-top: 40px; padding: 15px 30px; background: #fff; 
-            border: 4px solid #000; font-family: 'Press Start 2P'; 
-            font-size: 14px; cursor: pointer; display: none;
+        .p-card.active { border-color: #fff; background: #222; transform: scale(1.1); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .p-card span { font-size: 24px; display: block; margin-bottom: 10px; }
+        
+        #start-btn { 
+            padding: 15px 40px; background: #0ff; border: 4px solid #000; 
+            font-family: 'Press Start 2P'; font-size: 12px; cursor: pointer; display: none;
         }
 
-        /* HUD */
-        #hud { position: absolute; top: 15px; left: 15px; color: #fff; font-size: 10px; z-index: 100; }
-        #boss-hp { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 200px; height: 12px; border: 3px solid #fff; display: none; background: #000; }
-        #hp-fill { width: 100%; height: 100%; background: #f00; }
+        /* UI */
+        #hud { position: absolute; top: 15px; left: 15px; color: #fff; font-size: 10px; z-index: 100; pointer-events: none; }
+        #boss-ui { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 250px; display: none; z-index: 100; text-align: center; }
+        .hp-border { width: 100%; height: 12px; border: 3px solid #fff; background: #000; margin-top: 5px; }
+        #hp-bar { width: 100%; height: 100%; background: #f00; }
     </style>
 </head>
-<body onmousedown="btn()" ontouchstart="btn()">
+<body onmousedown="handleAction()" ontouchstart="handleAction()">
 
-<div id="hud">TILE: <span id="t-ui">0</span>/100</div>
-<div id="boss-hp"><div id="hp-fill"></div></div>
+<div id="hud">TILE: <span id="tile-val">0</span>/100</div>
+
+<div id="boss-ui">
+    <div id="boss-name" style="color: #f00; font-size: 8px; margin-bottom: 5px;">BLACK DEATH</div>
+    <div class="hp-border"><div id="hp-bar"></div></div>
+</div>
 
 <div id="menu">
-    <div class="pixel-title">COSMIC LEGENDS<br><span style="font-size: 10px; color: #fff;">PIXEL PROTOCOL</span></div>
-    <div class="hero-row">
-        <div class="pixel-card" onclick="sel('ron','#f40','☀️','fire')"><span>☀️</span><h3>RON</h3></div>
-        <div class="pixel-card" onclick="sel('den','#0ff','⚡','light')"><span>⚡</span><h3>DEN</h3></div>
-        <div class="pixel-card" onclick="sel('lapse','#b0f','🌌','galaxy')"><span>🌌</span><h3>LAPSE</h3></div>
+    <div class="header">COSMIC LEGENDS<br><span style="font-size: 8px; color: #fff;">CORE PROTOCOL</span></div>
+    <div class="hero-grid">
+        <div class="p-card" onclick="selectHero('ron','#f50','☀️','fire', 1.0, 0.9)">
+            <span>☀️</span>RON
+        </div>
+        <div class="p-card" onclick="selectHero('den','#0ff','⚡','light', 1.3, 1.0)">
+            <span>⚡</span>DEN
+        </div>
+        <div class="p-card" onclick="selectHero('lapse','#b0f','🌌','galaxy', 0.8, 0.5)">
+            <span>🌌</span>LAPSE
+        </div>
     </div>
-    <button id="st" class="start-btn" onclick="go()">START GAME</button>
+    <button id="start-btn" onclick="startGame()">START MISSION</button>
 </div>
 
 <canvas id="stage"></canvas>
@@ -60,108 +69,156 @@
 <script>
 const cvs = document.getElementById('stage');
 const ctx = cvs.getContext('2d');
-cvs.width = 400; cvs.height = 240; // LOWER RESOLUTION FOR PIXEL EFFECT
-const renderScale = window.innerWidth / 400;
-cvs.style.width = window.innerWidth + 'px';
-cvs.style.height = window.innerHeight + 'px';
 
-let run = false, boss = false, hp = 100, camX = 0, tile = 0, hero = {};
-let platforms = [], spikes = [], stars = [];
-let checkpoints = [30, 55, 75, 100];
+// Fixed virtual resolution for pixel perfection
+const vW = 400; const vH = 240;
+cvs.width = vW; cvs.height = vH;
+cvs.style.width = '100vw'; cvs.style.height = '100vh';
 
-const p = { x: 50, y: 0, w: 18, h: 18, vx: 0, vy: 0, rot: 0, gr: false };
+let active = false, bossActive = false, hp = 100, camX = 0, shake = 0, tile = 0;
+let hero = {}, platforms = [], particles = [], spikes = [], stars = [];
+let bosses = [30, 60, 100];
 
-function sel(id, col, icon, mode) {
-    hero = { id, col, icon, mode };
-    document.querySelectorAll('.pixel-card').forEach(c => c.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
-    document.getElementById('st').style.display = 'block';
+const p = { 
+    x: 50, y: 150, w: 20, h: 20, vx: 0, vy: 0, 
+    rot: 0, grounded: false, 
+    visW: 20, visH: 20 
+};
+
+function selectHero(id, col, icon, mode, speed, grav) {
+    hero = { id, col, icon, mode, speed, grav };
+    document.querySelectorAll('.p-card').forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('start-btn').style.display = 'block';
 }
 
-function go() { document.getElementById('menu').style.display = 'none'; run = true; p.y = 150; platforms = [{x:0, y:200, w:1000}]; }
+function startGame() {
+    document.getElementById('menu').style.display = 'none';
+    active = true; p.y = 100;
+    platforms = [{x: 0, y: 200, w: 1000}];
+    for(let i=0; i<40; i++) stars.push({x: Math.random()*vW, y: Math.random()*vH, s: Math.random()*2});
+}
 
-function btn() {
-    if(!run) return;
-    if(boss) { 
-        hp -= 6; if(hp <= 0) { boss = false; document.getElementById('boss-hp').style.display = 'none'; }
-    } else if(p.gr) { p.vy = -7.5; p.gr = false; }
+function handleAction() {
+    if(!active) return;
+    if(bossActive) {
+        hp -= 5; shake = 10;
+        spawnParticles(p.x + 150, 80, 'red', 8);
+        if(hp <= 0) { bossActive = false; document.getElementById('boss-ui').style.display = 'none'; shake = 15; }
+    } else if(p.grounded) {
+        p.vy = -8 * hero.grav; p.grounded = false;
+        p.visW = 14; p.visH = 26; // Stretch
+    }
+}
+
+function spawnParticles(x, y, col, amt) {
+    for(let i=0; i<amt; i++) {
+        particles.push({x, y, c: col, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 1});
+    }
 }
 
 function update() {
-    if(!run) return;
-    if(!boss) { p.vx = 4; p.vy += 0.45; } else { p.vx = 0; p.vy += 0.45; }
+    if(!active) return;
+    
+    if(!bossActive) { p.vx = 4 * hero.speed; p.vy += 0.45 * hero.grav; } 
+    else { p.vx = 0; p.vy += 0.45; }
+    
     p.x += p.vx; p.y += p.vy;
-    p.rot += p.gr ? 0 : 0.25;
-    camX = p.x - 40;
-    tile = Math.floor(p.x / 200);
-    document.getElementById('t-ui').innerText = tile;
+    p.rot += p.grounded ? 0 : 0.2;
+    camX = p.x - 60;
+    tile = Math.floor(p.x / 250);
+    document.getElementById('tile-val').innerText = tile;
 
-    if(checkpoints.length > 0 && tile >= checkpoints[0]) {
-        boss = true; hp = 100; document.getElementById('boss-hp').style.display = 'block';
-        checkpoints.shift();
+    // Boss Mechanics
+    if(bosses.length > 0 && tile >= bosses[0]) {
+        bossActive = true; hp = 100;
+        document.getElementById('boss-ui').style.display = 'block';
+        document.getElementById('boss-name').innerText = bosses[0] === 100 ? "REYSHI" : "BLACK DEATH";
+        bosses.shift();
     }
 
-    p.gr = false;
+    // Squash/Stretch Lerp
+    p.visW += (20 - p.visW) * 0.2;
+    p.visH += (20 - p.visH) * 0.2;
+
+    p.grounded = false;
     platforms.forEach(l => {
         if(p.x+p.w > l.x && p.x < l.x+l.w && p.y+p.h > l.y && p.y+p.h < l.y+p.vy+5) {
-            p.y = l.y-p.h; p.vy = 0; p.gr = true; p.rot = 0;
+            if(!p.grounded && p.vy > 0) { p.visW = 28; p.visH = 12; } // Squash
+            p.y = l.y-p.h; p.vy = 0; p.grounded = true; p.rot = 0;
         }
     });
 
-    spikes.forEach(s => {
-        if(p.x < s.x+10 && p.x+p.w > s.x-10 && p.y+p.h > s.y-20 && p.y < s.y) location.reload();
-    });
+    // Trail Effects
+    if(Math.random() > 0.6) spawnParticles(p.x, p.y + 10, hero.col, 1);
 
+    // Generation
     if(platforms[platforms.length-1].x < camX + 500) {
         let last = platforms[platforms.length-1];
-        let nw = 150 + Math.random()*200;
-        let nx = last.x + last.w + 60 + Math.random()*40;
-        let ny = 200 - Math.random()*80;
+        let nw = 150 + Math.random()*300;
+        let nx = last.x + last.w + 80 + Math.random()*60;
+        let ny = 180 - Math.random()*70;
         platforms.push({x: nx, y: ny, w: nw});
         if(Math.random() > 0.4) spikes.push({x: nx + nw/2, y: ny});
     }
+
+    // Spikes
+    spikes.forEach(s => {
+        if(p.x < s.x+8 && p.x+p.w > s.x-8 && p.y+p.h > s.y-18 && p.y < s.y) location.reload();
+    });
+
     if(p.y > 300) location.reload();
+    if(shake > 0) shake *= 0.9;
 }
 
 function draw() {
-    ctx.fillStyle = '#000'; ctx.fillRect(0,0,400,240);
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = '#050505'; ctx.fillRect(0,0,vW,vH);
 
-    // PIXELATED ELEMENTAL BGS
-    if(hero.mode === 'fire') {
-        ctx.fillStyle = '#410';
-        for(let i=0; i<8; i++) ctx.fillRect(Math.random()*400, 0, 2, 240);
-    } else if(hero.mode === 'light') {
-        if(Math.random()>0.9) { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,400,240); }
-    } else if(hero.mode === 'galaxy') {
-        ctx.fillStyle = '#505';
-        for(let i=0; i<20; i++) ctx.fillRect(Math.random()*400, Math.random()*240, 2, 2);
-    }
+    // ELEMENTAL BACKGROUNDS
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = hero.col;
+    if(hero.mode === 'fire') for(let i=0; i<5; i++) ctx.fillRect(Math.random()*vW, 0, 2, vH);
+    if(hero.mode === 'light' && Math.random()>0.9) ctx.fillRect(0,0,vW,vH);
+    if(hero.mode === 'galaxy') stars.forEach(s => { s.x -= 1; if(s.x<0) s.x=vW; ctx.fillRect(s.x, s.y, 2, 2); });
+    ctx.globalAlpha = 1;
 
+    // Shake
+    ctx.translate(Math.random()*shake, Math.random()*shake);
     ctx.save(); ctx.translate(-camX, 0);
 
-    // SPIKES
-    ctx.fillStyle = "#f00"; spikes.forEach(s => {
-        ctx.beginPath(); ctx.moveTo(s.x-12, s.y); ctx.lineTo(s.x+12, s.y); ctx.lineTo(s.x, s.y-22); ctx.fill();
+    // Particles
+    particles.forEach((pt, i) => {
+        ctx.fillStyle = pt.c; ctx.globalAlpha = pt.life;
+        ctx.fillRect(pt.x, pt.y, 2, 2);
+        pt.x += pt.vx; pt.y += pt.vy; pt.life -= 0.04;
+        if(pt.life <= 0) particles.splice(i, 1);
     });
+    ctx.globalAlpha = 1;
 
-    // PLATFORMS
-    ctx.fillStyle = "#111"; ctx.strokeStyle = hero.col; ctx.lineWidth = 2;
+    // World
+    ctx.fillStyle = '#111'; ctx.strokeStyle = hero.col; ctx.lineWidth = 2;
     platforms.forEach(l => { ctx.fillRect(l.x, l.y, l.w, 100); ctx.strokeRect(l.x, l.y, l.w, 100); });
+    ctx.fillStyle = '#f33';
+    spikes.forEach(s => { ctx.beginPath(); ctx.moveTo(s.x-10,s.y); ctx.lineTo(s.x+10,s.y); ctx.lineTo(s.x,s.y-20); ctx.fill(); });
 
-    // BOSS
-    if(boss) {
-        ctx.fillStyle = "red"; ctx.font = "40px sans-serif";
-        ctx.fillText(tile >= 100 ? "👁️" : "💀", p.x+150, 100);
+    // Boss
+    if(bossActive) {
+        ctx.fillStyle = (Date.now() % 200 < 100) ? "#fff" : "#f00";
+        ctx.font = "30px Arial";
+        ctx.fillText(tile >= 100 ? "👁️" : "💀", p.x + 150, 100);
     }
 
-    // PLAYER
-    ctx.save(); ctx.translate(p.x+p.w/2, p.y+p.h/2); ctx.rotate(p.rot);
-    ctx.fillStyle = hero.col; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-    ctx.fillStyle = "#fff"; ctx.font = "10px sans-serif"; ctx.fillText(hero.icon, -6, 4);
+    // Player
+    ctx.save();
+    ctx.translate(p.x + p.w/2, p.y + p.h/2);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = hero.col;
+    ctx.fillRect(-p.visW/2, -p.visH/2, p.visW, p.visH);
     ctx.restore();
 
     ctx.restore();
-    document.getElementById('hp-fill').style.width = hp + "%";
+    document.getElementById('hp-bar').style.width = hp + "%";
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }

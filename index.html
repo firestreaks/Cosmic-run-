@@ -16,18 +16,18 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 #intro{background:radial-gradient(ellipse at 50% 40%,#1a0030,#05000f);}
 .s-bg{position:absolute;inset:0;}
 /* ── SPLASH (new opening screen) ── */
-#splash{background:#000;overflow:hidden;}
-#splashCv{position:absolute;inset:0;width:100%;height:100%;}
-.splash-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;}
+#splash{background:#000;overflow:hidden;position:relative;}
+#splashCv{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;}
+.splash-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;}
 .splash-cosmic{font-family:'Fredoka One',cursive;font-size:clamp(56px,14vw,140px);letter-spacing:4px;line-height:1;background:linear-gradient(135deg,#ff4488 0%,#ff6600 35%,#ffcc00 65%,#44ffcc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:splashPulse 2.5s ease-in-out infinite alternate;}
 .splash-run{font-family:'Fredoka One',cursive;font-size:clamp(30px,8vw,80px);letter-spacing:12px;color:rgba(255,255,255,.92);text-shadow:0 4px 0 rgba(0,0,0,.5);margin-top:-6px;margin-bottom:12px;}
 @keyframes splashPulse{from{filter:drop-shadow(0 0 20px rgba(255,100,150,.5));}to{filter:drop-shadow(0 0 70px rgba(255,100,150,.9)) drop-shadow(0 0 140px rgba(255,130,50,.4));}}
 .splash-tag{color:rgba(255,255,255,.45);font-size:clamp(12px,2vw,16px);font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:44px;}
 .splash-play{font-family:'Fredoka One',cursive;font-size:clamp(24px,4vw,34px);padding:20px 88px;background:linear-gradient(160deg,#ff4477,#ff6600);color:#fff;border:none;cursor:pointer;border-radius:60px;box-shadow:0 7px 0 #aa2244,0 0 60px rgba(255,80,80,.35);transition:transform .12s,box-shadow .12s;animation:playBounce 1.8s ease-in-out infinite;}
-.splash-play:hover{transform:scale(1.07) translateY(-3px);box-shadow:0 10px 0 #aa2244,0 0 90px rgba(255,80,80,.55);}
-.splash-play:active{transform:scale(.94) translateY(3px);box-shadow:0 3px 0 #aa2244;animation:none;}
+.splash-play:hover{transform:scale(1.07) translateY(-3px);}
+.splash-play:active{transform:scale(.94) translateY(3px);animation:none;}
 @keyframes playBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
-.splash-reyshi{position:absolute;bottom:-10px;right:4%;opacity:.15;filter:drop-shadow(0 0 50px #ff3366);animation:lurk 3.5s ease-in-out infinite;}
+.splash-reyshi{position:absolute;bottom:-10px;right:4%;opacity:.15;filter:drop-shadow(0 0 50px #ff3366);animation:lurk 3.5s ease-in-out infinite;z-index:1;pointer-events:none;}
 @keyframes lurk{0%,100%{transform:translateY(0);}50%{transform:translateY(-22px);}}
 .btn{font-family:'Fredoka One',cursive;border:none;cursor:pointer;border-radius:50px;transition:transform .12s,box-shadow .12s;}
 .btn:hover{transform:scale(1.06) translateY(-2px);}
@@ -413,7 +413,7 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 
 <!-- ACCOUNT -->
 
-<div id="acct" class="screen">
+<div id="acct" class="screen hidden">
   <div class="acct-logo" style="color:#aa66ff;text-shadow:0 4px 0 #330066">REYSHI<br><span style="color:#fff;font-size:.55em">CHASE</span></div>
   <div class="acct-sub">Sign in to save your progress!</div>
   <div class="acct-box">
@@ -669,28 +669,34 @@ msg.textContent=‘❌ Wrong code. Try again!’;msg.style.color=’#ff4466’;
 (function(){
 const cv=document.getElementById(‘splashCv’);
 if(!cv)return;
-function rsz(){cv.width=innerWidth;cv.height=innerHeight;}
-rsz();addEventListener(‘resize’,rsz);
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+rsz();
+window.addEventListener(‘resize’,rsz);
 const c=cv.getContext(‘2d’);
-const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.8+.2,twinkle:Math.random()*Math.PI*2}));
+if(!c)return;
+const stars=Array.from({length:200},()=>({
+x:Math.random(),y:Math.random(),
+r:Math.random()*1.8+.2,
+twinkle:Math.random()*Math.PI*2,
+col:[’#ffffff’,’#ffddaa’,’#aaccff’,’#ffaacc’,’#ccffee’][Math.floor(Math.random()*5)]
+}));
 const shoots=[];
 let t=0;
 function addShoot(){shoots.push({x:Math.random()*.8,y:Math.random()*.5,vx:.014+Math.random()*.007,vy:.005+Math.random()*.004,life:1});}
 (function tick(){
+if(!document.getElementById(‘splash’)||document.getElementById(‘splash’).classList.contains(‘hidden’)){
+requestAnimationFrame(tick);return; // keep alive but don’t draw if hidden
+}
 c.clearRect(0,0,cv.width,cv.height);
-// Deep space bg
-const g=c.createRadialGradient(cv.width*.5,cv.height*.35,0,cv.width*.5,cv.height*.5,cv.width);
+const g=c.createRadialGradient(cv.width*.5,cv.height*.4,0,cv.width*.5,cv.height*.5,cv.width);
 g.addColorStop(0,’#12002a’);g.addColorStop(.5,’#06000f’);g.addColorStop(1,’#000005’);
 c.fillStyle=g;c.fillRect(0,0,cv.width,cv.height);
-// Stars with colour tints
 stars.forEach(s=>{
 s.twinkle+=.022;
-c.globalAlpha=.1+Math.sin(s.twinkle)*.18;
-const cols=[’#ffffff’,’#ffddaa’,’#aaccff’,’#ffaacc’,’#ccffee’];
-c.fillStyle=cols[Math.floor(s.r*2.7)%5];
+c.globalAlpha=.1+Math.abs(Math.sin(s.twinkle))*.2;
+c.fillStyle=s.col;
 c.beginPath();c.arc(s.x*cv.width,s.y*cv.height,s.r,0,Math.PI*2);c.fill();
 });
-// Shooting stars
 if(t%80===0)addShoot();
 shoots.forEach(sh=>{
 sh.x+=sh.vx;sh.y+=sh.vy;sh.life-=.016;
@@ -700,11 +706,18 @@ c.beginPath();c.moveTo(sh.x*cv.width,sh.y*cv.height);
 c.lineTo((sh.x-sh.vx*14)*cv.width,(sh.y-sh.vy*14)*cv.height);c.stroke();
 });
 shoots.splice(0,shoots.length,…shoots.filter(s=>s.life>0));
-c.globalAlpha=1;t++;requestAnimationFrame(tick);
+c.globalAlpha=1;t++;
+requestAnimationFrame(tick);
 })();
 })();
 
-function showScreen(id){document.querySelectorAll(’.screen’).forEach(s=>s.classList.add(‘hidden’));document.getElementById(id).classList.remove(‘hidden’);}
+function showScreen(id){
+try{
+document.querySelectorAll(’.screen’).forEach(s=>s.classList.add(‘hidden’));
+const el=document.getElementById(id);
+if(el) el.classList.remove(‘hidden’);
+}catch(e){console.error(‘showScreen error:’,e);}
+}
 
 let selHero=-1,cAFs={};
 
@@ -1820,13 +1833,22 @@ const name=document.getElementById(‘loginName’).value.trim();
 const pass=document.getElementById(‘loginPass’).value;
 const msg=document.getElementById(‘loginMsg’);
 if(!name){msg.textContent=‘Enter your name!’;msg.style.color=’#ff4466’;return;}
+if(!pass){msg.textContent=‘Enter your password!’;msg.style.color=’#ff4466’;return;}
 const db=getDB();
-const key=Object.keys(db).find(k=>k.toLowerCase()===name.toLowerCase()||db[k].name.toLowerCase()===name.toLowerCase());
+const key=Object.keys(db).find(k=>
+k.toLowerCase()===name.toLowerCase()||
+(db[k].name&&db[k].name.toLowerCase()===name.toLowerCase())
+);
 if(!key){msg.textContent=‘Account not found. Sign up!’;msg.style.color=’#ff4466’;return;}
-if(db[key].pass!==_safeEncode(pass)){msg.textContent=‘Wrong password!’;msg.style.color=’#ff4466’;return;}
-currentUser={username:key,…db[key]};loadUserState();
-msg.textContent=‘Welcome back, ‘+currentUser.name+’! 👋’;msg.style.color=’#00ffcc’;
-setTimeout(()=>gHS(),900);
+// Try both encoding methods for backward compatibility
+const stored=db[key].pass||’’;
+const match=stored===_safeEncode(pass)||stored===btoa(pass)||stored===pass;
+if(!match){msg.textContent=‘Wrong password!’;msg.style.color=’#ff4466’;return;}
+currentUser={username:key,name:db[key].name||key,avatar:db[key].avatar||‘😊’,…db[key]};
+loadUserState();
+msg.textContent=‘Welcome back, ‘+(currentUser.name||key)+’! 👋’;
+msg.style.color=’#00ffcc’;
+setTimeout(()=>gHS(),800);
 }
 
 function doRegister(){
@@ -1835,16 +1857,20 @@ const username=document.getElementById(‘regUser’).value.trim().toLowerCase()
 const pass=document.getElementById(‘regPass’).value;
 const msg=document.getElementById(‘regMsg’);
 if(!dispName||!username||!pass){msg.textContent=‘Fill all fields!’;msg.style.color=’#ff4466’;return;}
-if(username.length<2){msg.textContent=‘Username too short!’;msg.style.color=’#ff4466’;return;}
-if(pass.length<3){msg.textContent=‘Password too short (3+ chars)’;msg.style.color=’#ff4466’;return;}
+if(username.length<2){msg.textContent=‘Username too short (min 2 chars)!’;msg.style.color=’#ff4466’;return;}
+if(pass.length<3){msg.textContent=‘Password too short (min 3 chars)!’;msg.style.color=’#ff4466’;return;}
 const db=getDB();
-if(db[username]){msg.textContent=‘Username taken!’;msg.style.color=’#ff4466’;return;}
+if(db[username]){msg.textContent=‘Username taken! Try another.’;msg.style.color=’#ff4466’;return;}
 const avatar=AVATARS[Math.floor(Math.random()*AVATARS.length)];
-const newAcct={name:dispName,pass:_safeEncode(pass),wallet:0,bestScore:0,unlockedIds:[],ownedItems:[‘default’,‘sign_none’,‘fx_none’],isAdmin:false,avatar,createdAt:Date.now()};
-db[username]=newAcct;saveDB(db);
-currentUser={username,…newAcct};loadUserState();
-msg.textContent=‘Account created! Welcome, ‘+dispName+’! 🎉’;msg.style.color=’#00ffcc’;
-setTimeout(()=>gHS(),1000);
+const encoded=_safeEncode(pass);
+const newAcct={name:dispName,pass:encoded,wallet:0,bestScore:0,unlockedIds:[],ownedItems:[‘default’,‘sign_none’,‘fx_none’],isAdmin:false,avatar,createdAt:Date.now()};
+db[username]=newAcct;
+saveDB(db);
+currentUser={username,name:dispName,avatar,…newAcct};
+loadUserState();
+msg.textContent=‘Account created! Welcome, ‘+dispName+’! 🎉’;
+msg.style.color=’#00ffcc’;
+setTimeout(()=>gHS(),800);
 }
 
 function guestPlay(){
@@ -1879,10 +1905,11 @@ saveDB(db);
 
 function updateProfileBubble(){
 if(!currentUser)return;
+const pb=document.getElementById(‘profileBubble’);if(!pb)return;
 document.getElementById(‘pbAvatar’).textContent=currentUser.avatar||‘😊’;
-document.getElementById(‘pbName’).textContent=(isAdmin?‘👑 ‘:’’)+currentUser.name;
+document.getElementById(‘pbName’).textContent=(isAdmin?‘👑 ‘:’’)+String(currentUser.name||currentUser.username||‘Player’);
 document.getElementById(‘pbCoins’).textContent=’🪙 ’+wallet.toLocaleString();
-document.getElementById(‘profileBubble’).style.display=‘flex’;
+pb.style.display=‘flex’;
 }
 
 function openLeaderboard(){

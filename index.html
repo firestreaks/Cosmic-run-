@@ -15,17 +15,24 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 .screen.hidden{opacity:0;pointer-events:none;transform:scale(.97);}
 #intro{background:radial-gradient(ellipse at 50% 40%,#1a0030,#05000f);}
 .s-bg{position:absolute;inset:0;}
-.logo{font-family:'Fredoka One',cursive;font-size:clamp(64px,12vw,120px);letter-spacing:4px;line-height:.92;text-align:center;z-index:2;}
-.lr{color:#ff3366;text-shadow:0 5px 0 #aa0022,0 0 50px #ff3366;animation:glow 2s infinite alternate;}
-.lc{color:#fff;text-shadow:0 5px 0 #444;}
-@keyframes glow{from{text-shadow:0 5px 0 #aa0022,0 0 30px #ff3366}to{text-shadow:0 5px 0 #aa0022,0 0 80px #ff3366}}
-.tag{color:#aaa;font-size:18px;margin:12px 0 48px;z-index:2;font-weight:800;}
+/* ── SPLASH (new opening screen) ── */
+#splash{background:#000;overflow:hidden;}
+#splashCv{position:absolute;inset:0;width:100%;height:100%;}
+.splash-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;}
+.splash-cosmic{font-family:'Fredoka One',cursive;font-size:clamp(56px,14vw,140px);letter-spacing:4px;line-height:1;background:linear-gradient(135deg,#ff4488 0%,#ff6600 35%,#ffcc00 65%,#44ffcc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:splashPulse 2.5s ease-in-out infinite alternate;}
+.splash-run{font-family:'Fredoka One',cursive;font-size:clamp(30px,8vw,80px);letter-spacing:12px;color:rgba(255,255,255,.92);text-shadow:0 4px 0 rgba(0,0,0,.5);margin-top:-6px;margin-bottom:12px;}
+@keyframes splashPulse{from{filter:drop-shadow(0 0 20px rgba(255,100,150,.5));}to{filter:drop-shadow(0 0 70px rgba(255,100,150,.9)) drop-shadow(0 0 140px rgba(255,130,50,.4));}}
+.splash-tag{color:rgba(255,255,255,.45);font-size:clamp(12px,2vw,16px);font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:44px;}
+.splash-play{font-family:'Fredoka One',cursive;font-size:clamp(24px,4vw,34px);padding:20px 88px;background:linear-gradient(160deg,#ff4477,#ff6600);color:#fff;border:none;cursor:pointer;border-radius:60px;box-shadow:0 7px 0 #aa2244,0 0 60px rgba(255,80,80,.35);transition:transform .12s,box-shadow .12s;animation:playBounce 1.8s ease-in-out infinite;}
+.splash-play:hover{transform:scale(1.07) translateY(-3px);box-shadow:0 10px 0 #aa2244,0 0 90px rgba(255,80,80,.55);}
+.splash-play:active{transform:scale(.94) translateY(3px);box-shadow:0 3px 0 #aa2244;animation:none;}
+@keyframes playBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.splash-reyshi{position:absolute;bottom:-10px;right:4%;opacity:.15;filter:drop-shadow(0 0 50px #ff3366);animation:lurk 3.5s ease-in-out infinite;}
+@keyframes lurk{0%,100%{transform:translateY(0);}50%{transform:translateY(-22px);}}
 .btn{font-family:'Fredoka One',cursive;border:none;cursor:pointer;border-radius:50px;transition:transform .12s,box-shadow .12s;}
 .btn:hover{transform:scale(1.06) translateY(-2px);}
 .btn:active{transform:scale(.93) translateY(2px);}
 .bplay{font-size:30px;padding:18px 72px;background:linear-gradient(160deg,#ff4477,#ff6600);color:#fff;box-shadow:0 6px 0 #aa2244,0 0 40px #ff336655;z-index:2;}
-.intro-r{position:absolute;bottom:0;right:6%;opacity:.2;filter:drop-shadow(0 0 40px #ff3366);animation:lurk 3s ease-in-out infinite;}
-@keyframes lurk{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
 #hs{background:linear-gradient(150deg,#0a001a,#120028,#050010);flex-direction:column;justify-content:flex-start;align-items:center;overflow:hidden;padding:0;}
 .hs-header{padding:14px 16px 0;text-align:center;flex-shrink:0;width:100%;}
 .ht{font-family:'Fredoka One',cursive;font-size:clamp(24px,5vw,42px);color:#fff;text-shadow:0 3px 0 #330066;margin-bottom:4px;}
@@ -221,10 +228,11 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 </style>
 </head>
 <body>
-<!-- INTRO -->
-<div id="intro" class="screen">
-  <canvas class="s-bg" id="sCv"></canvas>
-  <svg class="intro-r" width="155" height="230" viewBox="0 0 155 230">
+<!-- SPLASH — "COSMIC RUN" opening screen -->
+<div id="splash" class="screen">
+  <canvas id="splashCv"></canvas>
+  <!-- Reyshi silhouette -->
+  <svg class="splash-reyshi" width="200" height="300" viewBox="0 0 155 230">
     <ellipse cx="77" cy="44" rx="29" ry="32" fill="#ff1133"/>
     <rect x="48" y="72" width="58" height="80" rx="10" fill="#cc0022"/>
     <rect x="24" y="78" width="25" height="58" rx="10" fill="#cc0022"/>
@@ -235,9 +243,12 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
     <polygon points="89,15 95,0 101,15" fill="#770011"/>
     <circle cx="67" cy="40" r="7" fill="#ff6688"/><circle cx="87" cy="40" r="7" fill="#ff6688"/>
   </svg>
-  <div class="logo"><div class="lr">REYSHI</div><div class="lc">CHASE</div></div>
-  <div class="tag">Run · Fly · Fight · Evolve</div>
-  <button class="btn bplay" onclick="gHS()">▶ PLAY NOW</button>
+  <div class="splash-content">
+    <div class="splash-cosmic">COSMIC</div>
+    <div class="splash-run">RUN</div>
+    <div class="splash-tag">Run · Fight · Evolve · Survive</div>
+    <button class="splash-play" onclick="showScreen('acct')">▶ PLAY</button>
+  </div>
 </div>
 
 <!-- HERO SELECT -->
@@ -352,19 +363,6 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
   <div class="gobr">
     <button class="btn gobrr" onclick="restart()">↺ Again</button>
     <button class="btn gobrm" onclick="gHS()">⌂ Menu</button>
-  </div>
-</div>
-
-<!-- CUSTOM CONFIRM MODAL (replaces native confirm() — blocked on GitHub Pages) -->
-
-<div id="confirmModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:90;align-items:center;justify-content:center;">
-  <div style="background:linear-gradient(135deg,#0a001a,#120028);border:2px solid #6600ff55;border-radius:24px;padding:28px 24px;width:min(320px,88vw);text-align:center;">
-    <div style="font-size:36px;margin-bottom:10px;">🪙</div>
-    <div id="confirmMsg" style="font-family:'Fredoka One',cursive;font-size:20px;color:#fff;margin-bottom:20px;line-height:1.4;"></div>
-    <div style="display:flex;gap:12px;justify-content:center;">
-      <button onclick="_confirmYes()" style="font-family:'Fredoka One',cursive;font-size:18px;padding:11px 28px;background:linear-gradient(135deg,#00aa55,#00cc77);color:#fff;border:none;border-radius:50px;cursor:pointer;box-shadow:0 4px 0 #005522;">✅ Yes!</button>
-      <button onclick="_confirmNo()" style="font-family:'Fredoka One',cursive;font-size:18px;padding:11px 28px;background:rgba(255,255,255,.08);color:#ccc;border:2px solid #334;border-radius:50px;cursor:pointer;">Cancel</button>
-    </div>
   </div>
 </div>
 
@@ -490,26 +488,6 @@ return this;
 // btoa polyfill safety — btoa is fine in all modern browsers but wrap it
 function _safeEncode(s){try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return btoa(s);}}
 function _safeDecode(s){try{return decodeURIComponent(escape(atob(s)));}catch(e){return atob(s);}}
-
-// Custom confirm — replaces native confirm() which is blocked on many hosts
-let _confirmCallback=null;
-function _showConfirm(msg, onYes){
-_confirmCallback=onYes;
-document.getElementById(‘confirmMsg’).textContent=msg;
-const el=document.getElementById(‘confirmModal’);
-el.style.display=‘flex’;
-}
-function _confirmYes(){
-const el=document.getElementById(‘confirmModal’);
-el.style.display=‘none’;
-if(_confirmCallback)_confirmCallback();
-_confirmCallback=null;
-}
-function _confirmNo(){
-const el=document.getElementById(‘confirmModal’);
-el.style.display=‘none’;
-_confirmCallback=null;
-}
 // ═══════════════════════════════════
 // ADMIN SYSTEM — secret code is hidden
 // The word “admin” only appears if u type the right code
@@ -686,14 +664,44 @@ msg.textContent=‘❌ Wrong code. Try again!’;msg.style.color=’#ff4466’;
 }
 
 // ═══════════════════════════════════
-// STARFIELD
+// SPLASH STARFIELD — animated space background
 // ═══════════════════════════════════
 (function(){
-const cv=document.getElementById(‘sCv’);
-const rsz=()=>{cv.width=innerWidth;cv.height=innerHeight;};rsz();addEventListener(‘resize’,rsz);
+const cv=document.getElementById(‘splashCv’);
+if(!cv)return;
+function rsz(){cv.width=innerWidth;cv.height=innerHeight;}
+rsz();addEventListener(‘resize’,rsz);
 const c=cv.getContext(‘2d’);
-const S=Array.from({length:100},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.4+.3}));
-let t=0;(function tick(){c.clearRect(0,0,cv.width,cv.height);S.forEach(s=>{c.globalAlpha=.15+Math.sin(t*.025+s.x*8)*.15;c.fillStyle=’#fff’;c.beginPath();c.arc(s.x*cv.width,s.y*cv.height,s.r,0,Math.PI*2);c.fill();});c.globalAlpha=1;t++;requestAnimationFrame(tick);})();
+const stars=Array.from({length:200},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.8+.2,twinkle:Math.random()*Math.PI*2}));
+const shoots=[];
+let t=0;
+function addShoot(){shoots.push({x:Math.random()*.8,y:Math.random()*.5,vx:.014+Math.random()*.007,vy:.005+Math.random()*.004,life:1});}
+(function tick(){
+c.clearRect(0,0,cv.width,cv.height);
+// Deep space bg
+const g=c.createRadialGradient(cv.width*.5,cv.height*.35,0,cv.width*.5,cv.height*.5,cv.width);
+g.addColorStop(0,’#12002a’);g.addColorStop(.5,’#06000f’);g.addColorStop(1,’#000005’);
+c.fillStyle=g;c.fillRect(0,0,cv.width,cv.height);
+// Stars with colour tints
+stars.forEach(s=>{
+s.twinkle+=.022;
+c.globalAlpha=.1+Math.sin(s.twinkle)*.18;
+const cols=[’#ffffff’,’#ffddaa’,’#aaccff’,’#ffaacc’,’#ccffee’];
+c.fillStyle=cols[Math.floor(s.r*2.7)%5];
+c.beginPath();c.arc(s.x*cv.width,s.y*cv.height,s.r,0,Math.PI*2);c.fill();
+});
+// Shooting stars
+if(t%80===0)addShoot();
+shoots.forEach(sh=>{
+sh.x+=sh.vx;sh.y+=sh.vy;sh.life-=.016;
+c.globalAlpha=sh.life*.8;
+c.strokeStyle=‘rgba(255,220,160,.9)’;c.lineWidth=2;
+c.beginPath();c.moveTo(sh.x*cv.width,sh.y*cv.height);
+c.lineTo((sh.x-sh.vx*14)*cv.width,(sh.y-sh.vy*14)*cv.height);c.stroke();
+});
+shoots.splice(0,shoots.length,…shoots.filter(s=>s.life>0));
+c.globalAlpha=1;t++;requestAnimationFrame(tick);
+})();
 })();
 
 function showScreen(id){document.querySelectorAll(’.screen’).forEach(s=>s.classList.add(‘hidden’));document.getElementById(id).classList.remove(‘hidden’);}
@@ -745,20 +753,16 @@ function tryUnlockHero(i){
 const h=HEROES[i];
 if(!h.locked) return;
 if(h.cost>0 && wallet>=h.cost){
-// Can afford with coins — use custom confirm (native confirm blocked on GitHub Pages)
-_showConfirm(`Spend 🪙${h.cost.toLocaleString()} coins to unlock ${h.name}?`, ()=>{
+// Unlock directly — no popup needed
 wallet-=h.cost;
 h.locked=false;
 saveUserState();
 buildCards();
 document.getElementById(‘walletDisp’).textContent=‘🪙 ‘+wallet.toLocaleString()+’ coins’+(isAdmin?’ 👑’:’’);
-});
 } else if(h.cost>0 && wallet<h.cost){
-// Not enough coins — offer code panel
 document.getElementById(‘coinModalMsg’).textContent=`${h.name} costs 🪙${h.cost.toLocaleString()}.\nYou have 🪙${wallet.toLocaleString()}. Need ${(h.cost-wallet).toLocaleString()} more!\n\nOr enter a secret code to unlock free! 🔐`;
 document.getElementById(‘coinModal’).classList.remove(‘hidden’);
 } else {
-// Free but code-only
 openCodePanel();
 }
 }
@@ -1983,8 +1987,8 @@ setTimeout(()=>closeProfileEdit(),900);
 
 function restart(){startChaseMode();}
 
-// ── START ──
-showScreen(‘acct’);
+// ── START — show splash first ──
+showScreen(‘splash’);
 </script>
 
 </body>

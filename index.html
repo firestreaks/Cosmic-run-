@@ -5,8 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REYSHI CHASE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;background:#111;}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s,transform .4s;}
@@ -353,6 +355,19 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
   </div>
 </div>
 
+<!-- CUSTOM CONFIRM MODAL (replaces native confirm() — blocked on GitHub Pages) -->
+
+<div id="confirmModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:90;align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(135deg,#0a001a,#120028);border:2px solid #6600ff55;border-radius:24px;padding:28px 24px;width:min(320px,88vw);text-align:center;">
+    <div style="font-size:36px;margin-bottom:10px;">🪙</div>
+    <div id="confirmMsg" style="font-family:'Fredoka One',cursive;font-size:20px;color:#fff;margin-bottom:20px;line-height:1.4;"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="_confirmYes()" style="font-family:'Fredoka One',cursive;font-size:18px;padding:11px 28px;background:linear-gradient(135deg,#00aa55,#00cc77);color:#fff;border:none;border-radius:50px;cursor:pointer;box-shadow:0 4px 0 #005522;">✅ Yes!</button>
+      <button onclick="_confirmNo()" style="font-family:'Fredoka One',cursive;font-size:18px;padding:11px 28px;background:rgba(255,255,255,.08);color:#ccc;border:2px solid #334;border-radius:50px;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- PROFILE EDIT -->
 
 <div id="profileEdit" class="hidden">
@@ -445,13 +460,64 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 </div>
 <script>
 // ═══════════════════════════════════
+// POLYFILLS — fixes for Safari, Firefox, older Chrome
+// ═══════════════════════════════════
+
+// roundRect polyfill — not supported in Safari < 15.4 or older Chrome
+if(!CanvasRenderingContext2D.prototype.roundRect){
+CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+if(typeof r===‘number’) r=[r,r,r,r];
+else if(Array.isArray(r)){
+if(r.length===1) r=[r[0],r[0],r[0],r[0]];
+else if(r.length===2) r=[r[0],r[1],r[0],r[1]];
+else if(r.length===3) r=[r[0],r[1],r[2],r[1]];
+}
+const [tl,tr,br,bl]=r.map(v=>Math.min(v,w/2,h/2));
+this.moveTo(x+tl,y);
+this.lineTo(x+w-tr,y);
+this.quadraticCurveTo(x+w,y,x+w,y+tr);
+this.lineTo(x+w,y+h-br);
+this.quadraticCurveTo(x+w,y+h,x+w-br,y+h);
+this.lineTo(x+bl,y+h);
+this.quadraticCurveTo(x,y+h,x,y+h-bl);
+this.lineTo(x,y+tl);
+this.quadraticCurveTo(x,y,x+tl,y);
+this.closePath();
+return this;
+};
+}
+
+// btoa polyfill safety — btoa is fine in all modern browsers but wrap it
+function _safeEncode(s){try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return btoa(s);}}
+function _safeDecode(s){try{return decodeURIComponent(escape(atob(s)));}catch(e){return atob(s);}}
+
+// Custom confirm — replaces native confirm() which is blocked on many hosts
+let _confirmCallback=null;
+function _showConfirm(msg, onYes){
+_confirmCallback=onYes;
+document.getElementById(‘confirmMsg’).textContent=msg;
+const el=document.getElementById(‘confirmModal’);
+el.style.display=‘flex’;
+}
+function _confirmYes(){
+const el=document.getElementById(‘confirmModal’);
+el.style.display=‘none’;
+if(_confirmCallback)_confirmCallback();
+_confirmCallback=null;
+}
+function _confirmNo(){
+const el=document.getElementById(‘confirmModal’);
+el.style.display=‘none’;
+_confirmCallback=null;
+}
+// ═══════════════════════════════════
 // ADMIN SYSTEM — secret code is hidden
-// The word "admin" only appears if u type the right code
+// The word “admin” only appears if u type the right code
 // ═══════════════════════════════════
 let isAdmin = false;
-// Obfuscated — char codes for "6767"
+// Obfuscated — char codes for “6767”
 const _ac = [54,55,54,55];
-function _checkAdmin(s){ return s===_ac.map(c=>String.fromCharCode(c)).join(''); }
+function _checkAdmin(s){ return s===_ac.map(c=>String.fromCharCode(c)).join(’’); }
 
 // ═══════════════════════════════════
 // SHOP DATA
@@ -679,14 +745,14 @@ function tryUnlockHero(i){
 const h=HEROES[i];
 if(!h.locked) return;
 if(h.cost>0 && wallet>=h.cost){
-// Can afford with coins
-if(confirm(`Spend 🪙${h.cost.toLocaleString()} coins to unlock ${h.name}?`)){
+// Can afford with coins — use custom confirm (native confirm blocked on GitHub Pages)
+_showConfirm(`Spend 🪙${h.cost.toLocaleString()} coins to unlock ${h.name}?`, ()=>{
 wallet-=h.cost;
 h.locked=false;
 saveUserState();
 buildCards();
 document.getElementById(‘walletDisp’).textContent=‘🪙 ‘+wallet.toLocaleString()+’ coins’+(isAdmin?’ 👑’:’’);
-}
+});
 } else if(h.cost>0 && wallet<h.cost){
 // Not enough coins — offer code panel
 document.getElementById(‘coinModalMsg’).textContent=`${h.name} costs 🪙${h.cost.toLocaleString()}.\nYou have 🪙${wallet.toLocaleString()}. Need ${(h.cost-wallet).toLocaleString()} more!\n\nOr enter a secret code to unlock free! 🔐`;
@@ -1728,8 +1794,14 @@ c.restore();
 // ═══════════════════════════════════
 let currentUser=null;
 const AVATARS=[‘😊’,‘🔥’,‘⚡’,‘🌌’,‘👑’,‘🐉’,‘👼’,‘✨’,‘💀’,‘😈’,‘🦊’,‘🐺’,‘🎯’,‘🌊’,‘❄️’,‘🌙’];
-function getDB(){try{return JSON.parse(localStorage.getItem(‘reyshiDB’)||’{}’);}catch(e){return {};}}
-function saveDB(db){try{localStorage.setItem(‘reyshiDB’,JSON.stringify(db));}catch(e){}}
+// Safe localStorage — falls back to in-memory if blocked (private browsing, some hosts)
+const _memStore={};
+const _ls={
+get(k){try{return localStorage.getItem(k);}catch(e){return _memStore[k]||null;}},
+set(k,v){try{localStorage.setItem(k,v);}catch(e){_memStore[k]=v;}},
+};
+function getDB(){try{return JSON.parse(_ls.get(‘reyshiDB’)||’{}’);}catch(e){return {};}}
+function saveDB(db){try{_ls.set(‘reyshiDB’,JSON.stringify(db));}catch(e){}}
 
 function switchTab(tab){
 document.getElementById(‘loginForm’).style.display=tab===‘login’?’’:‘none’;
@@ -1747,7 +1819,7 @@ if(!name){msg.textContent=‘Enter your name!’;msg.style.color=’#ff4466’;r
 const db=getDB();
 const key=Object.keys(db).find(k=>k.toLowerCase()===name.toLowerCase()||db[k].name.toLowerCase()===name.toLowerCase());
 if(!key){msg.textContent=‘Account not found. Sign up!’;msg.style.color=’#ff4466’;return;}
-if(db[key].pass!==btoa(pass)){msg.textContent=‘Wrong password!’;msg.style.color=’#ff4466’;return;}
+if(db[key].pass!==_safeEncode(pass)){msg.textContent=‘Wrong password!’;msg.style.color=’#ff4466’;return;}
 currentUser={username:key,…db[key]};loadUserState();
 msg.textContent=‘Welcome back, ‘+currentUser.name+’! 👋’;msg.style.color=’#00ffcc’;
 setTimeout(()=>gHS(),900);
@@ -1764,7 +1836,7 @@ if(pass.length<3){msg.textContent=‘Password too short (3+ chars)’;msg.style.
 const db=getDB();
 if(db[username]){msg.textContent=‘Username taken!’;msg.style.color=’#ff4466’;return;}
 const avatar=AVATARS[Math.floor(Math.random()*AVATARS.length)];
-const newAcct={name:dispName,pass:btoa(pass),wallet:0,bestScore:0,unlockedIds:[],ownedItems:[‘default’,‘sign_none’,‘fx_none’],isAdmin:false,avatar,createdAt:Date.now()};
+const newAcct={name:dispName,pass:_safeEncode(pass),wallet:0,bestScore:0,unlockedIds:[],ownedItems:[‘default’,‘sign_none’,‘fx_none’],isAdmin:false,avatar,createdAt:Date.now()};
 db[username]=newAcct;saveDB(db);
 currentUser={username,…newAcct};loadUserState();
 msg.textContent=‘Account created! Welcome, ‘+dispName+’! 🎉’;msg.style.color=’#00ffcc’;

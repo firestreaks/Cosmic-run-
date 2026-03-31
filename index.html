@@ -163,7 +163,6 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 .gobrr{font-size:22px;padding:14px 36px;background:linear-gradient(160deg,#ff3366,#ff6600);color:#fff;box-shadow:0 5px 0 #882233;border-radius:50px;}
 .gobrm{font-size:22px;padding:14px 36px;background:rgba(255,255,255,.08);color:#ccc;border:2px solid #334;border-radius:50px;}
 #acct{background:radial-gradient(ellipse at 50% 30%,#100025,#05000f);z-index:60;}
-.acct-logo{font-family:'Fredoka One',cursive;font-size:clamp(42px,8vw,72px);letter-spacing:4px;text-align:center;z-index:2;margin-bottom:6px;}
 .acct-sub{color:#889;font-size:15px;font-weight:800;margin-bottom:28px;z-index:2;}
 .acct-box{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);border-radius:24px;padding:28px 24px;width:min(360px,90vw);z-index:2;}
 .acct-tabs{display:flex;margin-bottom:22px;border-radius:14px;overflow:hidden;border:2px solid rgba(255,255,255,.08);}
@@ -310,6 +309,28 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+
+<div id="splashScreen" style="
+  position:fixed;inset:0;z-index:300;
+  background:radial-gradient(ellipse at 50% 40%,#0d0020,#05000f 70%,#000);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .7s ease;
+">
+  <canvas id="splashCanvas" width="360" height="200" style="display:block;margin-bottom:24px;"></canvas>
+  <div id="splashLoadBar" style="
+    width:200px;height:5px;background:rgba(255,255,255,.08);
+    border-radius:10px;overflow:hidden;
+  ">
+    <div id="splashLoadFill" style="
+      height:100%;width:0%;
+      background:linear-gradient(90deg,#ff2244,#aa00ff);
+      border-radius:10px;transition:width .05s linear;
+    "></div>
+  </div>
+  <div style="font-family:'Fredoka One',cursive;font-size:14px;color:#444;margin-top:12px;letter-spacing:2px;">LOADING...</div>
+</div>
 
 <!-- CUTSCENE -->
 
@@ -506,7 +527,7 @@ body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;ba
 <!-- ACCOUNT -->
 
 <div id="acct" class="screen hidden">
-  <div class="acct-logo" style="color:#aa66ff;text-shadow:0 4px 0 #330066">REYSHI<br><span style="color:#fff;font-size:.55em">CHASE</span></div>
+  <canvas id="logoCanvas" width="320" height="160" style="display:block;margin:0 auto 6px;"></canvas>
   <div class="acct-sub">Sign in to save your progress!</div>
   <div class="acct-box">
     <div class="acct-tabs">
@@ -1366,6 +1387,8 @@ function showScreen(id){
 try{
 document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
 const el=document.getElementById(id);if(el)el.classList.remove('hidden');
+// Logo canvas — animate on account screen, stop elsewhere
+if(id==='acct'){startLogoAnim();}else{stopLogoAnim();}
 }catch(e){console.error(e);}
 }
 
@@ -2363,7 +2386,201 @@ msg.textContent='✅ Profile saved!';msg.style.color='#00ffcc';updateProfileBubb
 }
 function restart(){startChaseMode();}
 
-window.addEventListener('load',()=>{showScreen('acct');});
+// ═══════════════════════════════════
+// LOGO DRAW FUNCTION
+// ═══════════════════════════════════
+function drawLogo(canvas, t){
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+ctx.clearRect(0,0,W,H);
+
+// ── Cosmic background ──
+const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*.7);
+bg.addColorStop(0, '#1a0030');
+bg.addColorStop(.5, '#0a0018');
+bg.addColorStop(1, '#000');
+ctx.fillStyle = bg;
+ctx.beginPath(); ctx.roundRect(0,0,W,H,18); ctx.fill();
+
+// Stars
+for(let i=0;i<60;i++){
+  const sx=((i*137+30)%W), sy=((i*89+20)%H);
+  const pulse = .3+Math.sin(t*.04+i)*.25;
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = i%5===0?'#ff4466':i%3===0?'#aa44ff':'#ffffff';
+  ctx.beginPath();
+  ctx.arc(sx,sy,i%7===0?1.8:.8,0,Math.PI*2);
+  ctx.fill();
+}
+ctx.globalAlpha=1;
+
+// Nebula wisps
+for(let n=0;n<4;n++){
+  const nx=W*(.15+n*.22), ny=H*(.3+Math.sin(n*1.4+t*.02)*.2);
+  const ng=ctx.createRadialGradient(nx,ny,0,nx,ny,55+n*10);
+  ng.addColorStop(0,n%2?'rgba(180,0,255,.18)':'rgba(255,30,80,.14)');
+  ng.addColorStop(1,'transparent');
+  ctx.fillStyle=ng;
+  ctx.beginPath(); ctx.ellipse(nx,ny,80+n*12,35,n*.4,0,Math.PI*2); ctx.fill();
+}
+
+// Orbiting sparkles around the R
+const cx=W*.38, cy=H*.5;
+for(let o=0;o<6;o++){
+  const ang = t*.04 + o*(Math.PI/3);
+  const ox=cx+Math.cos(ang)*58, oy=cy+Math.sin(ang)*28;
+  ctx.globalAlpha=.6+Math.sin(t*.05+o)*.3;
+  ctx.fillStyle=o%2?'#ff4466':'#cc00ff';
+  ctx.shadowBlur=8; ctx.shadowColor=o%2?'#ff4466':'#cc00ff';
+  ctx.beginPath(); ctx.arc(ox,oy,2.5,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+}
+ctx.globalAlpha=1;
+
+// ── REYSHI — full word, devil R leads into EYSHI ──
+ctx.save();
+ctx.textBaseline='middle';
+ctx.textAlign='center';
+
+const fontSize = Math.round(H * .58);
+ctx.font = `900 ${fontSize}px 'Fredoka One',cursive`;
+
+// Measure full word to centre it
+const fullW = ctx.measureText('REYSHI').width;
+const startX = W/2 - fullW/2;
+
+// Draw EYSHI first (purple-white gradient) behind the R
+ctx.font = `900 ${fontSize}px 'Fredoka One',cursive`;
+const rW = ctx.measureText('R').width;
+const eyshiX = startX + rW + fullW*0; // position right after R
+
+ctx.shadowBlur=14; ctx.shadowColor='#8800ff';
+const tg=ctx.createLinearGradient(0, H*.08, 0, H*.85);
+tg.addColorStop(0,'#ffffff');
+tg.addColorStop(.35,'#dd88ff');
+tg.addColorStop(.7,'#8833ff');
+tg.addColorStop(1,'#440088');
+ctx.fillStyle=tg;
+ctx.textAlign='left';
+ctx.fillText('EYSHI', startX + rW, H*.42);
+ctx.shadowBlur=0;
+
+// Now draw the devil R on top with fire gradient + glow
+[55,35,18].forEach((blur,i)=>{
+  ctx.shadowBlur=blur;
+  ctx.shadowColor=i===0?'#ff0000':i===1?'#cc0022':'#ff4455';
+  const fireGrad=ctx.createLinearGradient(startX, H*.08, startX, H*.85);
+  fireGrad.addColorStop(0,'#ffdd00');
+  fireGrad.addColorStop(.2,'#ff5500');
+  fireGrad.addColorStop(.5,'#cc0022');
+  fireGrad.addColorStop(.8,'#880011');
+  fireGrad.addColorStop(1,'#330000');
+  ctx.fillStyle=fireGrad;
+  ctx.fillText('R', startX, H*.42);
+});
+ctx.shadowBlur=0;
+
+// Devil horns above the R — sized relative to R width
+const hornBaseY = H*.42 - fontSize*.48;
+const hornMidX  = startX + rW*.38;
+ctx.fillStyle='#cc0022';
+ctx.shadowBlur=16; ctx.shadowColor='#ff0000';
+// Left horn
+ctx.beginPath();
+ctx.moveTo(hornMidX - rW*.28, hornBaseY);
+ctx.lineTo(hornMidX - rW*.44, hornBaseY - fontSize*.28);
+ctx.lineTo(hornMidX - rW*.08, hornBaseY);
+ctx.closePath(); ctx.fill();
+// Right horn
+ctx.beginPath();
+ctx.moveTo(hornMidX + rW*.04, hornBaseY);
+ctx.lineTo(hornMidX + rW*.2,  hornBaseY - fontSize*.24);
+ctx.lineTo(hornMidX + rW*.38, hornBaseY);
+ctx.closePath(); ctx.fill();
+ctx.shadowBlur=0;
+
+// Crack/vein lines on the R
+ctx.strokeStyle='rgba(255,180,0,.3)';
+ctx.lineWidth=1.5; ctx.lineCap='round';
+ctx.beginPath();
+ctx.moveTo(startX+rW*.18, H*.18);
+ctx.lineTo(startX+rW*.3,  H*.35);
+ctx.lineTo(startX+rW*.1,  H*.52);
+ctx.moveTo(startX+rW*.5,  H*.22);
+ctx.lineTo(startX+rW*.6,  H*.4);
+ctx.lineTo(startX+rW*.45, H*.6);
+ctx.stroke();
+ctx.restore();
+
+// ── CHASE subtitle ──
+ctx.save();
+ctx.textAlign='center'; ctx.textBaseline='middle';
+const chaseSize=Math.round(H*.2);
+ctx.font=`900 ${chaseSize}px 'Fredoka One',cursive`;
+ctx.shadowBlur=12; ctx.shadowColor='#ff2244';
+const tg2=ctx.createLinearGradient(W/2-80,0,W/2+80,0);
+tg2.addColorStop(0,'#ff8899');
+tg2.addColorStop(.5,'#ff2244');
+tg2.addColorStop(1,'#aa0022');
+ctx.fillStyle=tg2;
+ctx.fillText('CHASE', W/2, H*.78);
+ctx.shadowBlur=0;
+// Underline
+ctx.strokeStyle='rgba(255,34,68,.45)';
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.moveTo(W/2-70, H*.89); ctx.lineTo(W/2+70, H*.89);
+ctx.stroke();
+ctx.restore();
+
+// Pulse ring around whole logo
+const ringAlpha = (.15+Math.sin(t*.06)*.08);
+ctx.strokeStyle=`rgba(180,0,255,${ringAlpha})`;
+ctx.lineWidth=2;
+ctx.beginPath(); ctx.roundRect(4,4,W-8,H-8,16); ctx.stroke();
+}
+
+// Animate the logo canvas on account screen
+let logoRaf=null, logoFrame=0;
+function startLogoAnim(){
+const cv=document.getElementById('logoCanvas');
+if(!cv)return;
+cv.width=Math.min(360,window.innerWidth-32);
+cv.height=Math.round(cv.width*.5);
+function tick(){logoRaf=requestAnimationFrame(tick);drawLogo(cv,logoFrame++);}
+tick();
+}
+function stopLogoAnim(){if(logoRaf){cancelAnimationFrame(logoRaf);logoRaf=null;}}
+
+// ── SPLASH SCREEN ──
+function runSplash(callback){
+const splash=document.getElementById('splashScreen');
+const cv=document.getElementById('splashCanvas');
+if(!cv||!splash){if(callback)callback();return;}
+cv.width=Math.min(360,window.innerWidth-20);
+cv.height=Math.round(cv.width*.55);
+let sf=0, pct=0;
+const fill=document.getElementById('splashLoadFill');
+const splashRaf=setInterval(()=>{
+  drawLogo(cv,sf);
+  sf++;
+  pct=Math.min(100,pct+(100/90));
+  if(fill)fill.style.width=pct+'%';
+  if(pct>=100){
+    clearInterval(splashRaf);
+    splash.style.opacity='0';
+    setTimeout(()=>{
+      splash.style.display='none';
+      startLogoAnim();
+      if(callback)callback();
+    },700);
+  }
+},16);
+}
+
+window.addEventListener('load',()=>{
+  runSplash(()=>showScreen('acct'));
+});
 
 // ── PWA Install Prompt ──
 let _deferredInstall=null;

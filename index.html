@@ -1169,14 +1169,10 @@ setTimeout(()=>{closeCodePanel();gHS();},2000);return;
 if(raw.toUpperCase()===ADMIN_CODE){
 activateAdmin();
 infiniteCoins=true;
-wallet=999999999;
-// Unlock secret characters
+// Unlock secret characters for this session
 ['aqua','kingbob','terravus'].forEach(id=>{const h=HEROES.find(x=>x.id===id);if(h)h.locked=false;});
-// Unlock all gear
-GEAR_ITEMS.forEach(g=>ownedGear.add(g.id));
-saveUserState();
-msg.innerHTML='<span style="color:#ff4466;font-size:16px">⚡ 1A2B ACTIVATED!<br>♾️ Infinite coins · 👑 Admin commands<br>🌊 Aqua · 👑 King Bob · 🌍 Terravus UNLOCKED!</span>';
-setTimeout(()=>{closeCodePanel();gHS();openAdminPanel();},2000);return;
+msg.innerHTML='<span style="color:#ff4466;font-size:16px">⚡ 1A2B ACTIVATED!<br>♾️ Infinite coins · 👑 Admin commands<br>🌊 Aqua · 👑 King Bob · 🌍 Terravus UNLOCKED!<br><span style="font-size:12px;color:#aaa">Admin is SESSION ONLY — type code again next time</span></span>';
+setTimeout(()=>{closeCodePanel();gHS();openAdminPanel();},2200);return;
 }
 
 const targets=CODES[lower];
@@ -1201,12 +1197,15 @@ msg.textContent='❌ Wrong code. Try again!';msg.style.color='#ff4466';
 }
 
 function activateAdmin(){
+// Admin is SESSION ONLY — only the person who typed the code gets it, this session only
 isAdmin=true;
-wallet=Math.max(wallet,1000000);
 HEROES.forEach(h=>h.locked=false);
 [...SHOP_OUTFITS,...SHOP_SIGNS,...SHOP_EFFECTS].forEach(it=>ownedItems.add(it.id));
 GEAR_ITEMS.forEach(g=>ownedGear.add(g.id));
-saveUserState();updateProfileBubble();
+const adminBtn=document.getElementById('adminOpenBtn');
+if(adminBtn)adminBtn.style.display='inline-block';
+// Do NOT call saveUserState here — admin status is never written to DB
+updateProfileBubble();
 }
 
 // ═══════════════════════════════════
@@ -1855,7 +1854,7 @@ if(lives<=0)die();
 }
 function die(){
 running=false;
-if(infiniteCoins){wallet=999999999;}else{wallet+=coinsThisRun;}
+if(!infiniteCoins)wallet+=coinsThisRun;
 const s=Math.floor(score);if(s>bestScore)bestScore=s;
 document.getElementById('goTitle').textContent=isFlyMode?'CRASHED! ✈️':'CAUGHT! 😱';
 document.getElementById('goD').textContent=s+' M';
@@ -2065,7 +2064,7 @@ function endBattle(playerWins){
 battleRunning=false;
 const res=document.getElementById('battleResult');const h=HEROES[selHero]||HEROES[0];
 res.classList.remove('hidden');
-if(playerWins){document.getElementById('brTitle').textContent=h.name+' WINS! 🎉';document.getElementById('brTitle').style.color=h.glow;document.getElementById('brSub').textContent='You defeated Reyshi! +200 coins!';if(infiniteCoins){wallet=999999999;}else{wallet+=200;}saveUserState();}
+if(playerWins){document.getElementById('brTitle').textContent=h.name+' WINS! 🎉';document.getElementById('brTitle').style.color=h.glow;document.getElementById('brSub').textContent='You defeated Reyshi! +200 coins!';if(!infiniteCoins)wallet+=200;saveUserState();}
 else{document.getElementById('brTitle').textContent='😈 REYSHI WINS!';document.getElementById('brTitle').style.color='#ff4466';document.getElementById('brSub').textContent='Reyshi is relentless! Train harder and try again!';}
 }
 
@@ -2235,11 +2234,10 @@ playCutscene('reyshi_attack',()=>gHS());
 function loadUserState(){
 if(!currentUser)return;
 const db=getDB();const save=db[currentUser.username];
+// isAdmin is NEVER loaded from DB — only granted in the current session by typing the code
 if(save){
 wallet=save.wallet||0;bestScore=save.bestScore||0;
-isAdmin=save.isAdmin||false;
-infiniteCoins=save.infiniteCoins||false;
-if(isAdmin){wallet=Math.max(wallet,0);HEROES.forEach(h=>h.locked=false);}
+infiniteCoins=false; // infinite coins also session-only — must type code again
 (save.unlockedIds||[]).forEach(id=>{const h=HEROES.find(x=>x.id===id);if(h)h.locked=false;});
 ownedItems=new Set(save.ownedItems||['default','sign_none','fx_none']);
 ownedGear=new Set(save.ownedGear||['gear_none']);
@@ -2255,7 +2253,8 @@ function saveUserState(){
 if(!currentUser||currentUser.username==='guest')return;
 const db=getDB();const existing=db[currentUser.username]||{};
 const unlockedIds=HEROES.filter(h=>!h.locked).map(h=>h.id);
-db[currentUser.username]={...existing,wallet:infiniteCoins?999999999:wallet,bestScore,unlockedIds,isAdmin,infiniteCoins,ownedItems:[...ownedItems],ownedGear:[...ownedGear],equippedOutfit,equippedSign,equippedEffect,equippedGear,lastPlayed:Date.now()};
+// Never save isAdmin or infiniteCoins to DB — they must be re-earned each session
+db[currentUser.username]={...existing,wallet,bestScore,unlockedIds,ownedItems:[...ownedItems],ownedGear:[...ownedGear],equippedOutfit,equippedSign,equippedEffect,equippedGear,lastPlayed:Date.now()};
 saveDB(db);
 }
 

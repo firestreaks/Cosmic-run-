@@ -3,14 +3,52 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reyshi Chase">
+<meta name="application-name" content="Reyshi Chase">
+<meta name="theme-color" content="#0a001a">
+<meta name="description" content="Chase mode runner game — dodge obstacles, collect coins, fight Reyshi!">
 <title>REYSHI CHASE</title>
+<script>
+// ── PWA: Inline Manifest ──
+(function(){
+const manifest={
+name:'Reyshi Chase',
+short_name:'ReyshiChase',
+description:'Chase mode runner — dodge obstacles, fight Reyshi!',
+start_url:'.',
+display:'fullscreen',
+orientation:'portrait',
+background_color:'#0a001a',
+theme_color:'#0a001a',
+icons:[
+{src:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="%230a001a"/><text x="256" y="340" font-size="300" text-anchor="middle" fill="%23ff4466">😈</text><text x="256" y="460" font-size="72" font-family="Arial Black,sans-serif" font-weight="900" text-anchor="middle" fill="%23fff">REYSHI</text></svg>'),sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
+]
+};
+const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+const url=URL.createObjectURL(blob);
+const link=document.createElement('link');link.rel='manifest';link.href=url;
+document.currentScript.insertAdjacentElement('afterend',link);
+})();
+
+// ── PWA: Service Worker (offline support) ──
+if(‘serviceWorker’ in navigator){
+const swCode=`const CACHE='reyshi-v1'; const FONTS=['https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap']; self.addEventListener('install',e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FONTS).catch(()=>{}))); self.skipWaiting(); }); self.addEventListener('activate',e=>{ e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))); self.clients.claim(); }); self.addEventListener('fetch',e=>{ if(e.request.method!=='GET')return; e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(res=>{ if(res.ok&&e.request.url.startsWith('https://fonts')){ const clone=res.clone(); caches.open(CACHE).then(c=>c.put(e.request,clone)); } return res; }).catch(()=>cached))); });`;
+const blob=new Blob([swCode],{type:‘text/javascript’});
+const url=URL.createObjectURL(blob);
+navigator.serviceWorker.register(url).catch(()=>{});
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;background:#111;}
+body{overflow:hidden;height:100vh;width:100vw;font-family:'Nunito',sans-serif;background:#111;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s,transform .4s;}
 .screen.hidden{opacity:0;pointer-events:none;transform:scale(.97);}
 .btn{font-family:'Fredoka One',cursive;border:none;cursor:pointer;border-radius:50px;transition:transform .12s,box-shadow .12s;}
@@ -2326,7 +2364,83 @@ msg.textContent='✅ Profile saved!';msg.style.color='#00ffcc';updateProfileBubb
 function restart(){startChaseMode();}
 
 window.addEventListener('load',()=>{showScreen('acct');});
+
+// ── PWA Install Prompt ──
+let _deferredInstall=null;
+
+window.addEventListener('beforeinstallprompt',e=>{
+e.preventDefault();
+_deferredInstall=e;
+// Show banner after a short delay so it doesn't clash with game load
+setTimeout(showInstallBanner,1800);
+});
+
+window.addEventListener('appinstalled',()=>{
+hideInstallBanner();
+_deferredInstall=null;
+});
+
+function showInstallBanner(){
+const b=document.getElementById('installBanner');
+if(b)b.style.transform='translateY(0)';
+}
+function hideInstallBanner(){
+const b=document.getElementById('installBanner');
+if(b)b.style.transform='translateY(110%)';
+}
+function triggerInstall(){
+if(!_deferredInstall){
+// iOS fallback — show manual instructions
+document.getElementById('iosInstallTip').style.display='block';
+return;
+}
+_deferredInstall.prompt();
+_deferredInstall.userChoice.then(()=>{hideInstallBanner();_deferredInstall=null;});
+}
+
+// Detect iOS (no beforeinstallprompt support)
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+const isInStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+if(isIOS&&!isInStandalone){setTimeout(showInstallBanner,2000);}
 </script>
+
+<!-- Install Banner -->
+
+<div id="installBanner" style="
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:linear-gradient(135deg,#0a001a,#1a0030);
+  border-top:2px solid #6600ff88;
+  padding:14px 18px 18px;
+  display:flex;align-items:center;gap:12px;
+  transform:translateY(110%);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 -4px 30px #6600ff44;
+  padding-bottom:max(18px,env(safe-area-inset-bottom));
+">
+  <div style="font-size:44px;line-height:1;flex-shrink:0;">😈</div>
+  <div style="flex:1;min-width:0;">
+    <div style="font-family:'Fredoka One',cursive;font-size:17px;color:#fff;margin-bottom:2px;">Install Reyshi Chase</div>
+    <div style="font-size:12px;color:#9977bb;font-weight:800;line-height:1.4;" id="iosInstallTip" style="display:none">
+      Tap <b style="color:#fff">Share ⬆️</b> then <b style="color:#fff">Add to Home Screen</b>
+    </div>
+    <div style="font-size:12px;color:#9977bb;font-weight:800;">Play offline · Full screen · No browser bar</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+    <button onclick="triggerInstall()" style="
+      font-family:'Fredoka One',cursive;font-size:15px;
+      padding:9px 18px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#6600ff,#aa00ff);
+      color:#fff;border-radius:30px;
+      box-shadow:0 3px 0 #330066;
+      white-space:nowrap;
+    ">⬇️ Install</button>
+    <button onclick="hideInstallBanner()" style="
+      font-size:12px;color:#556;font-weight:800;
+      background:none;border:none;cursor:pointer;
+      font-family:'Nunito',sans-serif;text-align:center;
+    ">Not now</button>
+  </div>
+</div>
 
 </body>
 </html>

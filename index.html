@@ -1,997 +1,1197 @@
-import { useState, useEffect, useRef, useCallback } from “react”;
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Reyshi Chase</title>
 
-// ════════════════════════════════════════════════════════
-// DATA
-// ════════════════════════════════════════════════════════
-const HEROES = [
-{id:“ron”,       name:“RON”,             elem:“Fire Warrior”,   col:”#ff5500”,col2:”#ffaa00”,glow:”#ff6600”,dark:”#aa2200”,locked:false,cost:0,   jMul:1.0, abilCols:[”#ff6600”,”#ff4400”,”#ff3300”,”#ff2200”],
-abilities:[“🔥 Fireball”,“🌋 Magma Burst”,“💥 Fire Flare”,“☄️ Meteor Strike”]},
-{id:“lapse”,     name:“LAPSE”,           elem:“Galaxy Spirit”,  col:”#8833ff”,col2:”#cc88ff”,glow:”#aa44ff”,dark:”#440088”,locked:false,cost:0,   jMul:1.3,
-abilities:[“✨ Stardust”,“🌀 Vortex”,“💜 Nova Blast”,“🌌 Galaxy Wave”]},
-{id:“den”,       name:“DEN”,             elem:“Storm Striker”,  col:”#ccaa00”,col2:”#ffff88”,glow:”#ffee44”,dark:”#886600”,locked:false,cost:0,   jMul:0.95,
-abilities:[“⚡ Lightning”,“🌩 Storm Surge”,“💛 Thunder”,“🌪 Cyclone”]},
-{id:“bd”,        name:“BLACKDEATH”,      elem:“Void Walker”,    col:”#5500aa”,col2:”#cc00ff”,glow:”#8800ff”,dark:”#220044”,locked:false,cost:0,   jMul:1.15,
-abilities:[“🌑 Void Strike”,“👁 Shadow”,“💜 Dark Curse”,“🕳 Abyss”]},
-{id:“reyshi”,    name:“REYSHI”,          elem:“Void Demon”,     col:”#ff1133”,col2:”#ff6688”,glow:”#ff2244”,dark:”#880011”,locked:true, cost:500, jMul:1.2,  isReyshi:true,
-abilities:[“🩸 Claw Slash”,“😈 Rage Mode”,“💀 Death Doom”,“🔥 Hellfire”]},
-{id:“ron_dragon”,name:“DRAGON RON”,      elem:“Dragon Fire”,    col:”#ff3300”,col2:”#ff8800”,glow:”#ff5500”,dark:”#660000”,locked:true, cost:1000,jMul:1.6,  isEvolved:true,baseId:“ron”,flyMode:true,
-abilities:[“🐉 Dragon Breath”,“🔥 Inferno”,“💥 Dragon Roar”,“⚡ Dragon Rush”]},
-{id:“den_angel”, name:“ANGEL DEN”,       elem:“Holy Lightning”, col:”#ffffaa”,col2:”#ffffff”,glow:”#ffffee”,dark:”#888800”,locked:true, cost:1000,jMul:1.7,  isEvolved:true,baseId:“den”,flyMode:true,
-abilities:[“⚡ Holy Bolt”,“🕊 Wing Slash”,“✨ Divine Aura”,“👼 Judgement”]},
-{id:“lapse_awake”,name:“LAPSE AWAKENED”,elem:“Cosmic God”,     col:”#cc44ff”,col2:”#ffffff”,glow:”#ee88ff”,dark:”#550066”,locked:true, cost:1000,jMul:1.8,  isEvolved:true,baseId:“lapse”,flyMode:true,
-abilities:[“🌌 Cosmos”,“💫 Space Warp”,“👁 Third Eye”,“✨ Big Bang”]},
-{id:“aqua”,      name:“AQUA”,            elem:“Water Warrior”,  col:”#00aaff”,col2:”#88ddff”,glow:”#00ccff”,dark:”#003366”,locked:true, cost:0,   jMul:1.4,  isSecret:true,
-abilities:[“🌊 Tidal Wave”,“💧 Flood Rush”,“🌀 Whirlpool”,“❄️ Ice Freeze”]},
-{id:“kingbob”,   name:“KING BOB”,        elem:“Royal Champion”, col:”#ffcc00”,col2:”#fff088”,glow:”#ffd700”,dark:”#886600”,locked:true, cost:0,   jMul:1.1,  isSecret:true,
-abilities:[“💛 Royal Flame”,“👑 Crown Slam”,“🏰 Castle Shield”,“⚡ King Strike”]},
-{id:“terravus”,  name:“TERRAVUS”,        elem:“Earth Master”,   col:”#44aa22”,col2:”#88dd44”,glow:”#66cc33”,dark:”#1a4400”,locked:true, cost:0,   jMul:1.0,  isSecret:true,
-abilities:[“🌍 Earthquake”,“🌿 Vine Trap”,“🏔 Boulder”,“💚 Nature Surge”]},
-];
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap');
+:root{--or:#ff6b35;--go:#ffd700;--bl:#4fc3f7;--pu:#9c27b0;--rd:#e53935;--panel:rgba(8,8,24,0.95);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#060614;color:#fff;font-family:'Nunito',sans-serif;touch-action:none;}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:5;}
+.scr.on{display:flex;}
+#bg{position:fixed;inset:0;background:linear-gradient(135deg,#06060e,#150828,#060e1a);z-index:0;overflow:hidden;}
+#bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 55%,rgba(255,107,53,.14)0%,transparent 55%),radial-gradient(ellipse at 78% 22%,rgba(79,195,247,.14)0%,transparent 55%);animation:bp 5s ease-in-out infinite alternate;}
+@keyframes bp{from{opacity:.4}to{opacity:1}}
+.st{position:absolute;border-radius:50%;background:#fff;animation:tw 2s ease-in-out infinite alternate;}
+@keyframes tw{from{opacity:.15;transform:scale(1)}to{opacity:.9;transform:scale(1.6)}}
+.btn{padding:11px 32px;border:none;border-radius:40px;cursor:pointer;font-family:'Bangers',cursive;font-size:19px;letter-spacing:2px;transition:all .18s;position:relative;z-index:2;margin:4px;outline:none;}
+.bP{background:linear-gradient(135deg,#ff6b35,#ff9040);color:#fff;box-shadow:0 0 18px rgba(255,107,53,.45);}
+.bP:hover{transform:scale(1.06);box-shadow:0 0 30px rgba(255,107,53,.8);}
+.bS{background:linear-gradient(135deg,#4fc3f7,#0288d1);color:#fff;}
+.bS:hover{transform:scale(1.05);}
+.bG{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;}
+.bG:hover{transform:scale(1.05);}
+.bD{background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;}
+.bPu{background:linear-gradient(135deg,#9c27b0,#673ab7);color:#fff;}
+.bSm{padding:6px 16px;font-size:14px;}
+.pan{background:var(--panel);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:24px;backdrop-filter:blur(14px);position:relative;z-index:2;width:88%;max-width:420px;box-shadow:0 0 40px rgba(0,0,0,.6);}
+.pan h2{font-family:'Bangers',cursive;font-size:26px;margin-bottom:14px;text-align:center;color:var(--go);letter-spacing:2px;}
+.fg{margin-bottom:11px;}
+.fg label{display:block;margin-bottom:4px;color:#999;font-size:12px;}
+.fg input{width:100%;padding:9px 13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#fff;font-size:14px;font-family:'Nunito',sans-serif;}
+.fg input:focus{outline:none;border-color:var(--or);}
+.fsw{text-align:center;margin-top:10px;font-size:12px;color:#888;}
+.fsw span{color:var(--or);cursor:pointer;font-weight:900;}
+#cs-scr{overflow-y:auto;padding:8px 0 16px;}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:90%;max-width:600px;z-index:2;position:relative;margin-top:6px;}
+.cc{background:var(--panel);border:2px solid rgba(255,255,255,.09);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
+.cc:hover,.cc.sel{border-color:var(--or);box-shadow:0 0 16px rgba(255,107,53,.35);transform:translateY(-2px);}
+.cc.lk{opacity:.55;filter:grayscale(.4);}
+.lkb{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);border-radius:50%;padding:2px 6px;font-size:13px;}
+.evob{position:absolute;top:5px;left:5px;background:linear-gradient(135deg,#ffd700,#ff8c00);color:#000;border-radius:12px;padding:1px 6px;font-size:8px;font-weight:900;}
+.adbb{position:absolute;top:5px;left:5px;background:linear-gradient(135deg,#9c27b0,#5e35b1);color:#fff;border-radius:12px;padding:1px 6px;font-size:8px;font-weight:900;}
+.cn{font-family:'Bangers',cursive;font-size:16px;letter-spacing:1px;margin-top:4px;}
+.ct{font-size:9px;color:#888;margin-top:1px;}
+.tabs{display:flex;gap:6px;margin-bottom:7px;z-index:2;position:relative;flex-wrap:wrap;justify-content:center;}
+.tab{padding:5px 13px;border-radius:16px;cursor:pointer;font-family:'Bangers',cursive;font-size:13px;letter-spacing:1px;border:2px solid rgba(255,255,255,.18);background:transparent;color:#888;transition:all .18s;}
+.tab.on{border-color:var(--or);color:#fff;background:rgba(255,107,53,.18);}
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;z-index:50;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);}
+.hi{font-family:'Bangers',cursive;font-size:18px;}
+#pbtn{pointer-events:all;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:50%;width:34px;height:34px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#sh-scr{overflow-y:auto;padding:8px 0 16px;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:90%;max-width:600px;z-index:2;position:relative;margin-bottom:12px;}
+.si{background:var(--panel);border:2px solid rgba(255,255,255,.09);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .18s;}
+.si:hover{transform:scale(1.04);border-color:var(--go);}
+.si.own{border-color:#4caf50;}
+.si.eqp{border-color:#ffd700;box-shadow:0 0 9px rgba(255,215,0,.4);}
+#nc{position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none;}
+.notif{background:rgba(0,0,0,.9);border:1px solid var(--or);border-radius:24px;padding:7px 18px;margin-bottom:5px;font-family:'Bangers',cursive;font-size:15px;color:#fff;letter-spacing:1px;animation:ni .25s ease,no .25s ease 2.75s forwards;text-align:center;white-space:nowrap;}
+@keyframes ni{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes no{from{opacity:1}to{opacity:0;transform:translateY(-14px)}}
+.cp{position:fixed;pointer-events:none;font-family:'Bangers',cursive;font-size:17px;color:var(--go);z-index:999;animation:cpa 1s ease forwards;}
+@keyframes cpa{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-44px)}}
+#mc{position:fixed;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:50;pointer-events:none;}
+.cb{width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.26);color:#fff;font-size:20px;cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;}
+.cb:active{background:rgba(255,107,53,.45);border-color:var(--or);}
+.fhud{position:fixed;top:0;left:0;right:0;padding:8px 12px;display:flex;justify-content:space-between;align-items:flex-start;z-index:50;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.68),transparent);}
+.hpw{width:42%;}
+.hpl{font-family:'Bangers',cursive;font-size:15px;margin-bottom:2px;}
+.hpb{height:10px;background:rgba(255,255,255,.14);border-radius:5px;overflow:hidden;}
+.hpf{height:100%;border-radius:5px;transition:width .3s;}
+.pf{background:linear-gradient(90deg,#4caf50,#8bc34a);}
+.ef{background:linear-gradient(90deg,#f44336,#e91e63);}
+.fc{position:fixed;bottom:12px;left:0;right:0;display:flex;justify-content:space-around;z-index:50;padding:0 12px;}
+.fb{padding:9px 16px;border-radius:10px;border:none;cursor:pointer;font-family:'Bangers',cursive;font-size:16px;letter-spacing:1px;transition:transform .1s;}
+.fb:active{transform:scale(.94);}
+#po{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
+#po.on{display:flex;}
+#cut-scr{background:#000;}
+#gb{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:50;display:flex;gap:5px;pointer-events:none;}
+.gch{background:rgba(0,0,0,.7);border:1px solid var(--go);border-radius:16px;padding:2px 9px;font-family:'Bangers',cursive;font-size:12px;color:var(--go);}
+.lrow{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.lrank{font-family:'Bangers',cursive;font-size:19px;width:36px;color:var(--go);}
+.lname{flex:1;font-weight:700;}
+.lscore{font-family:'Bangers',cursive;font-size:16px;color:var(--bl);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--or);border-radius:2px;}
+</style></head><body>
 
-const GEAR_LIST = [
-{id:“none”,        name:“No Gear”,         icon:“✖️”, cost:0,      stat:””,                    fx:{}},
-{id:“boots”,       name:“Rocket Boots”,    icon:“🥾”, cost:5000,   stat:“⚡ +30% Speed”,       fx:{speedMul:1.3}},
-{id:“shield”,      name:“Titan Shield”,    icon:“🛡️”, cost:8000,   stat:“❤️ +1 Extra Life”,   fx:{extraLives:1}},
-{id:“magnet”,      name:“Coin Magnet”,     icon:“🧲”, cost:6000,   stat:“🪙 Auto-Collect”,     fx:{magnet:true}},
-{id:“wings”,       name:“Iron Wings”,      icon:“🪶”, cost:12000,  stat:“⬆️ +40% Jump”,       fx:{jumpMul:1.4}},
-{id:“sword”,       name:“Void Sword”,      icon:“⚔️”, cost:15000,  stat:“💥 +60% Attack”,     fx:{atkMul:1.6}},
-{id:“crown”,       name:“Champion Crown”,  icon:“👑”, cost:20000,  stat:“✨ All +15%”,         fx:{speedMul:1.15,jumpMul:1.15,atkMul:1.15}},
-{id:“cloak”,       name:“Shadow Cloak”,    icon:“🌑”, cost:25000,  stat:“👻 Invincible On Hit”,fx:{invincOnHit:true}},
-{id:“relic”,       name:“Ancient Relic”,   icon:“🏺”, cost:50000,  stat:“🪙 x2 Coins”,        fx:{coinMul:2}},
-{id:“admin_armor”, name:“ADMIN ARMOR”,     icon:“🔴”, cost:0,      stat:“♾️ GODMODE”,          fx:{godmode:true}, adminOnly:true},
-{id:“aqua_set”,    name:“Aqua Set”,        icon:“💧”, cost:0,      stat:“🌊 Speed+Jump+Magnet”,fx:{speedMul:1.2,jumpMul:1.4,magnet:true}, adminOnly:true},
-];
+<div id="nc"></div>
+<div id="bg"></div>
 
-const OUTFITS = [
-{id:“default”,  name:“Default”,    icon:“👤”, cost:0},
-{id:“gold”,     name:“Gold”,       icon:“🥇”, cost:500},
-{id:“flame”,    name:“Flame”,      icon:“🔥”, cost:600},
-{id:“shadow”,   name:“Shadow”,     icon:“🌑”, cost:800},
-{id:“galaxy”,   name:“Galaxy”,     icon:“🌌”, cost:1200},
-{id:“ice”,      name:“Ice”,        icon:“❄️”, cost:900},
-{id:“rainbow”,  name:“Rainbow”,    icon:“🌈”, cost:1500},
-{id:“admin_fit”,name:“Admin Fit”,  icon:“👑”, cost:0, adminOnly:true},
-];
+<!-- LOGIN -->
 
-const HERO_ICON = {ron:“🔥”,lapse:“🌌”,den:“⚡”,bd:“🌑”,reyshi:“😈”,ron_dragon:“🐉”,den_angel:“👼”,lapse_awake:“✨”,aqua:“🌊”,kingbob:“👑”,terravus:“🌍”};
-const CODES = {“ron is powerfull”:“reyshi”,“heat and light”:“ron_dragon”,“thunder”:“den_angel”,“awake”:“lapse_awake”};
+<div class="scr on" id="lg-scr">
+  <div style="font-family:'Bangers',cursive;font-size:50px;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(255,107,53,.8));margin-bottom:4px;position:relative;z-index:2;">REYSHI CHASE</div>
+  <div style="color:#4fc3f7;letter-spacing:5px;font-size:12px;margin-bottom:18px;position:relative;z-index:2;">RUN · FIGHT · SURVIVE</div>
+  <div class="pan"><h2>🔐 LOGIN</h2>
+    <div class="fg"><label>Username</label><input id="lu" placeholder="Enter username"></div>
+    <div class="fg"><label>Password</label><input type="password" id="lp" placeholder="Enter password"></div>
+    <button class="btn bP" style="width:100%" onclick="doLogin()">LOGIN</button>
+    <div class="fsw">No account? <span onclick="show('su-scr')">Sign Up</span></div>
+  </div>
+</div>
+<!-- SIGNUP -->
+<div class="scr" id="su-scr">
+  <div style="font-family:'Bangers',cursive;font-size:50px;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(255,107,53,.8));margin-bottom:4px;position:relative;z-index:2;">REYSHI CHASE</div>
+  <div class="pan"><h2>📝 SIGN UP</h2>
+    <div class="fg"><label>Username</label><input id="suu" placeholder="Choose username"></div>
+    <div class="fg"><label>Password</label><input type="password" id="sup" placeholder="Choose password"></div>
+    <div class="fg"><label>Confirm</label><input type="password" id="sup2" placeholder="Repeat password"></div>
+    <button class="btn bP" style="width:100%" onclick="doSignup()">CREATE ACCOUNT</button>
+    <div class="fsw">Have account? <span onclick="show('lg-scr')">Login</span></div>
+  </div>
+</div>
+<!-- CUTSCENE -->
+<div class="scr" id="cut-scr">
+  <div style="width:88%;max-width:520px;text-align:center;z-index:2;position:relative;">
+    <div style="width:100%;height:4px;background:rgba(255,255,255,.09);border-radius:2px;margin-bottom:14px;"><div id="cprog" style="height:100%;background:linear-gradient(90deg,#ff6b35,#ffd700);border-radius:2px;transition:width .3s;width:0%"></div></div>
+    <canvas id="cutc" width="260" height="160" style="border-radius:12px;margin-bottom:14px;"></canvas>
+    <div id="ctext" style="font-size:16px;line-height:1.8;color:#ddd;margin-bottom:20px;min-height:60px;"></div>
+    <button class="btn bS bSm" onclick="skipCut()">SKIP ▶</button>
+  </div>
+</div>
+<!-- MENU -->
+<div class="scr" id="mn-scr">
+  <div style="font-family:'Bangers',cursive;font-size:50px;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(255,107,53,.8));position:relative;z-index:2;">REYSHI CHASE</div>
+  <div style="background:rgba(0,0,0,.5);border:1px solid var(--go);border-radius:26px;padding:5px 16px;font-family:'Bangers',cursive;font-size:18px;color:var(--go);margin:9px 0;position:relative;z-index:2;">🪙 <span id="mc-val">0</span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;">
+    <button class="btn bP" onclick="goCS()">▶ PLAY</button>
+    <button class="btn bS" onclick="goFS()">⚔️ FIGHT MODE</button>
+    <button class="btn bG" onclick="goShop()">🛒 SHOP</button>
+    <button class="btn bPu" onclick="show('code-scr')">🔑 SECRET CODE</button>
+    <button class="btn" style="background:rgba(255,255,255,.09);color:#bbb;border:1px solid rgba(255,255,255,.18);font-family:'Bangers',cursive;font-size:19px;letter-spacing:2px;" onclick="goLB()">🏆 LEADERBOARD</button>
+    <button class="btn bD bSm" style="margin-top:4px;" onclick="doLogout()">LOGOUT</button>
+  </div>
+</div>
+<!-- CHAR SELECT -->
+<div class="scr" id="cs-scr">
+  <div style="font-family:'Bangers',cursive;font-size:30px;color:var(--go);letter-spacing:3px;position:relative;z-index:2;margin-bottom:4px;">CHOOSE YOUR HERO</div>
+  <div class="tabs" id="ctabs">
+    <div class="tab on" onclick="sTab('n',this)">HEROES</div>
+    <div class="tab" onclick="sTab('e',this)">EVOLVED ✨</div>
+    <div class="tab" onclick="sTab('v',this)">VILLAIN</div>
+    <div class="tab" onclick="sTab('a',this)" id="adtab" style="display:none">👑 ADMIN</div>
+  </div>
+  <div class="cgrid" id="cgrid"></div>
+  <div style="display:flex;gap:8px;margin-top:9px;position:relative;z-index:2;">
+    <button class="btn bP" id="playbtn" onclick="startGame()" disabled>▶ RUN!</button>
+    <button class="btn bS bSm" onclick="show('mn-scr')">← BACK</button>
+  </div>
+</div>
+<!-- GAME -->
+<div class="scr" id="gm-scr">
+  <div id="hud">
+    <div class="hi" style="color:var(--go);">🪙 <span id="hc">0</span></div>
+    <div class="hi" style="color:#fff;">⭐ <span id="hs">0</span></div>
+    <div class="hi" style="color:#f44336;" id="hl">❤️❤️❤️</div>
+    <button id="pbtn" onclick="togglePause()">⏸</button>
+  </div>
+  <canvas id="gc"></canvas>
+  <div id="gb"></div>
+  <div id="mc">
+    <div class="cb" ontouchstart="mvL()" ontouchend="">◀</div>
+    <div class="cb" ontouchstart="doJump()" ontouchend="">⬆</div>
+    <div class="cb" ontouchstart="mvR()" ontouchend="">▶</div>
+  </div>
+</div>
+<!-- PAUSE -->
+<div id="po">
+  <div style="font-family:'Bangers',cursive;font-size:42px;color:var(--go);margin-bottom:14px;">⏸ PAUSED</div>
+  <button class="btn bP" onclick="togglePause()">▶ RESUME</button>
+  <button class="btn bD" onclick="endGame()">🏠 QUIT</button>
+</div>
+<!-- GAME OVER -->
+<div class="scr" id="go-scr">
+  <div style="font-family:'Bangers',cursive;font-size:50px;color:#f44336;filter:drop-shadow(0 0 14px red);margin-bottom:6px;" id="got">GAME OVER</div>
+  <div style="font-family:'Bangers',cursive;font-size:22px;color:#fff;margin-bottom:3px;">SCORE: <span id="gos" style="color:var(--go)">0</span></div>
+  <div style="font-family:'Bangers',cursive;font-size:18px;color:var(--go);margin-bottom:20px;">+<span id="goe">0</span> COINS</div>
+  <button class="btn bP" onclick="goCS()">▶ PLAY AGAIN</button>
+  <button class="btn bS" onclick="show('mn-scr')">🏠 MENU</button>
+</div>
+<!-- FIGHT SELECT -->
+<div class="scr" id="fs-scr">
+  <div style="font-family:'Bangers',cursive;font-size:38px;color:var(--or);filter:drop-shadow(0 0 10px var(--or));margin-bottom:7px;position:relative;z-index:2;">⚔️ FIGHT MODE</div>
+  <div class="pan" style="text-align:center;">
+    <canvas id="rp" width="100" height="120" style="margin-bottom:7px;"></canvas>
+    <div style="font-family:'Bangers',cursive;font-size:22px;color:#f44336;margin-bottom:4px;">REYSHI AWAITS</div>
+    <div style="color:#888;font-size:12px;margin-bottom:14px;">Win = +250 coins · Entry = 300 coins</div>
+    <div id="fum" style="color:var(--go);font-family:'Bangers',cursive;font-size:14px;margin-bottom:10px;"></div>
+    <button class="btn bD" onclick="enterFight()">ENTER (300 🪙)</button>
+    <button class="btn bS bSm" onclick="show('mn-scr')" style="margin-top:4px;">← BACK</button>
+  </div>
+</div>
+<!-- FIGHT -->
+<div class="scr" id="ft-scr">
+  <div class="fhud">
+    <div class="hpw"><div class="hpl" id="php">YOU: 100</div><div class="hpb"><div class="hpf pf" id="phb" style="width:100%"></div></div></div>
+    <div style="font-family:'Bangers',cursive;font-size:16px;color:var(--go);">VS</div>
+    <div class="hpw"><div class="hpl" style="text-align:right" id="ehp">REYSHI: 100</div><div class="hpb"><div class="hpf ef" id="ehb" style="width:100%"></div></div></div>
+  </div>
+  <canvas id="fc"></canvas>
+  <div class="fc">
+    <button class="fb" style="background:linear-gradient(135deg,#4fc3f7,#0288d1);color:#fff;" onclick="fa('d')">🛡 DODGE</button>
+    <button class="fb" style="background:linear-gradient(135deg,#ff6b35,#ff9040);color:#fff;" onclick="fa('a')">⚔️ ATTACK</button>
+    <button class="fb" style="background:linear-gradient(135deg,#9c27b0,#673ab7);color:#fff;" onclick="fa('s')">✨ SPECIAL</button>
+  </div>
+</div>
+<!-- FIGHT RESULT -->
+<div class="scr" id="fr-scr">
+  <div style="font-family:'Bangers',cursive;font-size:54px;margin-bottom:6px;" id="frt">VICTORY!</div>
+  <canvas id="rcc" width="140" height="160" style="margin-bottom:12px;"></canvas>
+  <div style="font-family:'Bangers',cursive;font-size:20px;color:var(--go);margin-bottom:20px;" id="frm">+250 COINS</div>
+  <button class="btn bP" onclick="show('mn-scr');updateMC()">🏠 MENU</button>
+</div>
+<!-- SHOP -->
+<div class="scr" id="sh-scr">
+  <div style="font-family:'Bangers',cursive;font-size:32px;color:var(--go);position:relative;z-index:2;letter-spacing:3px;">🛒 SHOP</div>
+  <div style="font-family:'Bangers',cursive;font-size:16px;color:var(--go);margin-bottom:5px;position:relative;z-index:2;">🪙 <span id="shc">0</span></div>
+  <div class="tabs" id="stabs"></div>
+  <div class="sgrid" id="sgrid"></div>
+  <button class="btn bS bSm" onclick="show('mn-scr')" style="margin-bottom:12px;">← BACK</button>
+</div>
+<!-- CODE -->
+<div class="scr" id="code-scr">
+  <div class="pan" style="width:88%;max-width:380px;"><h2>🔑 SECRET CODE</h2>
+    <div style="color:#888;font-size:12px;margin-bottom:11px;text-align:center;">Enter a code to unlock characters or coins.</div>
+    <div class="fg"><label>Code</label><input id="ci" placeholder="e.g. heat, thunder, admin..."></div>
+    <button class="btn bG" style="width:100%" onclick="redeem()">REDEEM</button>
+    <button class="btn bS bSm" style="width:100%;margin-top:4px;" onclick="show('mn-scr')">← BACK</button>
+  </div>
+</div>
+<!-- LEADERBOARD -->
+<div class="scr" id="lb-scr">
+  <div style="font-family:'Bangers',cursive;font-size:36px;color:var(--go);position:relative;z-index:2;">🏆 LEADERBOARD</div>
+  <div class="pan" style="width:88%;max-width:400px;margin-top:8px;"><div id="lbl"></div></div>
+  <button class="btn bS bSm" onclick="show('mn-scr')" style="margin-top:10px;">← BACK</button>
+</div>
+<!-- ADMIN -->
+<div class="scr" id="adm-scr" style="overflow-y:auto;">
+  <div class="pan" style="width:88%;max-width:420px;"><h2>🛡 ADMIN PANEL</h2>
+    <div style="color:#f44336;font-size:11px;margin-bottom:11px;text-align:center;">⚠️ Use responsibly</div>
+    <div class="fg"><label>Target Username</label><input id="at" placeholder="Username"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+      <button class="btn bSm bG" onclick="aC('ac')">+500 Coins</button>
+      <button class="btn bSm bD" onclick="aC('rc')">-500 Coins</button>
+      <button class="btn bSm bPu" onclick="aC('ul')">Unlock All</button>
+      <button class="btn bSm bD" onclick="aC('rs')">Reset</button>
+    </div>
+    <div class="fg"><label>Rename To</label><input id="an" placeholder="New username"></div>
+    <button class="btn bS" style="width:100%;" onclick="aC('rn')">RENAME</button>
+    <button class="btn" style="width:100%;margin-top:6px;background:rgba(255,255,255,.08);color:#bbb;font-family:'Bangers',cursive;font-size:18px;" onclick="show('mn-scr')">EXIT ADMIN</button>
+  </div>
+</div>
 
-const CUT_PHASES = [
-{bg:”#05000e”, emoji:“🏃”, title:“Just another peaceful day…”,     sub:“You’re out for a run, minding your business.”, dim:”#9977bb”},
-{bg:”#0f0200”, emoji:“👁”,  title:“Something dark is coming…”,      sub:“The ground trembles. A sinister presence closes in from behind.”, dim:”#ff6644”},
-{bg:”#1a0000”, emoji:“💥”, title:“REYSHI ATTACKS YOU! 😈”,           sub:“Without any warning, Reyshi strikes you hard from behind.”, dim:”#ff2244”},
-{bg:”#080018”, emoji:“😤”, title:“YOU’RE FURIOUS!”,                  sub:“Nobody does that to you and just walks away. It’s time to RUN.”, dim:”#cc44ff”},
-{bg:”#000”,    emoji:“⚡”, title:“REYSHI CHASE”,                     sub:“He attacked you first. Now comes the chase. Don’t get caught.”, dim:”#aa44ff”},
-];
+<script>
+// ═══════════════════════════════════════════════════════
+//  CARTOON CHARACTER DRAWING ENGINE
+//  Uses filled shapes (bezier curves, rounded bodies)
+//  NOT stick lines — proper chunky cartoon style
+// ═══════════════════════════════════════════════════════
+const CC={
+  ron:        {body:'#ff6b35',skin:'#ffccaa',dark:'#cc4400',accent:'#ffd700',glow:'#ff6b35'},
+  den:        {body:'#4fc3f7',skin:'#ffccaa',dark:'#0288d1',accent:'#ffd700',glow:'#ffd700'},
+  lapse:      {body:'#9c27b0',skin:'#ffccaa',dark:'#6a0080',accent:'#e040fb',glow:'#e040fb'},
+  blackdeath: {body:'#263238',skin:'#b0bec5',dark:'#000a12',accent:'#7c4dff',glow:'#7c4dff'},
+  reyshi:     {body:'#b71c1c',skin:'#e57373',dark:'#7f0000',accent:'#ff1744',glow:'#ff1744'},
+  'ron-evo':  {body:'#ff3d00',skin:'#ffccaa',dark:'#bf360c',accent:'#ffd740',glow:'#ff6e40'},
+  'den-evo':  {body:'#fff9c4',skin:'#fff59d',dark:'#f9a825',accent:'#ffffff',glow:'#ffee58'},
+  'lapse-evo':{body:'#7b1fa2',skin:'#ce93d8',dark:'#4a0072',accent:'#ea80fc',glow:'#ea80fc'},
+  'blackdeath-evo':{body:'#1a0033',skin:'#9e9e9e',dark:'#000',accent:'#9c00ff',glow:'#9c00ff'},
+  kingbob:    {body:'#f57f17',skin:'#ffe082',dark:'#e65100',accent:'#ffd700',glow:'#ffd700'},
+  aqua:       {body:'#006064',skin:'#b2ebf2',dark:'#00363a',accent:'#00e5ff',glow:'#00e5ff'},
+  terrarus:   {body:'#4e342e',skin:'#a5d6a7',dark:'#1b0000',accent:'#76ff03',glow:'#76ff03'},
+};
 
-// ════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ════════════════════════════════════════════════════════
-export default function ReyshiChase() {
-const S = {SPLASH:“splash”,ACCT:“acct”,CUT:“cut”,HERO:“hero”,MODE:“mode”,GAME:“game”,FIGHT:“fight”,GO:“go”,SHOP:“shop”,GEAR:“gear”};
-
-const [screen,  setScreen]  = useState(S.SPLASH);
-const [heroes,  setHeroes]  = useState(HEROES.map(h=>({…h})));
-const [wallet,  setWallet]  = useState(0);
-const [best,    setBest]    = useState(0);
-const [selHero, setSelHero] = useState(-1);
-const [eGear,   setEGear]   = useState(“none”);
-const [eOutfit, setEOutfit] = useState(“default”);
-const [ownedGear,   setOwnedGear]   = useState(new Set([“none”]));
-const [ownedOutfits,setOwnedOutfits]= useState(new Set([“default”]));
-const [isAdmin, setIsAdmin] = useState(false);
-const [infCoins,setInfCoins]= useState(false);
-
-// code panel
-const [showCode,setShowCode] = useState(false);
-const [codeVal, setCodeVal]  = useState(””);
-const [codeMsg, setCodeMsg]  = useState({t:””,ok:true});
-
-// admin panel
-const [showAdmin,setShowAdmin] = useState(false);
-const [adminMsg, setAdminMsg]  = useState(””);
-const [apAmt,    setApAmt]     = useState(””);
-
-// cutscene
-const [cutIdx, setCutIdx] = useState(0);
-
-// coin modal
-const [coinMsg,  setCoinMsg]  = useState(””);
-const [showCoin, setShowCoin] = useState(false);
-
-// splash
-const [splashPct, setSplashPct] = useState(0);
-
-// game HUD state
-const [gameScore, setGameScore] = useState(0);
-const [gameCoins, setGameCoins] = useState(0);
-const [gameLives, setGameLives] = useState(3);
-const [gameReady, setGameReady] = useState(false);
-const [milestone, setMilestone] = useState(false);
-const [lastScore, setLastScore] = useState(0);
-const [lastCoins, setLastCoins] = useState(0);
-
-// fight HUD
-const [fPHP, setFPHP] = useState(100);
-const [fRHP, setFRHP] = useState(100);
-const [fResult, setFResult] = useState(null); // null|“win”|“lose”
-const [abilCDs, setAbilCDs] = useState([0,0,0,0]);
-
-// shop tab
-const [shopTab, setShopTab] = useState(0);
-
-const canvasRef = useRef(null);
-const fightRef  = useRef(null);
-const gRef      = useRef(null);
-const fRef      = useRef(null);
-const rafRef    = useRef(null);
-const fRafRef   = useRef(null);
-const cutTimer  = useRef(null);
-
-const gearFx  = GEAR_LIST.find(g=>g.id===eGear)?.fx || {};
-const heroObj  = heroes[selHero] || heroes[0];
-const wDisp    = infCoins ? “∞” : wallet.toLocaleString();
-
-// ── helpers ────────────────────────────────────────────
-const goHS = useCallback(() => { setSelHero(-1); setScreen(S.HERO); }, []);
-const showCM = (msg) => { setCoinMsg(msg); setShowCoin(true); };
-
-// ── SPLASH ─────────────────────────────────────────────
-useEffect(() => {
-if (screen !== S.SPLASH) return;
-let p = 0;
-const iv = setInterval(() => {
-p = Math.min(100, p + 2);
-setSplashPct(Math.floor(p));
-if (p >= 100) { clearInterval(iv); setTimeout(() => setScreen(S.ACCT), 300); }
-}, 25);
-return () => clearInterval(iv);
-}, [screen]);
-
-// ── CUTSCENE ───────────────────────────────────────────
-const startCut = useCallback(() => {
-setCutIdx(0);
-setScreen(S.CUT);
-}, []);
-
-useEffect(() => {
-if (screen !== S.CUT) return;
-const durations = [2200, 2100, 2400, 2000, 2600];
-const t = setTimeout(() => {
-setCutIdx(prev => {
-if (prev + 1 >= CUT_PHASES.length) { setTimeout(() => goHS(), 400); return prev; }
-return prev + 1;
-});
-}, durations[cutIdx] || 2200);
-return () => clearTimeout(t);
-}, [screen, cutIdx]);
-
-// ── CODE ───────────────────────────────────────────────
-const submitCode = () => {
-const raw = codeVal.trim(), lo = raw.toLowerCase();
-if (raw.toUpperCase() === “1A2B”) {
-setIsAdmin(true); setInfCoins(true);
-setHeroes(h => h.map(x => ({…x, locked:false})));
-setOwnedGear(new Set(GEAR_LIST.map(g=>g.id)));
-setOwnedOutfits(new Set(OUTFITS.map(o=>o.id)));
-setCodeMsg({t:“⚡ 1A2B! Admin + ∞ Coins + All unlocked!”, ok:true});
-setTimeout(() => { setShowCode(false); setCodeVal(””); setCodeMsg({t:””,ok:true}); setShowAdmin(true); }, 1800);
-return;
+function rd(x,y,w,h,r,fill,stroke,lw){
+  // rounded rect helper
+  x.beginPath();x.roundRect(y-w/2,x-h,w,h,r);
+  // Note: we draw in transformed space, use drawRR instead
 }
-const uid = CODES[lo];
-if (uid) {
-setHeroes(h => h.map(x => x.id===uid ? {…x,locked:false} : x));
-setCodeMsg({t:“✅ Hero unlocked!”, ok:true});
-setTimeout(() => { setShowCode(false); setCodeVal(””); setCodeMsg({t:””,ok:true}); }, 1200);
-} else {
-setCodeMsg({t:“❌ Wrong code. Try again!”, ok:false});
+function drawRR(x,cx,cy,w,h,r,fill,stroke,lw){
+  x.beginPath();x.roundRect(cx-w/2,cy-h,w,h,r||4);
+  if(fill){x.fillStyle=fill;x.fill();}
+  if(stroke){x.strokeStyle=stroke;x.lineWidth=lw||2;x.stroke();}
 }
-};
-
-const tryUnlock = (h) => {
-if (h.isSecret) { showCM(`${h.name} is SECRET!\n\nEnter code 1A2B to unlock all secret characters.`); return; }
-if (h.cost > 0) {
-if (wallet >= h.cost || infCoins) {
-if (!infCoins) setWallet(w => w - h.cost);
-setHeroes(hs => hs.map(x => x.id===h.id ? {…x,locked:false} : x));
-} else {
-showCM(`${h.name} costs 🪙${h.cost.toLocaleString()}.\n\nYou have 🪙${wallet.toLocaleString()}.\nNeed ${(h.cost-wallet).toLocaleString()} more coins.\n\nPlay Chase Mode to earn coins!`);
+function drawOval(x,cx,cy,rw,rh,fill,stroke,lw){
+  x.beginPath();x.ellipse(cx,cy,rw,rh,0,0,Math.PI*2);
+  if(fill){x.fillStyle=fill;x.fill();}
+  if(stroke){x.strokeStyle=stroke;x.lineWidth=lw||2;x.stroke();}
 }
-} else { setShowCode(true); }
-};
 
-// ── ADMIN ──────────────────────────────────────────────
-const admCmd = (cmd) => {
-const g = gRef.current;
-switch(cmd) {
-case “noObs”:   if(g){g.noObs=true;g.obstacles=[];} setAdminMsg(“✅ Obstacles disabled for this run!”); break;
-case “killRey”: if(g){g.reyKilled=true;g.reyY=-9999;} setAdminMsg(“☠️ Reyshi eliminated!”); break;
-case “reset”:   if(g){g.noObs=false;g.reyKilled=false;} setAdminMsg(“🔄 Everything restored!”); break;
-case “coins”:   { const n=parseInt(apAmt)||0; setWallet(w=>w+n); setAdminMsg(`✅ +${n} coins added!`); break; }
-case “unlockAll”: setHeroes(h=>h.map(x=>({…x,locked:false}))); setAdminMsg(“✅ All heroes unlocked!”); break;
-case “unlockAqua”:  setHeroes(h=>h.map(x=>x.id===“aqua”?{…x,locked:false}:x));    setAdminMsg(“🌊 AQUA unlocked!”); break;
-case “unlockBob”:   setHeroes(h=>h.map(x=>x.id===“kingbob”?{…x,locked:false}:x)); setAdminMsg(“👑 KING BOB unlocked!”); break;
-case “unlockTerra”: setHeroes(h=>h.map(x=>x.id===“terravus”?{…x,locked:false}:x));setAdminMsg(“🌍 TERRAVUS unlocked!”); break;
+// Main cartoon character draw — chunky bodies, big heads, rounded limbs
+function drawChar(x,cx,cy,sc,id,fr,dir,evo){
+  x.save();x.translate(cx,cy);x.scale((dir||1)*sc,sc);
+  const f=fr||0;
+  // walk cycle values
+  const walk=Math.sin(f*0.18)*12;
+  const walk2=Math.sin(f*0.18+Math.PI)*12;
+  const bob=Math.abs(Math.sin(f*0.18))*3;
+  const lean=Math.sin(f*0.18)*0.06; // body lean
+  const cc=CC[id]||CC.ron;
+  x.shadowColor=cc.glow; x.shadowBlur=evo?20:10;
+
+  if(id==='reyshi') drawReyshi(x,f,walk,walk2,bob,cc,evo);
+  else if(id==='kingbob') drawKingBob(x,f,walk,walk2,bob,cc);
+  else if(id==='aqua') drawAqua(x,f,walk,walk2,bob,cc);
+  else if(id==='terrarus') drawTerrarus(x,f,walk,walk2,bob,cc);
+  else drawHero(x,f,walk,walk2,bob,lean,cc,id,evo);
+  x.restore();
 }
-};
 
-// ════════════════════════════════════════════════════════
-// CHASE ENGINE
-// ════════════════════════════════════════════════════════
-useEffect(() => {
-if (screen !== S.GAME) return;
-const cv = canvasRef.current; if (!cv) return;
-const ctx = cv.getContext(“2d”);
-const resize = () => { cv.width = cv.offsetWidth; cv.height = cv.offsetHeight; };
-resize();
-const W = () => cv.width, H = () => cv.height;
-const h = heroObj, fx = gearFx;
+function drawHero(x,f,wk,wk2,bob,lean,cc,id,evo){
+  // ── evolved aura ──
+  if(evo){
+    x.globalAlpha=0.22+Math.sin(f*0.08)*0.1;
+    drawOval(x,0,-30,35,35,cc.glow);
+    x.globalAlpha=1;
+  }
 
-```
-const LX = (l) => W()*0.18 + l*(W()*0.32);
-const FLOOR = () => H()*0.83;
+  // ── LEGS (drawn behind body) ──
+  // Back leg
+  x.save();x.translate(5,0);
+  drawRR(x,-4+wk2,-2,14,32,7,cc.dark,null); // thigh
+  drawRR(x,-4+wk2*0.6,30,13,28,7,cc.dark,null); // shin
+  // Foot
+  drawOval(x,-4+wk2*0.4,56,14,7,cc.dark,null);
+  x.restore();
 
-const g = {
-  score:0, coins:0, lives:3+(fx.extraLives||0),
-  spd:5, frame:0, running:false,
-  lane:1, pX:LX(1), pY:0, pTX:LX(1),
-  jumpY:0, velY:0, jumping:false,
-  sliding:false, slideT:0, invincT:0,
-  obstacles:[], coins_:[], particles:[],
-  spawnT:0, spawnRate:90,
-  bgScroll:0,
-  reyX:LX(1), reyY:0, reyClose:0, reyAnim:0, reyLane:1,
-  reyKilled:false, noObs:false,
-  atkActive:0, milestone:false, done:false,
-};
-g.pY = FLOOR(); g.reyY = FLOOR() - H()*0.22;
-gRef.current = g;
-setGameScore(0); setGameCoins(0); setGameLives(g.lives); setGameReady(false);
+  // ── BODY (torso) ──
+  x.save();x.rotate(lean);
+  // Jacket / torso — big chunky rounded rect
+  drawRR(x,0,-55-bob,34,44,10,cc.body,'#000',1.5);
+  // Chest design
+  x.globalAlpha=0.3;
+  drawRR(x,0,-55-bob,22,24,6,cc.accent,null);
+  x.globalAlpha=1;
+  x.restore();
 
-const particle = (x,y,col,n=6) => {
-  for(let i=0;i<n;i++) g.particles.push({x,y,vx:(Math.random()-.5)*4,vy:-(Math.random()*3+1),life:22,max:22,col,r:3+Math.random()*3});
-};
+  // ── FRONT LEG ──
+  x.save();x.translate(-5,0);
+  drawRR(x,4+wk,-2,14,32,7,cc.body,null);
+  drawRR(x,4+wk*0.6,30,13,28,7,cc.body,null);
+  drawOval(x,4+wk*0.4,56,14,7,cc.body,null);
+  x.restore();
 
-const spawnObs = () => {
-  if(g.noObs) return;
-  const types=["barrier","spike","lowbar"], type=types[Math.floor(Math.random()*3)], l=Math.floor(Math.random()*3);
-  g.obstacles.push({type,l,y:-140});
-  if(Math.random()<0.55){const cl=[0,1,2].find(x=>x!==l)??1;for(let i=0;i<5;i++)g.coins_.push({l:cl,y:-60-i*55});}
-};
+  // ── ARMS ──
+  // Back arm
+  x.save();x.translate(12,-62-bob);x.rotate(0.2+wk2*0.03);
+  drawRR(x,0,0,11,26,6,cc.dark,null);
+  // hand
+  drawOval(x,0,24,9,9,cc.skin,null);
+  // power FX on hand
+  if(id==='ron'||id==='ron-evo'){x.globalAlpha=0.8;drawOval(x,0,24,11,11,'#ff6b35',null);x.globalAlpha=1;}
+  x.restore();
 
-const loop = () => {
-  if(g.done) return;
-  rafRef.current = requestAnimationFrame(loop);
-  const cw=W(), ch=H();
-  ctx.clearRect(0,0,cw,ch);
-  const sm = fx.speedMul||1;
+  // Front arm
+  x.save();x.translate(-12,-62-bob);x.rotate(-0.2+wk*0.03);
+  drawRR(x,0,0,11,26,6,cc.body,null);
+  drawOval(x,0,24,9,9,cc.skin,null);
+  if(id==='den'||id==='den-evo'){x.globalAlpha=0.9;drawOval(x,0,24,12,12,'#ffd700',null);x.globalAlpha=1;}
+  x.restore();
 
-  if(g.running){
-    g.frame++;
-    g.score += (g.spd*0.042)*sm;
-    g.spd = Math.min(16, g.spd+0.0006);
-    g.spawnRate = Math.max(45, 90-g.score*0.13);
-    g.bgScroll += g.spd*0.5;
-    g.reyClose = Math.min(0.93, g.reyClose+0.000125*(1+g.score/230));
-    g.reyAnim += 0.26;
-    if(g.atkActive>0) g.atkActive--;
+  // ── HEAD (big cartoon head) ──
+  x.save();x.translate(0,-85-bob);
+  // head shape
+  drawOval(x,0,0,22,24,cc.skin,'#000',1.5);
 
-    g.spawnT++;
-    if(g.spawnT>=g.spawnRate){g.spawnT=0; spawnObs();}
-
-    if(!g.reyKilled){
-      if(g.frame%90===0) g.reyLane=g.lane;
-      g.reyX += (LX(g.reyLane)-g.reyX)*(0.04+g.reyClose*0.03);
-      g.reyY += ((g.pY+g.jumpY)-ch*0.13*(1-g.reyClose*0.5)-g.reyY)*(0.05+g.reyClose*0.02);
-    }
-
-    g.pTX = LX(g.lane);
-    g.pX += (g.pTX-g.pX)*0.18;
-    if(g.jumping){
-      g.velY += g.velY>0?1.08:0.62;
-      g.jumpY += g.velY;
-      if(g.jumpY>=0){g.jumpY=0;g.jumping=false;g.velY=0; particle(g.pX,g.pY,"#888",8);}
-    }
-    if(g.sliding){g.slideT--;if(g.slideT<=0)g.sliding=false;}
-    if(g.invincT>0) g.invincT--;
-
-    const mv = g.spd*3.8*sm;
-    g.obstacles.forEach(o=>o.y+=mv);
-    g.obstacles = g.obstacles.filter(o=>o.y<ch+100);
-    g.coins_.forEach(c=>c.y+=mv);
-    g.coins_ = g.coins_.filter(c=>c.y<ch+20);
-
-    if(fx.magnet) g.coins_.forEach(c=>{if(Math.abs(c.l-g.lane)<=1&&c.y>ch*0.45){c.col=true;g.coins+=(fx.coinMul||1);particle(LX(c.l),c.y,"#ffd700",5);}});
-    g.coins_.forEach(c=>{
-      if(c.col)return;
-      if(c.l===g.lane&&c.y>ch*0.72&&c.y<ch*0.93){c.col=true;g.coins+=infCoins?0:Math.floor(fx.coinMul||1);particle(LX(c.l),c.y,"#ffd700",7);}
+  // ── hair / helmet per character ──
+  if(id==='ron'||id==='ron-evo'){
+    // spiky fire hair
+    x.fillStyle='#ff3d00';
+    [-14,-7,0,7,14].forEach((hx,i)=>{
+      x.beginPath();x.moveTo(hx,-16);x.lineTo(hx-5,-30-i%2*8);x.lineTo(hx+5,-30-i%2*8);x.closePath();x.fill();
     });
-    g.coins_=g.coins_.filter(c=>!c.col);
-    g.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;});
-    g.particles=g.particles.filter(p=>p.life>0);
+    x.fillStyle='#ffd700';
+    [-7,0,7].forEach((hx)=>{
+      x.beginPath();x.moveTo(hx,-16);x.lineTo(hx-3,-24);x.lineTo(hx+3,-24);x.closePath();x.fill();
+    });
+  } else if(id==='den'||id==='den-evo'){
+    // lightning-bolt fringe + blue hair
+    drawRR(x,0,-22,46,16,8,'#1565c0',null);
+    x.fillStyle='#ffd700';
+    x.beginPath();x.moveTo(4,-16);x.lineTo(-1,-26);x.lineTo(2,-26);x.lineTo(-3,-36);x.lineTo(7,-22);x.lineTo(4,-22);x.closePath();x.fill();
+  } else if(id==='lapse'||id==='lapse-evo'){
+    // galaxy hair — purple swirl
+    drawRR(x,2,-22,42,18,9,'#6a1b9a',null);
+    for(let i=0;i<5;i++){
+      const a=f*0.06+i*Math.PI*0.4;
+      x.globalAlpha=0.7;
+      drawOval(x,Math.cos(a)*14,Math.sin(a)*8-10,4,4,cc.accent,null);
+    }
+    x.globalAlpha=1;
+  } else if(id==='blackdeath'||id==='blackdeath-evo'){
+    // hood
+    x.fillStyle='#1a1a2e';
+    x.beginPath();x.ellipse(0,-14,26,18,0,Math.PI,0);x.closePath();x.fill();
+    drawOval(x,0,-10,28,10,'rgba(0,0,0,0.6)',null);
+  }
 
-    if(g.invincT<=0){
-      g.obstacles.forEach((o,i)=>{
-        if(Math.abs(LX(o.l)-g.pX)>85||o.y<ch*0.72||o.y>ch*0.97)return;
-        let hit=false;
-        if(o.type==="barrier"&&!(g.jumping&&g.jumpY<-28))hit=true;
-        if(o.type==="spike"&&!(g.jumping&&g.jumpY<-22))hit=true;
-        if(o.type==="lowbar"&&!g.sliding&&!(g.jumping&&g.jumpY<-18))hit=true;
-        if(hit){
-          if(fx.godmode)return;
-          if(fx.invincOnHit){g.invincT=130;return;}
-          g.obstacles.splice(i,1); g.lives--; g.invincT=80;
-          particle(g.pX,g.pY+g.jumpY,"#ff4466",10);
-          setGameLives(g.lives);
-          if(g.lives<=0){
-            g.done=true;
-            setLastScore(Math.floor(g.score)); setLastCoins(g.coins);
-            setWallet(w=>w+(infCoins?0:g.coins)); setBest(b=>Math.max(b,Math.floor(g.score)));
-            setTimeout(()=>setScreen(S.GO),500);
-          }
+  // face — eyes
+  x.shadowBlur=0;
+  drawOval(x,-8,-2,5,5,'#fff',null);
+  drawOval(x,8,-2,5,5,'#fff',null);
+  // pupils
+  drawOval(x,-8,-2,3,3,'#111',null);
+  drawOval(x,8,-2,3,3,'#111',null);
+  // eye shine
+  x.fillStyle='#fff';
+  drawOval(x,-6,-4,1.5,1.5,'#fff',null);
+  drawOval(x,10,-4,1.5,1.5,'#fff',null);
+
+  // mouth — happy run expression
+  x.strokeStyle='#333';x.lineWidth=1.8;x.lineCap='round';
+  x.beginPath();x.arc(0,6,6,0.2,Math.PI-0.2);x.stroke();
+
+  // character-specific face details
+  if(id==='lapse'||id==='lapse-evo'){
+    // dot on forehead
+    drawOval(x,0,-12,3,3,cc.accent,null);
+  } else if(id==='blackdeath'||id==='blackdeath-evo'){
+    // glowing purple eyes
+    x.shadowColor='#9c00ff';x.shadowBlur=8;
+    drawOval(x,-8,-2,5,5,'#9c00ff',null);
+    drawOval(x,8,-2,5,5,'#9c00ff',null);
+  }
+  x.shadowBlur=0;
+  x.restore();
+
+  // ── power effects ──
+  if(id==='ron'||id==='ron-evo'){
+    x.shadowColor='#ff6b35';x.shadowBlur=14;
+    for(let i=0;i<4;i++){
+      const a=f*0.1+i*Math.PI*0.5;
+      x.globalAlpha=0.55+Math.sin(f*0.2+i)*0.3;
+      drawOval(x,Math.cos(a)*28,-50+Math.sin(a)*18,5+i%2*2,5+i%2*2,'#ff6b35',null);
+    }
+    x.globalAlpha=1;
+  } else if(id==='den'||id==='den-evo'){
+    x.shadowColor='#ffd700';x.shadowBlur=12;x.strokeStyle='#ffd700';x.lineWidth=2.5;x.lineCap='round';
+    x.globalAlpha=0.8;
+    x.beginPath();x.moveTo(-16,-52-bob);x.lineTo(-24,-42-bob);x.lineTo(-20,-38-bob);x.lineTo(-28,-28-bob);x.stroke();
+    x.globalAlpha=1;
+  } else if(id==='lapse'||id==='lapse-evo'){
+    x.shadowColor='#e040fb';x.shadowBlur=14;
+    for(let i=0;i<6;i++){
+      const a=f*0.05+i*Math.PI/3;const r=32+Math.sin(f*0.1+i)*6;
+      x.globalAlpha=0.55;
+      drawOval(x,Math.cos(a)*r,-50+Math.sin(a)*r*0.5,4,4,cc.glow,null);
+    }
+    x.globalAlpha=1;
+  } else if(id==='blackdeath'||id==='blackdeath-evo'){
+    x.shadowColor='#7c4dff';x.shadowBlur=16;x.globalAlpha=0.7;
+    x.strokeStyle='rgba(124,77,255,0.8)';x.lineWidth=2;
+    for(let i=0;i<3;i++){
+      x.beginPath();x.moveTo(i*10-10,-20);
+      x.quadraticCurveTo(i*14-14+Math.sin(f*0.1+i)*8,10+i*8,i*12-12+Math.sin(f*0.12+i)*6,30+i*5);
+      x.stroke();
+    }
+    x.globalAlpha=1;
+  }
+
+  // ── evolved extras ──
+  if(evo){
+    x.shadowColor=cc.glow;x.shadowBlur=18;
+    if(id==='ron-evo'){
+      // Dragon wings
+      x.fillStyle='rgba(255,61,0,0.35)';x.strokeStyle='#ff3d00';x.lineWidth=2;
+      x.beginPath();x.moveTo(-8,-70-bob);x.bezierCurveTo(-40,-55-bob,-55,-30-bob,-30,-15-bob);x.closePath();x.fill();x.stroke();
+      x.beginPath();x.moveTo(8,-70-bob);x.bezierCurveTo(40,-55-bob,55,-30-bob,30,-15-bob);x.closePath();x.fill();x.stroke();
+    } else if(id==='den-evo'){
+      // Halo
+      x.strokeStyle='#ffe082';x.lineWidth=3;x.globalAlpha=0.9;
+      x.beginPath();x.ellipse(0,-105-bob,18,5,0,0,Math.PI*2);x.stroke();
+      x.globalAlpha=1;
+      // Angel wings
+      x.fillStyle='rgba(255,255,255,0.25)';x.strokeStyle='#ffe082';x.lineWidth=1.5;
+      x.beginPath();x.moveTo(-5,-65-bob);x.bezierCurveTo(-45,-55-bob,-50,-30-bob,-22,-10-bob);x.closePath();x.fill();x.stroke();
+      x.beginPath();x.moveTo(5,-65-bob);x.bezierCurveTo(45,-55-bob,50,-30-bob,22,-10-bob);x.closePath();x.fill();x.stroke();
+    } else if(id==='lapse-evo'){
+      for(let i=0;i<8;i++){const a=(f*0.04+i*Math.PI/4);x.globalAlpha=0.6;x.fillStyle=`hsl(${280+i*15},85%,65%)`;drawOval(x,Math.cos(a)*36,-50+Math.sin(a)*36*0.6,5,5,null,null);}
+      x.globalAlpha=1;
+    } else if(id==='blackdeath-evo'){
+      x.fillStyle='rgba(60,0,100,0.4)';x.strokeStyle='#7c4dff';x.lineWidth=2;
+      x.beginPath();x.moveTo(-12,-75-bob);x.lineTo(-30,5);x.lineTo(-8,58);x.lineTo(0,52);x.lineTo(8,58);x.lineTo(30,5);x.lineTo(12,-75-bob);x.closePath();x.fill();x.stroke();
+    }
+  }
+}
+
+function drawReyshi(x,f,wk,wk2,bob,cc,evo){
+  // Menacing aura
+  x.globalAlpha=0.25+Math.sin(f*0.07)*0.08;
+  drawOval(x,0,-35,48,48,'#8b0000',null);
+  x.globalAlpha=1;
+
+  // Legs — dark armored
+  drawRR(x,6+wk2,-2,16,34,7,'#4a0000',null);
+  drawRR(x,6+wk2*0.5,32,14,30,7,'#4a0000',null);
+  drawOval(x,6+wk2*0.3,60,16,7,'#4a0000',null);
+  // cloak behind body
+  x.fillStyle='rgba(100,0,0,0.6)';
+  x.beginPath();x.moveTo(-18,-75-bob);x.lineTo(-32,15);x.lineTo(-8,62);x.lineTo(0,55);x.lineTo(8,62);x.lineTo(32,15);x.lineTo(18,-75-bob);x.closePath();x.fill();
+  // Body
+  drawRR(x,0,-58-bob,36,46,10,'#8b0000','#ff1744',2);
+  x.globalAlpha=0.4;drawRR(x,0,-58-bob,22,26,6,'#ff1744',null);x.globalAlpha=1;
+  // Front leg
+  drawRR(x,-6+wk,-2,16,34,7,cc.body,null);
+  drawRR(x,-6+wk*0.5,32,14,30,7,cc.body,null);
+  drawOval(x,-6+wk*0.3,60,16,7,cc.body,null);
+  // Arms
+  x.save();x.translate(14,-65-bob);x.rotate(0.3+wk2*0.03);
+  drawRR(x,0,0,13,28,6,'#4a0000',null);
+  drawOval(x,0,26,11,11,cc.skin,null);
+  // dark energy ball
+  x.shadowColor='#ff1744';x.shadowBlur=16;drawOval(x,0,26,14,14,'rgba(200,0,0,0.7)',null);
+  x.restore();
+  x.save();x.translate(-14,-65-bob);x.rotate(-0.3+wk*0.03);
+  drawRR(x,0,0,13,28,6,cc.body,null);
+  drawOval(x,0,26,11,11,cc.skin,null);
+  x.shadowColor='#ff1744';x.shadowBlur=16;drawOval(x,0,26,14,14,'rgba(200,0,0,0.7)',null);
+  x.restore();
+  // Head
+  x.save();x.translate(0,-92-bob);
+  drawOval(x,0,0,23,26,cc.skin,'#4a0000',2);
+  // Horns
+  x.fillStyle='#c62828';x.strokeStyle='#4a0000';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(-12,-18);x.lineTo(-18,-38);x.lineTo(-6,-22);x.closePath();x.fill();x.stroke();
+  x.beginPath();x.moveTo(12,-18);x.lineTo(18,-38);x.lineTo(6,-22);x.closePath();x.fill();x.stroke();
+  // Glowing eyes
+  x.shadowColor='#ff0000';x.shadowBlur=14;
+  drawOval(x,-8,-2,6,6,'#ff1100',null);
+  drawOval(x,8,-2,6,6,'#ff1100',null);
+  x.fillStyle='#fff';drawOval(x,-7,-1,2,2,'#fff',null);drawOval(x,9,-1,2,2,'#fff',null);
+  x.shadowBlur=0;
+  // Scar
+  x.strokeStyle='rgba(255,80,80,0.8)';x.lineWidth=2;x.lineCap='round';
+  x.beginPath();x.moveTo(4,-12);x.lineTo(8,2);x.stroke();
+  // Mouth — evil grin
+  x.strokeStyle='#ff1744';x.lineWidth=2;
+  x.beginPath();x.arc(0,8,7,0,Math.PI);x.stroke();
+  x.restore();
+}
+
+function drawKingBob(x,f,wk,wk2,bob,cc){
+  // Cape
+  x.fillStyle='rgba(183,28,28,0.65)';x.strokeStyle='#7f0000';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(-15,-72-bob);x.lineTo(-35,10);x.lineTo(-8,62);x.lineTo(0,55);x.lineTo(8,62);x.lineTo(35,10);x.lineTo(15,-72-bob);x.closePath();x.fill();x.stroke();
+  // Legs
+  drawRR(x,6+wk2,-2,16,34,7,'#bf360c',null);drawRR(x,6+wk2*0.5,32,14,30,7,'#bf360c',null);drawOval(x,6+wk2*0.3,60,16,7,'#bf360c',null);
+  // Body
+  drawRR(x,0,-58-bob,38,48,11,cc.body,'#000',1.5);
+  x.globalAlpha=0.35;drawRR(x,0,-58-bob,24,28,7,cc.accent,null);x.globalAlpha=1;
+  // Front leg
+  drawRR(x,-6+wk,-2,16,34,7,cc.body,null);drawRR(x,-6+wk*0.5,32,14,30,7,cc.body,null);drawOval(x,-6+wk*0.3,60,16,7,cc.body,null);
+  // Arms
+  x.save();x.translate(14,-65-bob);x.rotate(0.25+wk2*0.03);drawRR(x,0,0,13,28,6,'#bf360c',null);drawOval(x,0,26,10,10,cc.skin,null);x.restore();
+  x.save();x.translate(-14,-65-bob);x.rotate(-0.25+wk*0.03);drawRR(x,0,0,13,28,6,cc.body,null);drawOval(x,0,26,10,10,cc.skin,null);
+  // Scepter
+  x.shadowColor='#ffd700';x.shadowBlur=10;x.strokeStyle='#ffd700';x.lineWidth=3;
+  x.beginPath();x.moveTo(0,24);x.lineTo(10,-16);x.stroke();
+  drawOval(x,10,-18,8,8,'#ffd700','#fff',1.5);
+  x.restore();
+  // Head
+  x.save();x.translate(0,-94-bob);
+  drawOval(x,0,0,22,24,cc.skin,'#000',1.5);
+  // Crown
+  x.fillStyle=cc.accent;x.strokeStyle='#fff';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(-20,-18);x.lineTo(-20,-34);x.lineTo(-10,-26);x.lineTo(0,-38);x.lineTo(10,-26);x.lineTo(20,-34);x.lineTo(20,-18);x.closePath();x.fill();x.stroke();
+  // Crown gems
+  drawOval(x,0,-36,4,4,'#e53935',null);drawOval(x,-10,-27,3,3,'#4fc3f7',null);drawOval(x,10,-27,3,3,'#4fc3f7',null);
+  // Monocle
+  x.strokeStyle='#ffd700';x.lineWidth=1.8;x.beginPath();x.arc(8,-2,7,0,Math.PI*2);x.stroke();
+  // Eyes
+  drawOval(x,-7,-2,5,5,'#fff',null);drawOval(x,8,-2,5,5,'#fff',null);
+  drawOval(x,-7,-2,3,3,'#111',null);drawOval(x,8,-2,3,3,'#111',null);
+  // Smile
+  x.strokeStyle='#333';x.lineWidth=1.8;x.beginPath();x.arc(0,7,6,0.2,Math.PI-0.2);x.stroke();
+  x.restore();
+  // gold glow
+  for(let i=0;i<3;i++){x.globalAlpha=0.08;drawOval(x,0,-35-bob,22+i*12,22+i*12,cc.glow,null);}x.globalAlpha=1;
+}
+
+function drawAqua(x,f,wk,wk2,bob,cc){
+  // Water ripple aura
+  for(let i=0;i<3;i++){x.globalAlpha=0.1;x.strokeStyle='#00e5ff';x.lineWidth=1.5;x.beginPath();x.ellipse(0,-28-bob,28+i*12,14+i*6,0,0,Math.PI*2);x.stroke();}x.globalAlpha=1;
+  // Legs
+  drawRR(x,6+wk2,-2,16,34,7,'#006064',null);drawRR(x,6+wk2*0.5,32,14,30,7,'#006064',null);drawOval(x,6+wk2*0.3,60,16,7,'#006064',null);
+  // Body
+  drawRR(x,0,-58-bob,36,46,11,cc.body,'#000',1.5);
+  x.globalAlpha=0.3;drawRR(x,0,-58-bob,22,26,6,cc.accent,null);x.globalAlpha=1;
+  // Front leg
+  drawRR(x,-6+wk,-2,16,34,7,cc.body,null);drawRR(x,-6+wk*0.5,32,14,30,7,cc.body,null);drawOval(x,-6+wk*0.3,60,16,7,cc.body,null);
+  // Arms
+  x.save();x.translate(14,-65-bob);x.rotate(0.25+wk2*0.03);drawRR(x,0,0,13,28,6,'#006064',null);
+  drawOval(x,0,26,10,10,cc.skin,null);x.shadowColor='#00e5ff';x.shadowBlur=12;drawOval(x,0,26,13,13,'rgba(0,180,220,0.6)',null);x.restore();
+  x.save();x.translate(-14,-65-bob);x.rotate(-0.25+wk*0.03);drawRR(x,0,0,13,28,6,cc.body,null);
+  drawOval(x,0,26,10,10,cc.skin,null);x.shadowColor='#00e5ff';x.shadowBlur=12;drawOval(x,0,26,13,13,'rgba(0,180,220,0.6)',null);x.restore();
+  // Head
+  x.save();x.translate(0,-92-bob);
+  drawOval(x,0,0,22,24,cc.skin,'#000',1.5);
+  // Water fin hair
+  x.fillStyle='#00acc1';x.strokeStyle='#006064';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(-10,-16);x.bezierCurveTo(-22,-30,-18,-44,0,-40);x.bezierCurveTo(18,-44,22,-30,10,-16);x.closePath();x.fill();x.stroke();
+  // fin tip
+  x.shadowColor='#00e5ff';x.shadowBlur=8;
+  x.fillStyle='#00e5ff';x.beginPath();x.moveTo(0,-36);x.lineTo(-5,-48);x.lineTo(5,-48);x.closePath();x.fill();
+  x.shadowBlur=0;
+  // Glowing eyes
+  drawOval(x,-7,-2,5,5,'#fff',null);drawOval(x,7,-2,5,5,'#fff',null);
+  x.shadowColor='#00e5ff';x.shadowBlur=8;
+  drawOval(x,-7,-2,3.5,3.5,'#00e5ff',null);drawOval(x,7,-2,3.5,3.5,'#00e5ff',null);
+  x.shadowBlur=0;
+  x.strokeStyle='#006064';x.lineWidth=1.8;x.beginPath();x.arc(0,7,5,0.2,Math.PI-0.2);x.stroke();
+  x.restore();
+  // Water orbit particles
+  for(let i=0;i<5;i++){const a=f*0.08+i*Math.PI*0.4;x.globalAlpha=0.65;drawOval(x,Math.cos(a)*30,-42+Math.sin(a)*14-bob,5,5,'rgba(0,229,255,0.85)',null);}x.globalAlpha=1;
+}
+
+function drawTerrarus(x,f,wk,wk2,bob,cc){
+  // Rock chunks orbiting
+  [0,1.1,2.2,3.3,4.4,5.5].forEach((a,i)=>{
+    const aa=f*0.04+a;x.globalAlpha=0.3+Math.sin(f*0.05+i)*0.1;
+    x.fillStyle='#795548';x.beginPath();x.roundRect(Math.cos(aa)*36-5,-42+Math.sin(aa)*20-bob-5,10+i%3*3,10+i%3*3,3);x.fill();
+  });x.globalAlpha=1;
+  // Legs — rocky armored
+  x.shadowColor='#76ff03';
+  drawRR(x,7+wk2,-2,18,36,7,'#4e342e',null);drawRR(x,7+wk2*0.5,34,16,32,7,'#3e2723',null);drawOval(x,7+wk2*0.3,64,18,8,'#3e2723',null);
+  // Body — big rocky torso
+  drawRR(x,0,-60-bob,42,52,12,cc.body,'#000',2);
+  // Rock cracks on body
+  x.strokeStyle='rgba(120,85,50,0.6)';x.lineWidth=1.5;x.lineCap='round';
+  x.beginPath();x.moveTo(-8,-75-bob);x.lineTo(-14,-62-bob);x.lineTo(-6,-50-bob);x.stroke();
+  x.beginPath();x.moveTo(6,-78-bob);x.lineTo(10,-66-bob);x.lineTo(4,-54-bob);x.stroke();
+  x.globalAlpha=0.25;drawRR(x,0,-60-bob,26,30,8,cc.glow,null);x.globalAlpha=1;
+  // Front leg
+  drawRR(x,-7+wk,-2,18,36,7,cc.body,null);drawRR(x,-7+wk*0.5,34,16,32,7,cc.body,null);drawOval(x,-7+wk*0.3,64,18,8,cc.body,null);
+  // Arms — big stone fists
+  x.save();x.translate(16,-68-bob);x.rotate(0.3+wk2*0.03);
+  drawRR(x,0,0,15,30,7,'#4e342e',null);drawOval(x,0,28,13,13,'#3e2723',null);
+  x.shadowColor='#76ff03';x.shadowBlur=12;drawOval(x,0,28,10,10,'rgba(100,200,50,0.4)',null);x.restore();
+  x.save();x.translate(-16,-68-bob);x.rotate(-0.3+wk*0.03);
+  drawRR(x,0,0,15,30,7,cc.body,null);drawOval(x,0,28,13,13,cc.body,null);
+  x.shadowColor='#76ff03';x.shadowBlur=12;drawOval(x,0,28,10,10,'rgba(100,200,50,0.4)',null);x.restore();
+  // Head
+  x.save();x.translate(0,-96-bob);
+  // rocky irregular head
+  x.fillStyle=cc.skin;x.strokeStyle='#000';x.lineWidth=2;
+  x.beginPath();x.moveTo(0,-26);x.bezierCurveTo(24,-26,26,-10,24,8);x.bezierCurveTo(22,22,10,24,0,24);x.bezierCurveTo(-10,24,-22,22,-24,8);x.bezierCurveTo(-26,-10,-24,-26,0,-26);x.closePath();x.fill();x.stroke();
+  // Cracks on head
+  x.strokeStyle='rgba(100,60,30,0.55)';x.lineWidth=1.5;
+  x.beginPath();x.moveTo(-8,-22);x.lineTo(-12,-14);x.lineTo(-6,-8);x.stroke();
+  // Glowing eyes
+  x.shadowColor='#76ff03';x.shadowBlur=12;
+  drawOval(x,-8,-2,6,7,'#76ff03',null);drawOval(x,8,-2,6,7,'#76ff03',null);
+  drawOval(x,-8,-2,3,3,'#003300',null);drawOval(x,8,-2,3,3,'#003300',null);
+  x.shadowBlur=0;
+  x.strokeStyle='#3e2723';x.lineWidth=2;x.beginPath();x.moveTo(-6,8);x.lineTo(-2,12);x.lineTo(2,12);x.lineTo(6,8);x.stroke();
+  x.restore();
+}
+
+// Preview animation
+const PA={};
+function startP(id,charId,evo){
+  if(PA[id])cancelAnimationFrame(PA[id]);
+  const c=document.getElementById(id);if(!c)return;
+  const loop=()=>{const cx=c.getContext('2d');cx.clearRect(0,0,c.width,c.height);drawChar(cx,c.width/2,c.height*0.88,0.95,charId,Date.now()/28,1,evo);PA[id]=requestAnimationFrame(loop);};loop();
+}
+
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+const CHARS=[
+  {id:'ron',        name:'Ron',        title:'Fire Master',      el:'🔥 Fire',    col:'#ff6b35',free:true},
+  {id:'den',        name:'Den',        title:'Lightning Master', el:'⚡ Lightning',col:'#4fc3f7',free:true},
+  {id:'lapse',      name:'Lapse',      title:'Galaxy Master',    el:'🌌 Galaxy',  col:'#ce93d8',free:true},
+  {id:'blackdeath', name:'Black Death',title:'Void Master',      el:'🌑 Void',    col:'#90a4ae',free:true},
+  {id:'reyshi',     name:'Reyshi',     title:'The Villain',      el:'💀 Dark',    col:'#ef5350',cost:500},
+];
+const EVO=[
+  {id:'ron-evo',         name:'Dragon Ron',    title:'Dragon Form',      el:'🐉 Dragon', col:'#ff3d00',cost:1000,evo:true,code:'heat'},
+  {id:'den-evo',         name:'Angel Den',     title:'Angel Form',       el:'✨ Angel',  col:'#fff9c4',cost:1000,evo:true,code:'thunder'},
+  {id:'lapse-evo',       name:'Lapse Awakened',title:'Awakened Form',    el:'🌠 Cosmos', col:'#ea80fc',cost:1000,evo:true,code:'awake'},
+  {id:'blackdeath-evo',  name:'Destruction',   title:'Destruction Form', el:'💥 Destruct',col:'#b39ddb',cost:1000,evo:true,code:'void'},
+];
+const ADMCHARS=[
+  {id:'kingbob', name:'King Bob', title:'Royal Sovereign',el:'👑 Royal',col:'#ffd700',admin:true},
+  {id:'aqua',    name:'Aqua',     title:'Ocean Master',   el:'🌊 Water',col:'#00bcd4',admin:true},
+  {id:'terrarus',name:'Terrarus', title:'Earth Colossus', el:'🗿 Earth',col:'#8d6e63',admin:true},
+];
+const SHOP={
+  costumes:[{id:'ninja',name:'Ninja Suit',icon:'🥷',price:800},{id:'samurai',name:'Samurai',icon:'⚔️',price:1200},{id:'cyber',name:'Cyber Suit',icon:'🤖',price:1500},{id:'royal',name:'Royal Robe',icon:'👑',price:2000},{id:'shadow',name:'Shadow Cloak',icon:'🌑',price:1000},{id:'asuit',name:'ADMIN SUIT',icon:'🛡',price:9999,adm:true}],
+  trails:[{id:'ft',name:'Fire Trail',icon:'🔥',price:600},{id:'lt',name:'Lightning Trail',icon:'⚡',price:700},{id:'gt',name:'Galaxy Trail',icon:'🌌',price:900},{id:'vt',name:'Void Trail',icon:'🌑',price:850},{id:'rt',name:'Rainbow Trail',icon:'🌈',price:1100},{id:'at',name:'ADMIN TRAIL',icon:'💠',price:9999,adm:true}],
+  signs:[{id:'fs',name:'Fire Sign',icon:'🔥',price:400},{id:'ss',name:'Star Sign',icon:'⭐',price:500},{id:'gs',name:'Galaxy Sign',icon:'🌌',price:700},{id:'ds',name:'Doom Sign',icon:'☠️',price:650},{id:'cs',name:'Crown Sign',icon:'👑',price:900}],
+  gear:[
+    {id:'jb',name:'Jump Boots',icon:'🥾',price:700,desc:'Jump higher',eff:'jb'},
+    {id:'kt',name:'Katana',icon:'🗡️',price:1000,desc:'+20 fight ATK',eff:'kt'},
+    {id:'sh',name:'Shield',icon:'🛡',price:800,desc:'+1 extra life',eff:'sh'},
+    {id:'mg',name:'Coin Magnet',icon:'🧲',price:600,desc:'Auto-collect coins',eff:'mg'},
+    {id:'jp',name:'Jetpack',icon:'🚀',price:1500,desc:'Float in runner',eff:'jp'},
+    {id:'ar',name:'Battle Armor',icon:'🦺',price:1200,desc:'-15 dmg Reyshi',eff:'ar'},
+    {id:'sb',name:'Speed Boots',icon:'👟',price:900,desc:'Run faster',eff:'sb'},
+    {id:'ag',name:'ADMIN GEAR',icon:'⚙️',price:9999,desc:'All effects!',eff:'ag',adm:true},
+  ]
+};
+const CODES={heat:{t:'char',id:'ron'},thunder:{t:'char',id:'den'},awake:{t:'char',id:'lapse'},void:{t:'char',id:'blackdeath'},chase:{t:'char',id:'reyshi'},'1W2':{t:'coins',n:99999,msg:'💰 INFINITE COINS!'},admin:{t:'admin',msg:'🛡 ADMIN GRANTED! King Bob, Aqua & Terrarus unlocked!'}};
+
+// ═══════════════════════════════════════════════════════
+//  USER STORAGE
+// ═══════════════════════════════════════════════════════
+let U=null,SC=null,ctab='n',EG=[];
+function lu(){try{return JSON.parse(localStorage.getItem('rc3')||'{}')}catch(e){return{}}}
+function su(u){const d=lu();d[u.username]=u;localStorage.setItem('rc3',JSON.stringify(d));}
+function dd(n){return{username:n,password:null,coins:250,uc:['ron','den','lapse','blackdeath'],ue:[],ua:[],oi:[],eg:[],isAdmin:false,hs:0,rc:[]};}
+function hg(e){return EG.includes(e)||EG.includes('ag');}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+function doLogin(){const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;if(!u||!p){notif('⚠️ Fill all fields!');return;}const d=lu();if(!d[u]){notif('❌ User not found!');return;}if(d[u].password!==p){notif('❌ Wrong password!');return;}U=d[u];if(!U.eg)U.eg=[];if(!U.ua)U.ua=[];EG=U.eg||[];login();}
+function doSignup(){const u=document.getElementById('suu').value.trim(),p=document.getElementById('sup').value,p2=document.getElementById('sup2').value;if(!u||!p){notif('⚠️ Fill all fields!');return;}if(p!==p2){notif('❌ Passwords don\'t match!');return;}const d=lu();if(d[u]){notif('❌ Username taken!');return;}U=dd(u);U.password=p;d[u]=U;localStorage.setItem('rc3',JSON.stringify(d));EG=[];login();}
+function login(){su(U);cutscene();}
+function doLogout(){U=null;SC=null;show('lg-scr');}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function notif(msg,col){const c=document.getElementById('nc'),d=document.createElement('div');d.className='notif';if(col)d.style.borderColor=col;d.textContent=msg;c.appendChild(d);setTimeout(()=>d.remove(),3100);}
+function coinPop(px,py,n){const d=document.createElement('div');d.className='cp';d.textContent='+'+n+'🪙';d.style.left=px+'px';d.style.top=py+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
+function updateMC(){if(U)document.getElementById('mc-val').textContent=U.coins;}
+
+// ═══════════════════════════════════════════════════════
+//  CUTSCENE
+// ═══════════════════════════════════════════════════════
+const CUTS=[{ch:'reyshi',t:'In the neon city, Reyshi hunts the champions...'},{ch:'reyshi',t:'REYSHI: "No one escapes me! I will crush you all!"'},{ch:'ron',t:'Ron, Den, Lapse & Black Death rise up to fight!'},{ch:'den',t:'Run the rails, leap the trains — your destiny awaits!'}];
+let ci=0,ct=null;
+function cutscene(){ci=0;show('cut-scr');cutFrame();}
+function cutFrame(){if(ci>=CUTS.length){show('mn-scr');updateMC();return;}const c=CUTS[ci];document.getElementById('ctext').textContent=c.t;document.getElementById('cprog').style.width=((ci+1)/CUTS.length*100)+'%';startP('cutc',c.ch,false);clearTimeout(ct);ct=setTimeout(()=>{ci++;cutFrame();},2600);}
+function skipCut(){clearTimeout(ct);show('mn-scr');updateMC();}
+
+// ═══════════════════════════════════════════════════════
+//  CHAR SELECT
+// ═══════════════════════════════════════════════════════
+function goCS(){renderCG();show('cs-scr');SC=null;document.getElementById('playbtn').disabled=true;document.getElementById('adtab').style.display=U&&U.isAdmin?'':'none';}
+function sTab(t,el){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));el.classList.add('on');ctab=t;renderCG();}
+function renderCG(){
+  const g=document.getElementById('cgrid');g.innerHTML='';
+  Object.keys(PA).forEach(k=>{if(k.startsWith('cc-')){cancelAnimationFrame(PA[k]);delete PA[k];}});
+  let chars=ctab==='n'?CHARS:ctab==='e'?EVO:ctab==='v'?[CHARS.find(c=>c.id==='reyshi')]:ADMCHARS;
+  chars.filter(Boolean).forEach(ch=>{
+    const unl=ctab==='a'?(U.ua||[]).includes(ch.id):(U.uc.includes(ch.id)||(ch.evo&&U.ue.includes(ch.id)));
+    const card=document.createElement('div');card.className='cc'+(unl?'':' lk');
+    const cid='cc-'+ch.id;
+    let bdg='';if(ch.evo)bdg+=`<div class="evob">✨ EVO</div>`;if(ch.admin)bdg+=`<div class="adbb">👑 ADMIN</div>`;if(!unl)bdg+=`<div class="lkb">🔒</div>`;
+    card.innerHTML=`${bdg}<canvas id="${cid}" width="100" height="115" style="display:block;margin:0 auto;"></canvas><div class="cn" style="color:${ch.col}">${ch.name}</div><div class="ct">${ch.title}</div><div style="font-size:11px;margin-top:3px;">${ch.el}</div>${!unl?`<div style="color:var(--go);font-family:'Bangers',cursive;font-size:13px;margin-top:3px;">${ch.cost?ch.cost+'🪙':(ch.admin?'ADMIN CODE':'CODE')}</div>`:''}`;
+    card.onclick=()=>selChar(ch,unl,card);g.appendChild(card);
+    requestAnimationFrame(()=>startP(cid,ch.id,!!ch.evo));
+  });
+}
+function selChar(ch,unl,card){
+  if(!unl){if(ch.admin){notif('🔑 Use admin code!');return;}if(ch.cost&&U.coins>=ch.cost){if(confirm(`Unlock ${ch.name} for ${ch.cost} coins?`)){U.coins-=ch.cost;if(ch.evo)U.ue.push(ch.id);else U.uc.push(ch.id);su(U);notif(`✅ ${ch.name} unlocked!`);renderCG();}}else if(ch.cost)notif(`💰 Need ${ch.cost} coins!`);else notif('🔑 Use a secret code!');return;}
+  document.querySelectorAll('.cc').forEach(c=>c.classList.remove('sel'));card.classList.add('sel');SC=ch;document.getElementById('playbtn').disabled=false;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RUNNER GAME — SUBWAY SURFERS PERSPECTIVE
+// ═══════════════════════════════════════════════════════
+let cv,cx2,aid,gRun=false,gPause=false;
+let score,coinC,lives,gf,bgO=0;
+let cl=1,clF=1; // current lane (0,1,2), float for smooth transition
+let obs=[],coins2=[];
+let pY=0,pVY=0,pJump=false; // player vertical (screen offset for jump)
+let pFr=0,pState='run'; // animation frame, state: run/jump/slide/parkour
+let pParkour=0; // parkour vault animation timer
+const KS={};
+const LANE_COLS=[-1,0,1]; // -1=left,0=centre,1=right in world space
+
+// Perspective helpers — vanishing point
+const VP_Y_FRAC=0.38; // horizon as fraction of height
+const TRACK_W_FRAC=0.46; // track half-width as fraction of W at bottom
+// Project world coords to screen
+function proj(lane,depth,W,H){
+  // depth: 0=horizon(far), 1=near(bottom)
+  const hz=VP_Y_FRAC*H;
+  const sy=hz+(H-hz)*depth;
+  const trackHalf=W*TRACK_W_FRAC;
+  const laneSpacing=trackHalf/1.3;
+  const sx=W/2+LANE_COLS[lane]*laneSpacing*depth;
+  return{x:sx,y:sy,s:depth}; // s = scale factor
+}
+// Object size at depth d (reference size is for d=1)
+function depthScale(d){return Math.max(d,0.01);}
+
+function startGame(){
+  if(!SC){notif('Select a character!');return;}
+  show('gm-scr');
+  cv=document.getElementById('gc');cx2=cv.getContext('2d');
+  const W=Math.min(window.innerWidth,480),H=window.innerHeight;
+  cv.width=W;cv.height=H;
+  score=0;coinC=0;gf=0;bgO=0;cl=1;clF=1;
+  lives=3+(hg('sh')?1:0)+(hg('ag')?2:0);
+  obs=[];coins2=[];gRun=true;gPause=false;
+  pY=0;pVY=0;pJump=false;pFr=0;pState='run';pParkour=0;
+  hudU();gearBar();bindK();gLoop();
+}
+
+function gearBar(){const b=document.getElementById('gb');b.innerHTML='';const a=[];if(hg('jb'))a.push('🥾+');if(hg('mg'))a.push('🧲');if(hg('sh'))a.push('🛡+');if(hg('jp'))a.push('🚀');if(hg('sb'))a.push('👟+');if(hg('ar'))a.push('🦺');a.forEach(g=>{const d=document.createElement('div');d.className='gch';d.textContent=g;b.appendChild(d);});}
+
+function bindK(){
+  window.onkeydown=e=>{KS[e.key]=true;if(e.key==='ArrowLeft')mvL();if(e.key==='ArrowRight')mvR();if(e.key==='ArrowUp'||e.key===' ')doJump();if(e.key==='ArrowDown')doSlide();if(e.key==='Escape')togglePause();};
+  window.onkeyup=e=>{KS[e.key]=false;};
+  let sx,sy,st;
+  cv.ontouchstart=e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();};
+  cv.ontouchend=e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy,dt=Date.now()-st;
+    if(Math.abs(dx)>Math.abs(dy)){if(dx<-30)mvL();else if(dx>30)mvR();}
+    else{if(dy<-30)doJump();else if(dy>30)doSlide();}
+  };
+}
+function mvL(){if(cl>0){cl--;}}
+function mvR(){if(cl<2){cl++;}}
+function doJump(){
+  if(!gRun||gPause)return;
+  const power=hg('jb')||hg('ag')?-20:-14;
+  if(!pJump){pVY=power;pJump=true;pState='jump';}
+  // parkour vault if obstacle close ahead
+  const near=obs.find(o=>o.lane===cl&&o.depth>0.65&&o.depth<0.85);
+  if(near&&near.type!=='train'){pParkour=20;pState='parkour';}
+}
+function doSlide(){
+  if(!gRun||gPause)return;
+  if(pState!=='slide'){pState='slide';setTimeout(()=>{if(pState==='slide')pState='run';},600);}
+}
+
+function gLoop(){if(!gRun)return;aid=requestAnimationFrame(gLoop);if(gPause)return;gf++;score++;gUpdate();gDraw();hudU();}
+
+function gUpdate(){
+  const W=cv.width,H=cv.height;
+  const fly=SC&&(SC.evo||hg('jp')||hg('ag'));
+  const baseSpd=hg('sb')||hg('ag')?0.018:0.013;
+  const spd=baseSpd+Math.floor(score/600)*0.001;
+  const mag=hg('mg')||hg('ag')?0.22:0.05;
+
+  pFr++;
+  // Smooth lane
+  clF+=(cl-clF)*0.14;
+
+  // Vertical jump physics (screen pixels from ground baseline)
+  if(!fly){
+    pVY+=0.9;pY+=pVY;
+    if(pY>=0){pY=0;pVY=0;pJump=false;if(pState==='jump'||pState==='parkour')pState='run';}
+  } else {
+    if(KS.ArrowUp||KS[' '])pVY-=0.6;
+    pVY+=0.35;pVY=Math.max(-12,Math.min(12,pVY));pY+=pVY;pY=Math.max(-H*0.38,Math.min(0,pY));
+  }
+
+  if(pParkour>0)pParkour--;
+
+  // Spawn obstacles — depth starts at 0.02 and moves toward 1
+  if(gf%Math.max(90-Math.floor(score/400),42)===0){
+    const lane=Math.floor(Math.random()*3);
+    const types=['train','barrier','fire'];
+    // 50% chance train spans multiple lanes
+    const type=types[Math.floor(Math.random()*3)];
+    const bigTrain=(type==='train'&&Math.random()<0.45);
+    obs.push({lane,depth:0.02,type,big:bigTrain,lanes:bigTrain?[0,1,2]:[lane]});
+  }
+  // Spawn coins — small arcs at medium depth
+  if(gf%28===0){
+    const lane=Math.floor(Math.random()*3);
+    coins2.push({lane,depth:0.04,col:false});
+  }
+
+  // Move all objects toward player
+  obs.forEach(o=>o.depth+=spd);
+  coins2.forEach(c=>c.depth+=spd);
+
+  // Collision — objects that reach depth ~0.92-1.0 are at player
+  obs=obs.filter(o=>{
+    if(o.depth>1.1)return false;
+    if(o.depth>0.88&&o.depth<1.02){
+      const hit=o.big?true:o.lane===cl;
+      if(hit){
+        // Check if jump clears it
+        const jumpClear=(pState==='jump'||pState==='parkour')&&pY<-18&&o.type!=='barrier';
+        const slideClear=(pState==='slide')&&o.type==='barrier';
+        if(!jumpClear&&!slideClear){
+          lives--;hudU();notif('💥 Hit!','#f44336');
+          if(lives<=0){endGame();return false;}
+          return false;
         }
-      });
+      }
+    }
+    return true;
+  });
+
+  coins2=coins2.filter(c=>{
+    if(c.depth>1.1)return false;
+    if(c.depth>0.75&&c.lane===cl&&!c.col){
+      // Magnet range
+      const inRange=Math.abs(c.depth-0.9)<mag||mag>0.1;
+      if(inRange){c.col=true;coinC++;U.coins++;su(U);const pp=proj(c.lane,c.depth,W,H);coinPop(cv.offsetLeft+pp.x,cv.offsetTop+pp.y,1);return false;}
+    }
+    return true;
+  });
+
+  bgO+=spd*40;
+}
+
+function gDraw(){
+  const W=cv.width,H=cv.height;
+  const fly=SC&&(SC.evo||hg('jp')||hg('ag'));
+  cx2.clearRect(0,0,W,H);
+
+  if(fly){
+    // Sky flying mode
+    const gr=cx2.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#0c1a46');gr.addColorStop(1,'#280a3c');cx2.fillStyle=gr;cx2.fillRect(0,0,W,H);
+    cx2.fillStyle='rgba(255,255,255,.65)';for(let i=0;i<30;i++){const sx=((i*137+bgO*.18)%W+W)%W,sy=((i*97)%(H*.65));cx2.beginPath();cx2.arc(sx,sy,1.4,0,Math.PI*2);cx2.fill();}
+    for(let i=0;i<5;i++){cx2.globalAlpha=0.07;cx2.fillStyle='#fff';cx2.beginPath();cx2.ellipse(((i*200+bgO*.4)%W+W)%W,H*0.18+(i%3)*80,55+i*8,18,0,0,Math.PI*2);cx2.fill();}
+    cx2.globalAlpha=1;
+  } else {
+    // ── SUBWAY SURFERS STYLE BACKGROUND ──
+    // Sky gradient — warm sunset like SS
+    const skyGr=cx2.createLinearGradient(0,0,0,H*VP_Y_FRAC);
+    skyGr.addColorStop(0,'#ffb3a0');skyGr.addColorStop(0.5,'#ff8c69');skyGr.addColorStop(1,'#ffcc80');
+    cx2.fillStyle=skyGr;cx2.fillRect(0,0,W,H*VP_Y_FRAC+4);
+
+    // Buildings on left
+    const bldL=[[0,0.55,0.14,0.45],[0,0.55,0.09,0.32],[0,0.6,0.06,0.18]];
+    bldL.forEach(([lx,ly,lw,lh],i)=>{
+      cx2.fillStyle=['#e57373','#ef9a9a','#ffb74d'][i];
+      cx2.fillRect(W*lx,H*(ly-lh),W*lw,H*lh);
+      // windows
+      cx2.fillStyle='rgba(255,235,100,0.55)';
+      for(let r=0;r<4;r++)for(let c2=0;c2<2;c2++)cx2.fillRect(W*(lx+0.01+c2*0.05),H*(ly-lh+0.04+r*0.08),W*0.03,H*0.05);
+    });
+    // Buildings on right
+    const bldR=[[0.86,0.52,0.14,0.42],[0.91,0.55,0.09,0.3]];
+    bldR.forEach(([lx,ly,lw,lh],i)=>{
+      cx2.fillStyle=['#ce93d8','#f48fb1'][i];
+      cx2.fillRect(W*lx,H*(ly-lh),W*lw,H*lh);
+      cx2.fillStyle='rgba(255,235,100,0.5)';
+      for(let r=0;r<3;r++)for(let c2=0;c2<2;c2++)cx2.fillRect(W*(lx+0.01+c2*0.05),H*(ly-lh+0.04+r*0.09),W*0.03,H*0.055);
+    });
+
+    // ALOHA sign style — right side
+    cx2.fillStyle='#ff7043';cx2.fillRect(W*0.82,H*0.28,W*0.1,H*0.12);
+    cx2.fillStyle='#fff';cx2.font=`bold ${W*0.025}px Bangers`;cx2.textAlign='center';cx2.fillText('ALOHA',W*0.87,H*0.37);
+
+    // Palm trees
+    cx2.font=`${H*0.07}px serif`;cx2.textAlign='center';
+    cx2.fillText('🌴',W*0.06,H*0.44);
+    cx2.fillText('🌴',W*0.94,H*0.41);
+    cx2.font=`${H*0.05}px serif`;
+    cx2.fillText('🌴',W*0.12,H*0.48);
+
+    // ── GROUND — perspective quad ──
+    const hz=H*VP_Y_FRAC;
+    const groundGr=cx2.createLinearGradient(0,hz,0,H);
+    groundGr.addColorStop(0,'#bcaaa4');groundGr.addColorStop(0.3,'#a1887f');groundGr.addColorStop(1,'#6d4c41');
+    cx2.fillStyle=groundGr;
+    cx2.fillRect(0,hz,W,H-hz);
+
+    // ── TRACK — the 3-lane railway in perspective ──
+    const trackHalf=W*TRACK_W_FRAC;
+    // Track bed (dark)
+    cx2.fillStyle='#4e342e';
+    cx2.beginPath();
+    cx2.moveTo(W/2-2,hz);cx2.lineTo(W/2+2,hz);
+    cx2.lineTo(W/2+trackHalf,H);cx2.lineTo(W/2-trackHalf,H);
+    cx2.closePath();cx2.fill();
+
+    // Rail ties (sleepers) — drawn at perspective depths
+    const tieCount=18;
+    for(let i=0;i<tieCount;i++){
+      const d=((bgO*0.016+i/tieCount)%1);if(d<0.04)continue;
+      const p=proj(1,d,W,H); // centre lane
+      const ww=trackHalf*2*d+6;
+      cx2.fillStyle=`rgba(80,50,30,${0.3+d*0.5})`;
+      cx2.beginPath();cx2.roundRect(p.x-ww/2,p.y-3*d,ww,6*d+2,2);cx2.fill();
     }
 
-    if(g.score>=1000&&!g.milestone){g.milestone=true;setMilestone(true);setTimeout(()=>setMilestone(false),4500);}
-    setGameScore(Math.floor(g.score)); setGameCoins(g.coins);
+    // 4 rail lines (left of left, between left/centre, between centre/right, right of right)
+    for(let r=0;r<4;r++){
+      const laneIdx=(r<2)?0:(r<3)?1:2;
+      const offset=(r===0)?-1:(r===1)?0:(r===2)?0:1; // relative
+      const lx=(r===0)? -1.65:(r===1)?-0.35:(r===2)?0.35:1.65; // world lane units
+      cx2.strokeStyle='#8d6e63';cx2.lineWidth=Math.max(1,3*0.4);
+      // draw from horizon to bottom
+      const top=proj(1,0.02,W,H);const bot=proj(1,1,W,H);
+      const topX=W/2+lx*W*TRACK_W_FRAC/1.3*0.02;
+      const botX=W/2+lx*W*TRACK_W_FRAC/1.3;
+      cx2.strokeStyle='#a1887f';cx2.lineWidth=3;
+      cx2.beginPath();cx2.moveTo(topX,hz);cx2.lineTo(botX,H);cx2.stroke();
+    }
+    // Lane dividers (faint)
+    for(let l=1;l<3;l++){
+      cx2.strokeStyle='rgba(255,255,255,0.12)';cx2.lineWidth=1.5;cx2.setLineDash([8,10]);
+      const topD=0.05,botD=1;
+      const pt=proj(l===1?0:1,topD,W,H);const pb=proj(l===1?0:1,botD,W,H);
+      // boundary between lanes
+      const lx=(l===1)?-0.35:0.35;
+      const tx=W/2+lx*W*TRACK_W_FRAC/1.3*topD;
+      const bx=W/2+lx*W*TRACK_W_FRAC/1.3;
+      cx2.beginPath();cx2.moveTo(tx,hz);cx2.lineTo(bx,H);cx2.stroke();cx2.setLineDash([]);
+    }
   }
 
-  // ── DRAW SKY ──
-  const sky=ctx.createLinearGradient(0,0,0,ch);
-  sky.addColorStop(0,h.dark||"#04000c"); sky.addColorStop(0.6,"#08001a"); sky.addColorStop(1,"#0a0020");
-  ctx.fillStyle=sky; ctx.fillRect(0,0,cw,ch);
-  for(let i=0;i<55;i++){ctx.globalAlpha=0.1+Math.sin(g.frame*0.022+i)*0.1;ctx.fillStyle=i%5===0?h.glow:i%3===0?h.col:"#fff";ctx.beginPath();ctx.arc((i*137+g.bgScroll*0.08)%cw,(i*89+5)%(ch*0.55),i%7===0?1.5:0.7,0,Math.PI*2);ctx.fill();}
-  ctx.globalAlpha=1;
-  ctx.save();ctx.shadowBlur=60;ctx.shadowColor=h.glow;ctx.fillStyle=h.col+"77";ctx.beginPath();ctx.arc(cw*0.5,ch*0.14,38,0,Math.PI*2);ctx.fill();ctx.restore();
+  // ── COINS — draw at depth, perspective-scaled ──
+  [...coins2].sort((a,b)=>a.depth-b.depth).forEach(c=>{
+    if(c.depth<0.04)return;
+    const p=proj(c.lane,c.depth,W,H);
+    const r=Math.max(4,14*p.s);
+    cx2.save();cx2.shadowColor='#ffd700';cx2.shadowBlur=8*p.s;
+    cx2.fillStyle='#ffd700';cx2.strokeStyle='#ff8c00';cx2.lineWidth=1.5*p.s;
+    cx2.beginPath();cx2.arc(p.x,p.y-r,r,0,Math.PI*2);cx2.fill();cx2.stroke();
+    cx2.fillStyle='#a05000';cx2.font=`bold ${Math.max(8,11*p.s)}px Nunito`;cx2.textAlign='center';
+    cx2.fillText('$',p.x,p.y-r+4*p.s);cx2.restore();
+  });
 
-  // ── ROAD ──
-  const VPY=ch*0.28,RDY=ch*0.85;
-  ctx.fillStyle="#070310";ctx.fillRect(0,VPY-4,cw,ch-VPY+4);
-  const rg=ctx.createLinearGradient(0,VPY,0,RDY);
-  rg.addColorStop(0,"#120808");rg.addColorStop(0.5,"#1e0e04");rg.addColorStop(1,"#120808");
-  ctx.fillStyle=rg;ctx.beginPath();ctx.moveTo(cw*0.05,VPY);ctx.lineTo(cw*0.95,VPY);ctx.lineTo(cw,RDY);ctx.lineTo(0,RDY);ctx.closePath();ctx.fill();
-  for(let l=0;l<4;l++){const tx=cw*0.05+l*(cw*0.3),bx2=l*(cw*0.34);ctx.strokeStyle="rgba(100,65,30,0.45)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(tx,VPY);ctx.lineTo(bx2,RDY);ctx.stroke();}
-  for(let i=0;i<10;i++){const t=((i/10)+(g.bgScroll*0.004)%1)%1;if(t<0.04)continue;const ry2=VPY+(RDY-VPY)*t,hw=(cw*0.45)*t+cw*0.05;ctx.strokeStyle=`rgba(70,45,20,${Math.min(1,t*3)*0.38})`;ctx.lineWidth=Math.max(1,(1-t)*5+0.5);ctx.beginPath();ctx.moveTo(cw/2-hw,ry2);ctx.lineTo(cw/2+hw,ry2);ctx.stroke();}
+  // ── OBSTACLES — perspective-scaled, sorted back to front ──
+  [...obs].sort((a,b)=>a.depth-b.depth).forEach(o=>{
+    if(o.depth<0.04)return;
+    const p=proj(o.lane,o.depth,W,H);
+    const s=depthScale(o.depth);
+    cx2.save();
 
-  // ── OBSTACLES ──
-  g.obstacles.forEach(o=>{
-    const ox=LX(o.l); ctx.save();
-    ctx.shadowBlur=12; ctx.shadowColor=o.type==="barrier"?"#ff5500":o.type==="spike"?"#ff0022":"#ffcc00";
-    if(o.type==="barrier"){
-      ctx.fillStyle="#222236";ctx.beginPath();ctx.roundRect(ox-54,o.y-132,108,132,4);ctx.fill();
-      ctx.fillStyle="#2a2a44";ctx.beginPath();ctx.roundRect(ox-52,o.y-130,104,130,4);ctx.fill();
-      ctx.fillStyle="rgba(180,220,255,0.1)";
-      [[0.08,0.12,0.23,0.22],[0.37,0.12,0.23,0.22],[0.66,0.12,0.23,0.22],[0.08,0.42,0.23,0.22],[0.37,0.42,0.23,0.22],[0.66,0.42,0.23,0.22]].forEach(([fx2,fy,fw,fh])=>{ctx.beginPath();ctx.roundRect(ox-52+104*fx2,o.y-130+130*fy,104*fw,130*fh,3);ctx.fill();});
-      ctx.fillStyle="rgba(255,90,0,0.55)";ctx.fillRect(ox-52,o.y-130,104,8);
-      ctx.shadowBlur=5;ctx.shadowColor="#000";ctx.fillStyle="#fff";ctx.font="bold 15px Nunito,sans-serif";ctx.textAlign="center";ctx.fillText("↑ JUMP",ox,o.y-130-9);
-    } else if(o.type==="spike"){
-      ctx.fillStyle="#350010";ctx.fillRect(ox-54,o.y-5,108,5);
-      for(let k=0;k<4;k++){const sx=ox-42+k*29;ctx.fillStyle=k%2?"#ff0022":"#ff3355";ctx.beginPath();ctx.moveTo(sx,o.y-5-100);ctx.lineTo(sx-13,o.y-5);ctx.lineTo(sx+13,o.y-5);ctx.closePath();ctx.fill();}
-      ctx.shadowBlur=5;ctx.shadowColor="#000";ctx.fillStyle="#fff";ctx.font="bold 15px Nunito,sans-serif";ctx.textAlign="center";ctx.fillText("↑ JUMP",ox,o.y-5-100-9);
+    if(o.type==='train'){
+      if(o.big){
+        // Big train spanning full track width
+        const pL=proj(0,o.depth,W,H);
+        const pR=proj(2,o.depth,W,H);
+        const tw=pR.x-pL.x+60*s;
+        const th=120*s;
+        const tx=pL.x-30*s;
+        // Train body
+        cx2.shadowColor='#ff6b35';cx2.shadowBlur=18*s;
+        cx2.fillStyle='#455a64';cx2.strokeStyle='#37474f';cx2.lineWidth=2*s;
+        cx2.beginPath();cx2.roundRect(tx,p.y-th,tw,th,8*s);cx2.fill();cx2.stroke();
+        // Top panel
+        cx2.fillStyle='#546e7a';cx2.beginPath();cx2.roundRect(tx+4*s,p.y-th,tw-8*s,th*0.35,6*s);cx2.fill();
+        // Windows
+        for(let w=0;w<4;w++){cx2.fillStyle='#ffd54f';cx2.beginPath();cx2.roundRect(tx+10*s+w*(tw-20*s)/4,p.y-th*0.78,tw*0.16,th*0.22,4*s);cx2.fill();}
+        // Fire exhaust
+        cx2.shadowColor='#ff3d00';cx2.shadowBlur=22*s;cx2.fillStyle='rgba(255,100,0,0.75)';
+        for(let fi=0;fi<6;fi++){cx2.beginPath();cx2.arc(tx+20*s+fi*(tw-40*s)/5,p.y-th-8*s-Math.sin(gf*0.15+fi)*6*s,5*s+Math.sin(gf*0.1+fi)*3*s,0,Math.PI*2);cx2.fill();}
+        // Wheels
+        cx2.fillStyle='#212121';cx2.strokeStyle='#424242';cx2.lineWidth=2*s;
+        [tx+18*s,tx+tw/2-12*s,tx+tw-30*s].forEach(wx=>{cx2.beginPath();cx2.arc(wx,p.y-2*s,12*s,0,Math.PI*2);cx2.fill();cx2.stroke();cx2.strokeStyle='#616161';cx2.lineWidth=1.5*s;cx2.beginPath();cx2.moveTo(wx-8*s,p.y-2*s);cx2.lineTo(wx+8*s,p.y-2*s);cx2.stroke();cx2.beginPath();cx2.moveTo(wx,p.y-10*s);cx2.lineTo(wx,p.y+6*s);cx2.stroke();});
+      } else {
+        // Single-lane train car
+        const tw=70*s,th=100*s;
+        cx2.shadowColor='#ff6b35';cx2.shadowBlur=14*s;
+        cx2.fillStyle='#546e7a';cx2.strokeStyle='#37474f';cx2.lineWidth=2*s;
+        cx2.beginPath();cx2.roundRect(p.x-tw/2,p.y-th,tw,th,7*s);cx2.fill();cx2.stroke();
+        cx2.fillStyle='#607d8b';cx2.beginPath();cx2.roundRect(p.x-tw/2+2*s,p.y-th,tw-4*s,th*0.3,5*s);cx2.fill();
+        for(let w=0;w<2;w++){cx2.fillStyle='#ffd54f';cx2.beginPath();cx2.roundRect(p.x-tw/2+8*s+w*(tw-16*s)/2,p.y-th*0.78,tw*0.3,th*0.22,4*s);cx2.fill();}
+        cx2.shadowColor='#ff3d00';cx2.shadowBlur=16*s;
+        for(let fi=0;fi<3;fi++){cx2.fillStyle='rgba(255,120,0,0.7)';cx2.beginPath();cx2.arc(p.x-15*s+fi*15*s,p.y-th-6*s-Math.sin(gf*0.14+fi)*4*s,4*s+Math.sin(gf*0.12+fi)*2*s,0,Math.PI*2);cx2.fill();}
+        cx2.fillStyle='#212121';cx2.strokeStyle='#424242';cx2.lineWidth=1.5*s;
+        [-20*s,20*s].forEach(wx=>{cx2.beginPath();cx2.arc(p.x+wx,p.y-2*s,9*s,0,Math.PI*2);cx2.fill();cx2.stroke();});
+      }
+    } else if(o.type==='barrier'){
+      // Barrier / roadblock
+      const bw=58*s,bh=50*s;
+      cx2.shadowColor='#ffd700';cx2.shadowBlur=14*s;
+      // Post
+      cx2.fillStyle='#f57f17';cx2.strokeStyle='#e65100';cx2.lineWidth=2*s;
+      cx2.beginPath();cx2.roundRect(p.x-5*s,p.y-bh*1.4,10*s,bh*1.4,3*s);cx2.fill();cx2.stroke();
+      // Barrier arm
+      cx2.fillStyle='#f44336';cx2.beginPath();cx2.roundRect(p.x-bw/2,p.y-bh-5*s,bw,14*s,4*s);cx2.fill();cx2.stroke();
+      // Stripes
+      cx2.fillStyle='#fff';cx2.globalAlpha=0.5;
+      for(let st=0;st<4;st++){const sx2=p.x-bw/2+st*(bw/4);cx2.beginPath();cx2.roundRect(sx2,p.y-bh-5*s,bw/8,14*s,2*s);cx2.fill();}
+      cx2.globalAlpha=1;
+      // Warning sign
+      cx2.fillStyle='#ffd700';cx2.font=`bold ${20*s}px Nunito`;cx2.textAlign='center';
+      cx2.fillText('⚠️',p.x,p.y-bh-18*s);
     } else {
-      [ox-54,ox+50].forEach(px2=>{ctx.fillStyle="#774400";ctx.fillRect(px2,o.y-74,5,74);});
-      const bg2=ctx.createLinearGradient(ox-54,0,ox+54,0);bg2.addColorStop(0,"#bb6600");bg2.addColorStop(0.5,"#ffaa00");bg2.addColorStop(1,"#bb6600");
-      ctx.fillStyle=bg2;ctx.beginPath();ctx.roundRect(ox-54,o.y-40,108,20,4);ctx.fill();
-      ctx.shadowBlur=5;ctx.shadowColor="#000";ctx.fillStyle="#fff";ctx.font="bold 15px Nunito,sans-serif";ctx.textAlign="center";ctx.fillText("↓ SLIDE",ox,o.y-47);
+      // Fire hazard
+      cx2.shadowColor='#f44336';cx2.shadowBlur=20*s;
+      // Base
+      cx2.fillStyle='#bf360c';cx2.strokeStyle='#e64a19';cx2.lineWidth=2*s;
+      cx2.beginPath();cx2.roundRect(p.x-22*s,p.y-16*s,44*s,16*s,4*s);cx2.fill();cx2.stroke();
+      // Flame particles
+      const flames=[[0,-30],[−12,−24],[12,−24],[−6,−42],[6,−42]];
+      [[-6,0],[6,0],[0,-14],[-10,-10],[10,-10]].forEach(([fx,fy],fi)=>{
+        const pulse=Math.sin(gf*0.15+fi*1.2);
+        const r=(10+pulse*3)*s;
+        cx2.fillStyle=['#ff6b35','#ffd700','#ff3d00','#ff9800','#ffcc02'][fi];
+        cx2.globalAlpha=0.8+pulse*0.15;
+        cx2.beginPath();cx2.arc(p.x+fx*s,p.y+fy*s-8*s,r,0,Math.PI*2);cx2.fill();
+      });
+      cx2.globalAlpha=1;
+      // Inner bright flame
+      cx2.shadowColor='#fff';cx2.shadowBlur=12*s;cx2.fillStyle='#fffde7';
+      cx2.beginPath();cx2.arc(p.x,p.y-22*s,6*s,0,Math.PI*2);cx2.fill();
     }
-    ctx.shadowBlur=0;ctx.restore();
+    cx2.restore();
   });
-
-  // ── COINS ──
-  g.coins_.forEach(c=>{
-    const cx=LX(c.l),spin=Math.abs(Math.cos(g.frame*0.1+c.l));
-    ctx.save();ctx.shadowBlur=12;ctx.shadowColor="#ffd700";
-    const cg2=ctx.createRadialGradient(cx,c.y,0,cx,c.y,18*spin+2);
-    cg2.addColorStop(0,"#fff8a0");cg2.addColorStop(0.4,"#ffd700");cg2.addColorStop(1,"#886600");
-    ctx.fillStyle=cg2;ctx.beginPath();ctx.ellipse(cx,c.y,18*Math.max(0.07,spin),18,0,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;ctx.restore();
-  });
-
-  // ── REYSHI NPC ──
-  if(!g.reyKilled){
-    const anger=Math.min(1,g.reyClose*1.1),bob=Math.sin(g.reyAnim*0.72)*4;
-    const col=`hsl(345,${60+anger*40}%,${26+anger*18}%)`;
-    ctx.save();ctx.shadowBlur=14+anger*24;ctx.shadowColor="#ff2244";
-    // Legs
-    ctx.fillStyle=col;ctx.save();ctx.translate(g.reyX-10,g.reyY);ctx.rotate(Math.sin(g.reyAnim)*14*Math.PI/180);ctx.beginPath();ctx.roundRect(-4,0,8,20,2);ctx.fill();ctx.restore();
-    ctx.save();ctx.translate(g.reyX+10,g.reyY);ctx.rotate(-Math.sin(g.reyAnim)*14*Math.PI/180);ctx.beginPath();ctx.roundRect(-4,0,8,20,2);ctx.fill();ctx.restore();
-    // Body + arms
-    ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(g.reyX-13,g.reyY-42,26,34,5);ctx.fill();
-    ctx.strokeStyle=col;ctx.lineWidth=9;ctx.lineCap="round";
-    ctx.beginPath();ctx.moveTo(g.reyX-13,g.reyY-30);ctx.lineTo(g.reyX-27,g.reyY-14+Math.sin(g.reyAnim)*13);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(g.reyX+13,g.reyY-30);ctx.lineTo(g.reyX+27,g.reyY-14-Math.sin(g.reyAnim)*13);ctx.stroke();
-    // Head + horns
-    ctx.fillStyle=col;ctx.beginPath();ctx.arc(g.reyX,g.reyY-54+bob,14,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#550011";
-    ctx.beginPath();ctx.moveTo(g.reyX-8,g.reyY-63+bob);ctx.lineTo(g.reyX-4,g.reyY-80+bob);ctx.lineTo(g.reyX-0.5,g.reyY-63+bob);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(g.reyX+0.5,g.reyY-63+bob);ctx.lineTo(g.reyX+4,g.reyY-80+bob);ctx.lineTo(g.reyX+8,g.reyY-63+bob);ctx.closePath();ctx.fill();
-    // Eyes
-    ctx.shadowBlur=10+anger*14;ctx.shadowColor="#ff0000";ctx.fillStyle=`rgb(255,${Math.floor(155-anger*155)},0)`;
-    ctx.beginPath();ctx.arc(g.reyX-4.5,g.reyY-55+bob,3.2,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(g.reyX+4.5,g.reyY-55+bob,3.2,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;
-    if(g.reyClose>0.07){ctx.globalAlpha=Math.min(1,g.reyClose*2);ctx.fillStyle="#ff2244";ctx.font=`bold ${Math.round(9+g.reyClose*5)}px Nunito,sans-serif`;ctx.textAlign="center";ctx.fillText("REYSHI",g.reyX,g.reyY-88+bob);}
-    ctx.globalAlpha=1;ctx.restore();
-  }
 
   // ── PLAYER ──
-  const fy=g.pY+g.jumpY, alpha=g.invincT>0?(0.4+Math.sin(g.frame*0.42)*0.4):1;
-  ctx.save();ctx.globalAlpha=alpha;
-  ctx.globalAlpha=alpha*0.3;ctx.fillStyle="rgba(0,0,0,0.8)";ctx.beginPath();ctx.ellipse(g.pX,g.pY+5,32,8,0,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=alpha;ctx.shadowBlur=18;ctx.shadowColor=h.glow;
-  const legA=Math.sin(g.frame*0.26)*14;
-  if(g.sliding){
-    ctx.fillStyle=h.col;ctx.beginPath();ctx.roundRect(g.pX-46,fy-18,92,20,8);ctx.fill();
-    ctx.beginPath();ctx.arc(g.pX+46-11,fy-12,12,0,Math.PI*2);ctx.fill();
-  } else {
-    ctx.fillStyle=h.dark;
-    ctx.save();ctx.translate(g.pX-9,fy);ctx.rotate(legA*Math.PI/180);ctx.beginPath();ctx.roundRect(-4,-27,8,27,3);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.roundRect(-5.5,-2,12,8,2.5);ctx.fill();ctx.restore();
-    ctx.save();ctx.translate(g.pX+9,fy);ctx.rotate(-legA*Math.PI/180);ctx.fillStyle=h.dark;ctx.beginPath();ctx.roundRect(-4,-27,8,27,3);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.roundRect(-5.5,-2,12,8,2.5);ctx.fill();ctx.restore();
-    ctx.fillStyle=h.col;ctx.beginPath();ctx.roundRect(g.pX-14,fy-66,28,42,5);ctx.fill();
-    ctx.fillStyle=h.dark;ctx.beginPath();ctx.roundRect(g.pX-10,fy-62,20,32,4);ctx.fill();
-    ctx.fillStyle=h.col2||h.col;ctx.globalAlpha=alpha*0.4;ctx.beginPath();ctx.roundRect(g.pX-10,fy-62,20,8,[4,4,0,0]);ctx.fill();ctx.globalAlpha=alpha;
-    const armA=Math.cos(g.frame*0.26)*13;
-    ctx.strokeStyle=h.col;ctx.lineWidth=9;ctx.lineCap="round";
-    ctx.save();ctx.translate(g.pX-14,fy-52);ctx.rotate(armA*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-9,22);ctx.stroke();ctx.restore();
-    ctx.save();ctx.translate(g.pX+14,fy-52);ctx.rotate(-armA*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(9,22);ctx.stroke();ctx.restore();
-    ctx.shadowBlur=18;ctx.shadowColor=h.glow;ctx.fillStyle=h.col;ctx.beginPath();ctx.arc(g.pX,fy-82,15,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="rgba(255,255,255,0.85)";ctx.beginPath();ctx.arc(g.pX-5,fy-84,3.2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(g.pX+5,fy-84,3.2,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=h.dark||"#111";ctx.beginPath();ctx.arc(g.pX-4,fy-83.5,2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(g.pX+5,fy-83.5,2,0,Math.PI*2);ctx.fill();
-    if(h.id==="ron"||h.id==="ron_dragon"){ctx.fillStyle="#ffcc00";ctx.shadowBlur=8;ctx.shadowColor="#ffcc00";ctx.beginPath();ctx.moveTo(g.pX-7,fy-95);ctx.lineTo(g.pX,fy-112);ctx.lineTo(g.pX+7,fy-95);ctx.closePath();ctx.fill();}
-    if(h.isReyshi){ctx.fillStyle="#770011";ctx.beginPath();ctx.moveTo(g.pX-8,fy-94);ctx.lineTo(g.pX-4,fy-110);ctx.lineTo(g.pX-1,fy-94);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(g.pX+1,fy-94);ctx.lineTo(g.pX+4,fy-110);ctx.lineTo(g.pX+8,fy-94);ctx.closePath();ctx.fill();}
+  const fly2=SC&&(SC.evo||hg('jp')||hg('ag'));
+  const playerP=proj(1,1,W,H); // player always at depth=1, centre-ish
+  const playerX=W/2+(LANE_COLS[Math.round(clF)]*(W*TRACK_W_FRAC/1.3)*0.9)+(clF-Math.round(clF))*(W*TRACK_W_FRAC/1.3)*0.9*2;
+
+  // Adjust Y for jump
+  const groundY=fly2?H*0.62:H-80;
+  const playerY=groundY+pY;
+
+  // Shadow on ground
+  if(!fly2&&pY<-5){
+    cx2.globalAlpha=Math.max(0.1,0.4+pY/80);
+    cx2.fillStyle='rgba(0,0,0,0.35)';
+    cx2.beginPath();cx2.ellipse(playerX,groundY+8,26,8,0,0,Math.PI*2);cx2.fill();
+    cx2.globalAlpha=1;
   }
-  if(g.atkActive>0){const p=g.atkActive/55,t2=55-g.atkActive;ctx.shadowBlur=22;ctx.shadowColor=h.glow;ctx.fillStyle=h.glow;ctx.beginPath();ctx.arc(g.pX,fy-86-t2*1.8,16*p,0,Math.PI*2);ctx.fill();}
-  ctx.shadowBlur=0;ctx.restore();
 
-  // ── PARTICLES ──
-  g.particles.forEach(p=>{ctx.globalAlpha=(p.life/p.max)*0.75;ctx.fillStyle=p.col;ctx.shadowBlur=4;ctx.shadowColor=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r*(p.life/p.max),0,Math.PI*2);ctx.fill();});
-  ctx.globalAlpha=1;ctx.shadowBlur=0;
-};
-
-// Input
-const onKey = e => {
-  if(!g.running){ g.running=true; setGameReady(true); return; }
-  if(["ArrowLeft","a"].includes(e.key)) g.lane=Math.max(0,g.lane-1);
-  if(["ArrowRight","d"].includes(e.key)) g.lane=Math.min(2,g.lane+1);
-  if(["ArrowUp","w"," "].includes(e.key)&&!g.jumping&&g.jumpY>=0){
-    e.preventDefault();
-    g.velY=-28*(h.jMul||1)*(gearFx.jumpMul||1); g.jumping=true;
-    particle(g.pX,g.pY,h.glow,7);
+  // Trail (power aura)
+  for(let i=4;i>0;i--){
+    const trailX=playerX-(i*3)*((clF-cl)*2||1);
+    const trailY=playerY;
+    const cc2=CC[SC?SC.id:'ron']||CC.ron;
+    cx2.globalAlpha=(1-i/5)*0.35;
+    cx2.fillStyle=cc2.glow;
+    cx2.beginPath();cx2.ellipse(trailX,trailY,12-i,16-i,0,0,Math.PI*2);cx2.fill();
   }
-  if(["ArrowDown","s"].includes(e.key)&&!g.jumping){g.sliding=true;g.slideT=40;}
-  if(["f","F"].includes(e.key)){g.atkActive=55;g.reyClose=Math.max(0,g.reyClose-0.32*(gearFx.atkMul||1));}
-};
-window.addEventListener("keydown",onKey);
-loop();
-return () => { g.done=true; if(rafRef.current)cancelAnimationFrame(rafRef.current); window.removeEventListener("keydown",onKey); };
-```
+  cx2.globalAlpha=1;
 
-}, [screen]);
+  // Determine draw scale and animation frame
+  const charScale=1.0;
+  const drawFr=pState==='slide'?0:pFr; // freeze on slide
+  const scaleX=pState==='slide'?1:1;
+  const scaleY=pState==='slide'?0.6:1;
 
-// ════════════════════════════════════════════════════════
-// FIGHT ENGINE
-// ════════════════════════════════════════════════════════
-useEffect(() => {
-if(screen!==S.FIGHT)return;
-const cv=fightRef.current; if(!cv)return;
-const ctx=cv.getContext(“2d”);
-cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
-const W=cv.width, H=cv.height;
-const h=heroObj, fx=gearFx;
-
-```
-const f={
-  pHP:100+(fx.extraLives||0)*25, rHP:100,
-  pX:W*0.5, pY:H*0.72, pVX:0, pVY:0, pGround:true, pInvT:0,
-  rX:W*0.5, rY:H*0.26, rActX:W*0.5, rActY:H*0.26,
-  projs:[], parts:[],
-  abilCDs:[0,0,0,0],
-  rATKt:0, rRage:false, rPatIdx:0, rWarn:"", rWarnT:0,
-  hFlash:0, fDir:0, fJump:false, frame:0, done:false,
-};
-fRef.current=f;
-setFPHP(f.pHP); setFRHP(100); setFResult(null); setAbilCDs([0,0,0,0]);
-
-const PATS=[
-  {name:"Claw Flurry",intv:60,cnt:3,spd:9, dmg:8, spr:0.4,col:"#ff2244"},
-  {name:"Void Beam",  intv:90,cnt:1,spd:14,dmg:22,spr:0,  col:"#cc00ff",big:true},
-  {name:"Hell Rain",  intv:120,cnt:6,spd:8, dmg:5, spr:0.85,col:"#ff6600"},
-  {name:"DOOM STRIKE",intv:220,cnt:1,spd:12,dmg:35,spr:0,  col:"#ff0000",big:true,mega:true},
-  {name:"Shadow Dash",intv:68, cnt:2,spd:15,dmg:14,spr:0.2,col:"#aa00ff"},
-];
-const boom=(x,y,col)=>{for(let k=0;k<12;k++){const a=Math.random()*Math.PI*2,sp=3+Math.random()*5;f.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,r:4+Math.random()*5,col,life:32,max:32});}};
-
-const loop=()=>{
-  if(f.done)return;
-  fRafRef.current=requestAnimationFrame(loop);
-  ctx.clearRect(0,0,W,H);
-  f.frame++;
-  const sm=fx.speedMul||1;
-
-  // Reyshi movement
-  if(f.frame%70<25) f.rActX+=(W*0.22-f.rActX)*0.07*(f.rRage?2.2:1);
-  else if(f.frame%70<50) f.rActX+=(W*0.78-f.rActX)*0.07*(f.rRage?2.2:1);
-  else f.rActX+=(W*0.5-f.rActX)*0.05;
-  f.rActY+=(H*0.26-f.rActY)*0.04;
-
-  // Player
-  if(f.fDir!==0) f.pVX=f.fDir*4.5*sm; else f.pVX*=0.68;
-  f.pX=Math.max(35,Math.min(W-35,f.pX+f.pVX));
-  if(f.fJump&&f.pGround){f.pVY=-15*(fx.jumpMul||1)*(h.jMul||1);f.pGround=false;f.fJump=false;}
-  f.pVY+=0.52; f.pY+=f.pVY;
-  if(f.pY>=H*0.74){f.pY=H*0.74;f.pVY=0;f.pGround=true;}
-  if(f.pInvT>0) f.pInvT--;
-
-  // Enrage
-  if(f.rHP<30&&!f.rRage){f.rRage=true;f.rWarn="😈 REYSHI IS ENRAGED!";f.rWarnT=100;}
-
-  // Cooldowns
-  f.abilCDs=f.abilCDs.map(cd=>Math.max(0,cd-1));
-  setAbilCDs([...f.abilCDs]);
-
-  // Attack patterns
-  f.rATKt++;
-  const pat=PATS[f.rPatIdx], iv=f.rRage?Math.floor(pat.intv*0.4):pat.intv;
-  if(f.rATKt===iv-20){f.rWarn=pat.mega?`⚠️ ${pat.name}!`:`${pat.name}!`;f.rWarnT=20;}
-  if(f.rATKt>=iv){
-    f.rATKt=0;f.rPatIdx=(f.rPatIdx+1)%PATS.length;
-    const anger=Math.min(1,(100-f.rHP)/100);
-    for(let k=0;k<pat.cnt;k++){
-      setTimeout(()=>{
-        if(f.done)return;
-        const dx=f.pX-f.rActX,dy=f.pY-f.rActY,dist=Math.hypot(dx,dy)||1;
-        const spd=pat.spd*(1+anger*0.4),sp=pat.spr>0?(Math.random()-0.5)*pat.spr*8:0;
-        f.projs.push({x:f.rActX,y:f.rActY,vx:dx/dist*spd+sp,vy:dy/dist*spd,r:pat.big?14:9,col:pat.col,team:"reyshi",dmg:pat.dmg*(1+anger*0.25),life:110,hit:false});
-      },k*120);
-    }
+  cx2.save();
+  if(pState==='slide'){
+    cx2.translate(playerX,playerY);cx2.scale(1,0.58);cx2.translate(-playerX,-playerY);
   }
-  if(f.rWarnT>0) f.rWarnT--;
+  // Parkour vault — lean forward
+  if(pState==='parkour'||pParkour>0){
+    const lean=Math.sin((20-pParkour)/20*Math.PI)*0.35;
+    cx2.translate(playerX,playerY);cx2.rotate(lean);cx2.translate(-playerX,-playerY);
+  }
+  drawChar(cx2,playerX,playerY,charScale,SC?SC.id:'ron',drawFr,1,SC&&SC.evo);
+  cx2.restore();
 
-  // Projectile hits
-  f.projs.forEach(p=>{
-    p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.life--;
-    if(!p.hit){
-      if(p.team==="reyshi"&&Math.hypot(p.x-f.pX,p.y-f.pY)<26){
-        p.hit=true;
-        if(f.pInvT<=0&&!fx.godmode){f.pHP=Math.max(0,f.pHP-p.dmg);setFPHP(Math.floor(f.pHP));boom(f.pX,f.pY,"#4488ff");if(fx.invincOnHit)f.pInvT=115;else f.pInvT=28;f.hFlash=-14;if(f.pHP<=0){f.done=true;setFResult("lose");}}
-      }
-      if(p.team==="player"&&Math.hypot(p.x-f.rActX,p.y-f.rActY)<48){
-        p.hit=true;const am=fx.atkMul||1;f.rHP=Math.max(0,f.rHP-p.dmg*am);setFRHP(Math.floor(f.rHP));boom(f.rActX,f.rActY,p.col);f.hFlash=14;if(f.rHP<=0){f.done=true;setFResult("win");setWallet(w=>w+(infCoins?0:250));}
-      }
-    }
-  });
-  f.projs=f.projs.filter(p=>p.life>0&&!p.hit);
-  if(f.hFlash>0)f.hFlash--;else if(f.hFlash<0)f.hFlash++;
-  f.parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.life--;});
-  f.parts=f.parts.filter(p=>p.life>0);
-
-  // ── DRAW ARENA ──
-  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,h.dark||"#08001a");bg.addColorStop(0.5,"#080018");bg.addColorStop(1,"#000");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  for(let s=0;s<50;s++){ctx.globalAlpha=0.1+Math.sin(f.frame*0.022+s)*0.1;ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(s*137%W,s*89%(H*0.45),0.7,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
-
-  // Arena circle
-  ctx.save();ctx.strokeStyle=h.glow+"55";ctx.lineWidth=2.5;ctx.shadowBlur=16;ctx.shadowColor=h.glow;
-  ctx.beginPath();ctx.ellipse(W*0.5,H*0.5,Math.min(W*0.46,260),Math.min(H*0.44,220),0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
-  ctx.fillStyle="rgba(0,0,0,0.2)";ctx.beginPath();ctx.ellipse(W*0.5,H*0.5,Math.min(W*0.46,260),Math.min(H*0.44,220),0,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="rgba(255,255,255,0.03)";ctx.lineWidth=1;
-  for(let r=1;r<=5;r++){ctx.beginPath();ctx.ellipse(W*0.5,H*0.5,Math.min(W*0.46,260)*r/5,Math.min(H*0.44,220)*r/5,0,0,Math.PI*2);ctx.stroke();}
-  ctx.restore();
-
-  // Floor
-  const fg=ctx.createLinearGradient(0,H*0.72,0,H);fg.addColorStop(0,"#06001a");fg.addColorStop(1,"#000");ctx.fillStyle=fg;ctx.fillRect(0,H*0.72,W,H*0.28);
-
-  if(f.hFlash!==0){ctx.fillStyle=f.hFlash>0?`rgba(255,44,80,${Math.abs(f.hFlash)/14*0.18})`:`rgba(80,130,255,${Math.abs(f.hFlash)/14*0.18})`;ctx.fillRect(0,0,W,H);}
-
-  // Draw projectiles
-  f.projs.forEach(p=>{if(p.hit)return;ctx.save();ctx.shadowBlur=13;ctx.shadowColor=p.col;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=0.32;ctx.beginPath();ctx.arc(p.x-p.vx*1.8,p.y-p.vy*1.8,p.r*0.6,0,Math.PI*2);ctx.fill();ctx.restore();});
-  f.parts.forEach(p=>{ctx.globalAlpha=(p.life/p.max)*0.75;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.r*(p.life/p.max),0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;
-
-  // Draw Player in fight
-  ctx.save();ctx.shadowBlur=20;ctx.shadowColor=h.glow;
-  ctx.globalAlpha=0.25;ctx.fillStyle="#000";ctx.beginPath();ctx.ellipse(f.pX,H*0.74+5,30,8,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-  const pAl=f.pInvT>0?(0.4+Math.sin(f.frame*0.5)*0.38):1; ctx.globalAlpha=pAl;
-  const blegA=Math.sin(f.frame*0.12)*(f.pGround?12:0);
-  ctx.fillStyle=h.dark;
-  ctx.save();ctx.translate(f.pX-9,f.pY);ctx.rotate(blegA*Math.PI/180);ctx.beginPath();ctx.roundRect(-4,-27,8,27,3);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.roundRect(-5.5,-2,12,8,2.5);ctx.fill();ctx.restore();
-  ctx.save();ctx.translate(f.pX+9,f.pY);ctx.rotate(-blegA*Math.PI/180);ctx.fillStyle=h.dark;ctx.beginPath();ctx.roundRect(-4,-27,8,27,3);ctx.fill();ctx.fillStyle="#111";ctx.beginPath();ctx.roundRect(-5.5,-2,12,8,2.5);ctx.fill();ctx.restore();
-  ctx.fillStyle=h.col;ctx.beginPath();ctx.roundRect(f.pX-14,f.pY-68,28,42,5);ctx.fill();
-  ctx.strokeStyle=h.col;ctx.lineWidth=9;ctx.lineCap="round";
-  const barmA=Math.cos(f.frame*0.12)*13;
-  ctx.save();ctx.translate(f.pX-14,f.pY-54);ctx.rotate(barmA*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-9,22);ctx.stroke();ctx.restore();
-  ctx.save();ctx.translate(f.pX+14,f.pY-54);ctx.rotate(-barmA*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(9,22);ctx.stroke();ctx.restore();
-  ctx.fillStyle=h.col;ctx.beginPath();ctx.arc(f.pX,f.pY-84,15,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=h.glow;ctx.font="900 12px Nunito,sans-serif";ctx.textAlign="center";ctx.fillText(h.name,f.pX,f.pY-105);
-  ctx.globalAlpha=1;ctx.restore();
-
-  // Draw Reyshi boss
-  const rx=f.rActX,ry=f.rActY,sc=2.6,anger=Math.min(1,(100-f.rHP)/100);
-  const rcol=`hsl(345,${66+anger*32}%,${34+anger*13}%)`;
-  ctx.save();ctx.shadowBlur=18+anger*24;ctx.shadowColor="#ff2244";
-  ctx.globalAlpha=0.25;ctx.fillStyle="#000";ctx.beginPath();ctx.ellipse(rx,ry+10,40,11,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-  const rarm=Math.cos(f.frame*0.09)*16,rleg=Math.sin(f.frame*0.09)*13;
-  [{dx:-10,s:1},{dx:10,s:-1}].forEach(({dx,s})=>{ctx.save();ctx.translate(rx+dx*sc*0.5,ry);ctx.rotate(rleg*s*Math.PI/180);ctx.fillStyle="#3a000e";ctx.beginPath();ctx.roundRect(-4.5,-sc*22,9,sc*22,3);ctx.fill();ctx.restore();});
-  ctx.fillStyle=rcol;ctx.beginPath();ctx.roundRect(rx-sc*13,ry-sc*58,sc*26,sc*38,6);ctx.fill();
-  ctx.strokeStyle=rcol;ctx.lineWidth=sc*3.2;ctx.lineCap="round";
-  ctx.save();ctx.translate(rx-sc*13,ry-sc*44);ctx.rotate((rarm-13)*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-sc*11,sc*21);ctx.stroke();ctx.restore();
-  ctx.save();ctx.translate(rx+sc*13,ry-sc*44);ctx.rotate((-rarm+13)*Math.PI/180);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(sc*11,sc*21);ctx.stroke();ctx.restore();
-  ctx.fillStyle=rcol;ctx.beginPath();ctx.arc(rx,ry-sc*70,sc*14.5,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#550011";ctx.beginPath();ctx.moveTo(rx-sc*8,ry-sc*80);ctx.lineTo(rx-sc*4,ry-sc*96);ctx.lineTo(rx-sc*0.5,ry-sc*80);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(rx+sc*0.5,ry-sc*80);ctx.lineTo(rx+sc*4,ry-sc*96);ctx.lineTo(rx+sc*8,ry-sc*80);ctx.closePath();ctx.fill();
-  ctx.shadowBlur=10+anger*16;ctx.shadowColor="#ff0000";ctx.fillStyle=`rgb(255,${Math.floor(172-anger*172)},0)`;
-  ctx.beginPath();ctx.arc(rx-sc*4.5,ry-sc*72,sc*3.8,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(rx+sc*4.5,ry-sc*72,sc*3.8,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;ctx.fillStyle="#ff4466";ctx.font="900 13px Nunito,sans-serif";ctx.textAlign="center";ctx.fillText("REYSHI 😈",rx,ry-sc*112);ctx.restore();
-
-  // Warning text
-  if(f.rWarnT>0&&f.rWarn){const al=Math.min(1,f.rWarnT/16),mega=f.rWarn.includes("⚠️");ctx.save();ctx.globalAlpha=al;ctx.font=`900 ${mega?32:24}px Fredoka One,cursive`;ctx.textAlign="center";ctx.fillStyle="rgba(0,0,0,0.45)";ctx.fillText(f.rWarn,W*0.5+2,H*0.16+2);ctx.fillStyle=mega?"#ff0000":"#ff4466";if(mega){ctx.shadowBlur=25;ctx.shadowColor="#ff0000";}ctx.fillText(f.rWarn,W*0.5,H*0.16);ctx.shadowBlur=0;ctx.restore();}
-};
-
-const onK=e=>{if(["ArrowLeft","a"].includes(e.key))f.fDir=-1;if(["ArrowRight","d"].includes(e.key))f.fDir=1;if(["ArrowUp","w"," "].includes(e.key)&&f.pGround){f.fJump=true;e.preventDefault();}};
-const onKU=e=>{if(["ArrowLeft","a","ArrowRight","d"].includes(e.key))f.fDir=0;};
-window.addEventListener("keydown",onK); window.addEventListener("keyup",onKU);
-loop();
-return ()=>{f.done=true;if(fRafRef.current)cancelAnimationFrame(fRafRef.current);window.removeEventListener("keydown",onK);window.removeEventListener("keyup",onKU);};
-```
-
-},[screen]);
-
-const useAbility = (i) => {
-const f=fRef.current; if(!f||f.abilCDs[i]>0)return;
-const CDS=[55,100,80,180],DMG=[12,20,25,45],CNTS=[1,5,1,3];
-f.abilCDs[i]=CDS[i]; setAbilCDs([…f.abilCDs]);
-const cnt=CNTS[i];
-for(let k=0;k<cnt;k++){
-const sp=(k-(cnt-1)/2)*0.8,dx=f.rActX-f.pX,dy=f.rActY-f.pY,dist=Math.hypot(dx,dy)||1,spd=[10,7,13,11][i];
-f.projs.push({x:f.pX,y:f.pY-40,vx:dx/dist*spd+sp,vy:dy/dist*spd,r:[10,8,15,20][i],col:heroObj.glow,team:“player”,dmg:i===3?DMG[i]:DMG[i]/Math.max(1,cnt),life:75,hit:false});
-}
-};
-
-// ════════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════════
-const Logo = ({sz=48}) => (
-<div style={{textAlign:“center”,lineHeight:1,marginBottom:8}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:sz,lineHeight:1}}>
-<span style={{background:“linear-gradient(180deg,#ffee00,#ff5500,#cc0022,#880011,#330000)”,WebkitBackgroundClip:“text”,WebkitTextFillColor:“transparent”,backgroundClip:“text”,filter:“drop-shadow(0 0 16px #ff2244)”}}>R</span>
-<span style={{background:“linear-gradient(180deg,#fff,#dd88ff,#8833ff,#440088)”,WebkitBackgroundClip:“text”,WebkitTextFillColor:“transparent”,backgroundClip:“text”}}>EYSHI</span>
-</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:sz*0.36,letterSpacing:7,background:“linear-gradient(90deg,#ff8899,#ff2244,#ff8899)”,WebkitBackgroundClip:“text”,WebkitTextFillColor:“transparent”,backgroundClip:“text”,marginTop:-4}}>CHASE</div>
-</div>
-);
-
-const Btn = ({children,onClick,style={},disabled=false,…p}) => (
-<button onClick={disabled?undefined:onClick} disabled={disabled} {…p}
-style={{fontFamily:”‘Fredoka One’,cursive”,border:“none”,cursor:disabled?“not-allowed”:“pointer”,borderRadius:50,fontSize:18,padding:“13px 0”,color:”#fff”,transition:“transform .1s,filter .1s”,WebkitTapHighlightColor:“transparent”,opacity:disabled?0.35:1,…style}}
-onMouseEnter={e=>{if(!disabled)e.currentTarget.style.filter=“brightness(1.15)”;}}
-onMouseLeave={e=>e.currentTarget.style.filter=“none”}
-onMouseDown={e=>{if(!disabled)e.currentTarget.style.transform=“scale(0.92)”;}}
-onMouseUp={e=>e.currentTarget.style.transform=“none”}
-onTouchStart={e=>{if(!disabled)e.currentTarget.style.transform=“scale(0.92)”;}}
-onTouchEnd={e=>e.currentTarget.style.transform=“none”}
->{children}</button>
-);
-
-// ════════════════════════════════════════════════════════
-// SCREEN RENDERS
-// ════════════════════════════════════════════════════════
-
-// ── SPLASH ──
-if(screen===S.SPLASH) return (
-<div style={{width:“100%”,height:“100%”,background:”#000”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”}}>
-<div style={{position:“relative”,marginBottom:20}}>
-<div style={{width:180,height:180,borderRadius:“50%”,background:“radial-gradient(circle at 40% 40%,#1a0030,#060014,#000)”,border:“1.5px solid #33005566”,display:“flex”,alignItems:“center”,justifyContent:“center”,boxShadow:“0 0 60px #aa00ff33”,position:“relative”,overflow:“hidden”}}>
-{[…Array(20)].map((_,i)=><div key={i} style={{position:“absolute”,width:i%6===0?3:1.5,height:i%6===0?3:1.5,borderRadius:“50%”,background:i%4===0?”#ff6688”:i%3===0?”#aa66ff”:”#fff”,left:`${(i*137+10)%88}%`,top:`${(i*89+5)%88}%`,opacity:0.15+i%3*0.12}}/>)}
-<div style={{position:“relative”,zIndex:2}}>
-<span style={{fontFamily:”‘Fredoka One’,cursive,Arial Black”,fontSize:108,fontWeight:900,lineHeight:1,background:“linear-gradient(180deg,#ffee00,#ff5500,#cc0022,#880011,#330000)”,WebkitBackgroundClip:“text”,WebkitTextFillColor:“transparent”,backgroundClip:“text”,filter:“drop-shadow(0 0 20px #ff2244)”,display:“block”}}>R</span>
-<div style={{position:“absolute”,top:-6,left:10,borderLeft:“7px solid transparent”,borderRight:“7px solid transparent”,borderBottom:“22px solid #cc0022”,filter:“drop-shadow(0 0 6px #ff0000)”,transform:“rotate(-20deg)”}}/>
-<div style={{position:“absolute”,top:-4,left:36,borderLeft:“6px solid transparent”,borderRight:“6px solid transparent”,borderBottom:“18px solid #cc0022”,filter:“drop-shadow(0 0 6px #ff0000)”,transform:“rotate(14deg)”}}/>
-</div>
-</div>
-</div>
-<Logo sz={36}/>
-<div style={{width:220,height:5,background:“rgba(255,255,255,0.07)”,borderRadius:8,overflow:“hidden”,marginTop:20}}>
-<div style={{height:“100%”,width:`${splashPct}%`,background:“linear-gradient(90deg,#ff2244,#cc00ff)”,borderRadius:8,transition:“width 0.04s”}}/>
-</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:11,color:”#222”,marginTop:10,letterSpacing:5}}>LOADING…</div>
-</div>
-);
-
-// ── CUTSCENE ──
-if(screen===S.CUT){
-const cut=CUT_PHASES[cutIdx]||CUT_PHASES[0];
-return (
-<div style={{width:“100%”,height:“100%”,background:cut.bg,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,position:“relative”,transition:“background 0.6s”}}>
-<div style={{fontSize:88,marginBottom:20,filter:“drop-shadow(0 0 30px #ff2244)”}}>{cut.emoji}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(24px,5.5vw,46px)”,color:”#fff”,textAlign:“center”,textShadow:“0 4px 0 rgba(0,0,0,0.5),0 0 40px #aa00ff”,marginBottom:14,padding:“0 22px”,lineHeight:1.3}}>{cut.title}</div>
-<div style={{fontSize:“clamp(13px,2.8vw,18px)”,color:“rgba(255,255,255,0.72)”,fontWeight:800,textAlign:“center”,padding:“0 24px”,lineHeight:1.6,maxWidth:420}}>{cut.sub}</div>
-<div style={{display:“flex”,gap:9,marginTop:28}}>
-{CUT_PHASES.map((_,i)=><div key={i} style={{width:9,height:9,borderRadius:“50%”,background:i<=cutIdx?”#aa44ff”:“rgba(255,255,255,0.2)”,transition:“background 0.3s”,boxShadow:i===cutIdx?“0 0 8px #aa44ff”:””}}/>)}
-</div>
-<button onClick={()=>goHS()} style={{position:“absolute”,bottom:20,right:20,background:“rgba(255,255,255,0.06)”,border:“1.5px solid rgba(255,255,255,0.18)”,color:“rgba(255,255,255,0.5)”,borderRadius:20,padding:“6px 18px”,cursor:“pointer”,fontSize:12,fontWeight:800,fontFamily:“Nunito,sans-serif”}}>Skip ▶▶</button>
-</div>
-);
+  // Reyshi chasing — appears at top getting bigger over time
+  if(!fly2){
+    const reyScale=0.55+Math.sin(gf*0.02)*0.05;
+    const ry=H*0.07+Math.sin(gf*0.04)*8;
+    drawChar(cx2,W/2,ry,reyScale,'reyshi',gf,1,false);
+    cx2.fillStyle='#f44336';cx2.font=`bold ${W*0.024}px Nunito`;cx2.textAlign='center';
+    cx2.shadowColor='#f44336';cx2.shadowBlur=8;
+    cx2.fillText('REYSHI IS COMING!',W/2,ry+32);
+    cx2.shadowBlur=0;
+  }
 }
 
-// ── ACCOUNT ──
-if(screen===S.ACCT) return (
-<div style={{width:“100%”,height:“100%”,background:“radial-gradient(ellipse at 50% 35%,#110022,#000)”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”}}>
-<Logo sz={54}/>
-<div style={{color:”#778”,fontSize:13,fontWeight:800,marginBottom:22}}>The ultimate chase game</div>
-<div style={{background:“rgba(255,255,255,0.04)”,border:“2px solid rgba(255,255,255,0.08)”,borderRadius:22,padding:“24px 20px”,width:“min(340px,88vw)”}}>
-<Btn children=“▶  Start Playing!” onClick={()=>startCut()} style={{width:“100%”,background:“linear-gradient(150deg,#7700ff,#cc00ff)”,boxShadow:“0 6px 0 #3a0077”,marginBottom:10,fontSize:20}}/>
-<Btn children=“Continue as Guest” onClick={()=>startCut()} style={{width:“100%”,background:“rgba(255,255,255,0.06)”,border:“2px solid #333”,color:”#bbb”,fontSize:16}}/>
-</div>
-<div style={{marginTop:14,color:”#334”,fontSize:12,fontWeight:800}}>Progress saves in your browser</div>
-</div>
-);
+function hudU(){if(!U)return;document.getElementById('hc').textContent=U.coins;document.getElementById('hs').textContent=score;document.getElementById('hl').textContent=Array(3).fill(0).map((_,i)=>i<lives?'❤️':'🖤').join('');}
+function togglePause(){gPause=!gPause;document.getElementById('po').classList.toggle('on',gPause);}
+function endGame(){gRun=false;cancelAnimationFrame(aid);document.getElementById('po').classList.remove('on');window.onkeydown=null;window.onkeyup=null;if(score>U.hs){U.hs=score;su(U);}document.getElementById('gos').textContent=score;document.getElementById('goe').textContent=coinC;document.getElementById('got').textContent=lives<=0?'GAME OVER':'QUIT';document.getElementById('got').style.color=lives<=0?'#f44336':'#fff';show('go-scr');}
 
-// ── HERO SELECT ──
-if(screen===S.HERO) return (
-<div style={{width:“100%”,height:“100%”,background:“linear-gradient(160deg,#080014,#110022,#04000d)”,display:“flex”,flexDirection:“column”,overflow:“hidden”}}>
-<div style={{padding:“12px 14px 0”,textAlign:“center”,flexShrink:0}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(20px,5vw,34px)”,color:”#fff”,textShadow:“0 3px 0 #330055”}}>Choose Your Hero</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:18,color:”#ffd700”,margin:“4px 0 8px”}}>🪙 {wDisp} coins{isAdmin?” 👑”:””}</div>
-<div style={{display:“flex”,gap:7,justifyContent:“center”,flexWrap:“wrap”,marginBottom:10}}>
-{[[“🔐 Code”,”#00ddbb”,”#00ddbb22”,()=>setShowCode(true)],[“🛍️ Shop”,”#ffd700”,”#ffd70022”,()=>setScreen(S.SHOP)],[“⚔️ Gear”,”#ff88cc”,”#ff88cc22”,()=>setScreen(S.GEAR)],…(isAdmin?[[“👑 Admin”,”#ff4466”,”#ff446622”,()=>setShowAdmin(true)]]:[])].map(([lbl,c,bg,fn],i)=>(
-<button key={i} onClick={fn} style={{fontSize:12,fontWeight:800,background:bg,border:`1.5px solid ${c}44`,borderRadius:20,padding:“5px 13px”,cursor:“pointer”,color:c,fontFamily:“Nunito,sans-serif”}}>{lbl}</button>
-))}
-</div>
-</div>
-<div style={{flex:1,overflowY:“auto”,padding:“8px 12px 4px”}}>
-<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:10,maxWidth:480,margin:“0 auto”}}>
-{heroes.filter(h=>!(h.isSecret&&h.locked)).map((h)=>{
-const sel=selHero>=0&&heroes[selHero]?.id===h.id;
-const wide=h.isReyshi||h.isEvolved||h.isSecret;
-return (
-<div key={h.id} onClick={()=>h.locked?tryUnlock(h):setSelHero(heroes.indexOf(h))}
-style={{borderRadius:14,padding:“10px 8px 28px”,cursor:“pointer”,border:`3px solid ${sel?h.col:"transparent"}`,background:sel?`${h.col}18`:“rgba(255,255,255,0.05)”,textAlign:“center”,position:“relative”,overflow:“hidden”,transition:“all 0.22s”,transform:sel?“translateY(-7px) scale(1.03)”:“none”,boxShadow:sel?`0 0 22px ${h.glow}55`:“none”,opacity:h.locked?0.52:1,gridColumn:wide?“span 2”:“span 1”,maxWidth:wide?210:“none”,margin:wide?“0 auto”:undefined,width:wide?“100%”:“auto”}}
->
-{h.isSecret&&<div style={{position:“absolute”,top:6,left:6,fontSize:8,fontWeight:900,padding:“2px 7px”,borderRadius:20,background:“linear-gradient(135deg,#003388,#0099ff)”,color:”#fff”}}>SECRET</div>}
-{sel&&<div style={{position:“absolute”,top:6,right:6,fontSize:8,fontWeight:900,padding:“2px 7px”,borderRadius:20,background:”#ffd700”,color:”#000”}}>✓ Selected</div>}
-<div style={{fontSize:36,margin:“4px 0 7px”,filter:`drop-shadow(0 0 8px ${h.glow})`}}>{HERO_ICON[h.id]||“🎮”}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:15,color:h.col,marginBottom:2}}>{h.name}</div>
-<div style={{fontSize:9,fontWeight:900,letterSpacing:2,textTransform:“uppercase”,color:h.glow,marginBottom:3}}>{h.elem}</div>
-<div style={{fontSize:9,color:”#667”,fontWeight:800}}>{h.flyMode?“✈️ Fly Mode + Fight”:“🏃 Chase + ⚔️ Fight”}</div>
-{h.locked&&<div style={{position:“absolute”,bottom:7,left:0,right:0,fontFamily:”‘Fredoka One’,cursive”,fontSize:11,color:”#ffcc00”}}>{h.isSecret?“🔒 Use code 1A2B”:h.cost>0?`🔒 ${h.cost.toLocaleString()} coins`:“🔒 Enter code”}</div>}
-</div>
-);
-})}
-</div>
-</div>
-<div style={{flexShrink:0,padding:“10px 18px 18px”,background:“linear-gradient(to top,#080014 55%,transparent)”}}>
-<Btn children={selHero>=0?`▶ Play as ${heroObj.name}!`:“▶ Select a Hero First”} onClick={()=>setScreen(S.MODE)} disabled={selHero<0} style={{width:“100%”,background:“linear-gradient(150deg,#7700ff,#cc00ff)”,boxShadow:“0 5px 0 #330088”}}/>
-</div>
+// ═══════════════════════════════════════════════════════
+//  FIGHT MODE
+// ═══════════════════════════════════════════════════════
+let fc2,fctx,faid,fRun=false,pHP=100,eHP=100,ff=0,la=0,ls=0,feff=[],eat=0,dr=false,fPl={},fEn={};
+function goFS(){document.getElementById('fum').textContent=U.coins>=300?'✅ Ready!':'💰 Need 300 coins';show('fs-scr');startP('rp','reyshi',false);}
+function enterFight(){if(U.coins<300){notif('💰 Not enough coins!');return;}if(!SC)SC=CHARS[0];U.coins-=300;su(U);startFight();}
+function startFight(){pHP=100+(hg('sh')?20:0)+(hg('ar')?15:0)+(hg('ag')?40:0);eHP=100;ff=0;feff=[];la=0;ls=0;eat=0;dr=false;fRun=true;show('ft-scr');fc2=document.getElementById('fc');fctx=fc2.getContext('2d');fc2.width=Math.min(window.innerWidth,480);fc2.height=window.innerHeight*.62;const W=fc2.width,H=fc2.height;fPl={x:W*.22,y:H*.5,fr:0,sk:0};fEn={x:W*.78,y:H*.5,fr:0,sk:0};fHudU();fightLoop();}
+function fightLoop(){if(!fRun)return;faid=requestAnimationFrame(fightLoop);ff++;fPl.fr++;fEn.fr++;fUp();fDraw();}
+function fUp(){eat++;const iv=78+Math.random()*48;if(eat>iv){eat=0;if(dr){dr=false;feff.push({x:fPl.x,y:fPl.y-46,t:'DODGED!',c:'#4fc3f7',l:48});}else{const ab=hg('ar')||hg('ag')?14:0;const dmg=Math.max(4,8+Math.floor(Math.random()*11)-ab);pHP=Math.max(0,pHP-dmg);notif('👹 Reyshi -'+dmg+'HP!','#f44336');fPl.sk=16;feff.push({x:fPl.x,y:fPl.y-26,t:'-'+dmg,c:'#f44336',l:42});if(pHP<=0){endFight(false);return;}fHudU();}}feff=feff.filter(e=>{e.l--;return e.l>0;});if(fEn.sk>0)fEn.sk--;if(fPl.sk>0)fPl.sk--;}
+function fDraw(){const W=fc2.width,H=fc2.height;fctx.clearRect(0,0,W,H);const g=fctx.createRadialGradient(W/2,H/2,36,W/2,H/2,W);g.addColorStop(0,'#1a0a1e');g.addColorStop(1,'#040007');fctx.fillStyle=g;fctx.fillRect(0,0,W,H);fctx.fillStyle='rgba(255,107,53,.04)';fctx.beginPath();fctx.ellipse(W/2,H*.76,W*.41,H*.09,0,0,Math.PI*2);fctx.fill();fctx.strokeStyle='rgba(255,107,53,.3)';fctx.lineWidth=1.8;fctx.beginPath();fctx.ellipse(W/2,H*.76,W*.41,H*.09,0,0,Math.PI*2);fctx.stroke();for(let i=0;i<14;i++){const cx3=W*i/14,cy=H*.05+Math.sin(i*1.3+ff*.03)*5;fctx.fillStyle='rgba(255,255,255,.06)';fctx.beginPath();fctx.arc(cx3+7,cy+22,6,0,Math.PI*2);fctx.fill();}const px=fPl.x+(fPl.sk>0?(Math.random()-.5)*6:0),ex=fEn.x+(fEn.sk>0?(Math.random()-.5)*8:0);drawChar(fctx,px,H*.7,1.1,SC?SC.id:'ron',fPl.fr,1,SC&&SC.evo);drawChar(fctx,ex,H*.68,1.2,'reyshi',fEn.fr,-1,false);fctx.fillStyle='#4fc3f7';fctx.font='bold 10px Nunito';fctx.textAlign='center';fctx.fillText('YOU',px,H*.8);fctx.fillStyle='#f44336';fctx.fillText('REYSHI',ex,H*.8);if(fPl.sk>0){fctx.fillStyle='rgba(244,67,54,.1)';fctx.fillRect(0,0,W,H);}feff.forEach(e=>{const a=e.l/50;fctx.globalAlpha=a;fctx.fillStyle=e.c;fctx.font='bold 16px Bangers';fctx.textAlign='center';fctx.fillText(e.t,e.x,e.y-(50-e.l));fctx.globalAlpha=1;});}
+function fa(act){if(!fRun)return;const now=ff;if(act==='a'){if(now-la<17){notif('⏳ Cooldown!');return;}la=now;const b=hg('kt')?20:(hg('ag')?34:0);const dmg=10+Math.floor(Math.random()*14)+b;eHP=Math.max(0,eHP-dmg);fEn.sk=16;feff.push({x:fEn.x,y:fEn.y-46,t:'-'+dmg,c:'#ff6b35',l:42});notif('⚔️ -'+dmg+' to Reyshi');if(eHP<=0){endFight(true);return;}}else if(act==='d'){dr=true;eat=0;feff.push({x:fPl.x,y:fPl.y-36,t:'🛡 READY',c:'#4fc3f7',l:36});notif('🛡 Dodge ready!','#4fc3f7');}else if(act==='s'){if(now-ls<106){notif('⏳ Special cooldown!');return;}ls=now;const b=hg('kt')||hg('ag')?24:0;const dmg=22+Math.floor(Math.random()*18)+b;eHP=Math.max(0,eHP-dmg);fEn.sk=36;feff.push({x:fEn.x,y:fEn.y-55,t:'SPECIAL! -'+dmg,c:'#ffd700',l:52});notif('✨ SPECIAL! -'+dmg,'#ffd700');if(eHP<=0){endFight(true);return;}}fHudU();}
+function fHudU(){const pm=100+(hg('sh')?20:0)+(hg('ar')?15:0)+(hg('ag')?40:0);document.getElementById('php').textContent=`YOU: ${Math.max(0,pHP)}`;document.getElementById('ehp').textContent=`REYSHI: ${Math.max(0,eHP)}`;document.getElementById('phb').style.width=(Math.max(0,pHP)/pm*100)+'%';document.getElementById('ehb').style.width=Math.max(0,eHP)+'%';}
+function endFight(won){fRun=false;cancelAnimationFrame(faid);if(won){U.coins+=250;su(U);}document.getElementById('frt').textContent=won?'🏆 VICTORY!':'💀 DEFEATED!';document.getElementById('frt').style.color=won?'#ffd700':'#f44336';document.getElementById('frm').textContent=won?'+250 COINS EARNED!':'Reyshi wins this round...';show('fr-scr');startP('rcc',won?(SC?SC.id:'ron'):'reyshi',false);}
 
-```
-  {/* Code Overlay */}
-  {showCode&&(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.93)",backdropFilter:"blur(12px)",zIndex:80,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{background:"linear-gradient(145deg,#0c001e,#160030)",border:"2px solid #7700ff44",borderRadius:24,padding:"28px 22px",width:"min(330px,88vw)",textAlign:"center"}}>
-        <div style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:"#bb77ff",marginBottom:5}}>🔐 Enter Code</div>
-        <div style={{fontSize:12,color:"#556",fontWeight:800,marginBottom:16,lineHeight:1.5}}>Secret codes unlock heroes, coins &amp; admin powers!</div>
-        <input value={codeVal} onChange={e=>setCodeVal(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submitCode()} placeholder="TYPE CODE HERE" style={{width:"100%",padding:12,borderRadius:12,border:"2px solid #7700ff44",background:"#06000d",color:"#fff",fontSize:16,fontFamily:"Nunito,sans-serif",fontWeight:900,outline:"none",textAlign:"center",letterSpacing:4,boxSizing:"border-box"}}/>
-        {codeMsg.t&&<div style={{fontSize:13,fontWeight:800,marginTop:8,color:codeMsg.ok?"#00ff88":"#ff4466",lineHeight:1.5}}>{codeMsg.t}</div>}
-        <Btn children="🔓 Unlock" onClick={submitCode} style={{width:"100%",background:"linear-gradient(135deg,#6600ff,#aa00ff)",boxShadow:"0 3px 0 #330055",marginTop:10,fontSize:18}}/>
-        <br/><button onClick={()=>{setShowCode(false);setCodeVal("");setCodeMsg({t:"",ok:true});}} style={{fontSize:13,color:"#445",fontWeight:800,background:"none",border:"none",cursor:"pointer",marginTop:9,fontFamily:"Nunito,sans-serif"}}>✕ Cancel</button>
-      </div>
-    </div>
-  )}
+// ═══════════════════════════════════════════════════════
+//  SHOP
+// ═══════════════════════════════════════════════════════
+let stab='costumes';
+function goShop(){rST();rSI();document.getElementById('shc').textContent=U.coins;show('sh-scr');}
+function rST(){const t=document.getElementById('stabs');t.innerHTML='';const ico={costumes:'👕',trails:'✨',signs:'🪧',gear:'⚙️'};Object.keys(SHOP).forEach(k=>{const b=document.createElement('div');b.className='tab'+(k===stab?' on':'');b.textContent=(ico[k]||'')+' '+k[0].toUpperCase()+k.slice(1);b.onclick=()=>{stab=k;rST();rSI();};t.appendChild(b);});}
+function rSI(){const g=document.getElementById('sgrid');g.innerHTML='';(SHOP[stab]||[]).forEach(item=>{if(item.adm&&!U.isAdmin)return;const own=U.oi.includes(item.id);const eqd=item.eff&&EG.includes(item.eff);const d=document.createElement('div');d.className='si'+(own?' own':'')+(eqd?' eqp':'');let ph=own?(stab==='gear'?`<div style="color:${eqd?'#ffd700':'#4caf50'};font-family:'Bangers',cursive;font-size:13px;margin-top:3px;">${eqd?'✅ EQP':'⬆️ EQUIP'}</div>`:`<div style="color:#4caf50;font-family:'Bangers',cursive;font-size:12px;margin-top:3px;">✅ OWNED</div>`):`<div style="color:var(--go);font-family:'Bangers',cursive;font-size:15px;margin-top:3px;">${item.price}🪙</div>`;d.innerHTML=`<div style="font-size:30px;margin-bottom:4px;">${item.icon}</div><div style="font-size:10px;font-weight:700;">${item.name}</div>${item.desc?`<div style="font-size:9px;color:#888;margin-top:1px;">${item.desc}</div>`:''}${ph}`;d.onclick=()=>{if(!own)buyI(item);else if(stab==='gear'&&item.eff)toggleG(item);};g.appendChild(d);});}
+function buyI(item){if(U.coins<item.price){notif('💰 Not enough coins!');return;}if(confirm(`Buy ${item.name} for ${item.price} coins?`)){U.coins-=item.price;U.oi.push(item.id);su(U);document.getElementById('shc').textContent=U.coins;notif(`✅ ${item.name} purchased!`);if(stab==='gear'&&item.eff)toggleG(item);else rSI();}}
+function toggleG(item){if(!U.oi.includes(item.id)){notif('Buy first!');return;}const e=item.eff;if(EG.includes(e)){EG=EG.filter(x=>x!==e);notif('Unequipped '+item.name);}else{EG.push(e);notif('⚙️ '+item.name+' equipped!','#ffd700');}U.eg=EG;su(U);rSI();}
 
-  {/* Admin Overlay */}
-  {showAdmin&&(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",backdropFilter:"blur(14px)",zIndex:80,display:"flex",alignItems:"center",justifyContent:"center",overflowY:"auto",padding:"20px 0"}}>
-      <div style={{background:"linear-gradient(145deg,#0a0005,#180009)",border:"2px solid #ff335544",borderRadius:22,padding:"22px 18px",width:"min(360px,92vw)",maxHeight:"86vh",overflowY:"auto"}}>
-        <div style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:"#ff4466",marginBottom:3,textAlign:"center"}}>👑 ADMIN PANEL</div>
-        <div style={{fontSize:12,color:"#556",fontWeight:800,marginBottom:14,textAlign:"center"}}>Session-only — re-enter code 1A2B next visit</div>
-        {[["🎮 Game Commands",null],["✅ Disable All Obstacles (this run)","noObs","#005522","#00aa44"],["☠️ Eliminate Reyshi (this run)","killRey","#880011","#cc0022"],["🔄 Re-enable Everything","reset","#003388","#0055cc"],
-          ["🪙 Coins",null]
-        ].map(([lbl,cmd,c1,c2],i)=>cmd?(
-          <button key={i} onClick={()=>admCmd(cmd)} style={{width:"100%",fontSize:14,padding:"11px 13px",borderRadius:13,border:"none",cursor:"pointer",fontFamily:"Nunito,sans-serif",fontWeight:900,color:"#fff",marginBottom:7,textAlign:"left",background:`linear-gradient(135deg,${c1},${c2})`}}>{lbl}</button>
-        ):(
-          <div key={i} style={{fontFamily:"'Fredoka One',cursive",fontSize:15,color:"#ffd700",margin:"12px 0 7px",borderBottom:"1px solid rgba(255,215,0,0.15)",paddingBottom:4}}>{lbl}</div>
-        ))}
-        <input value={apAmt} onChange={e=>setApAmt(e.target.value)} placeholder="Coin amount e.g. 1000" style={{width:"100%",padding:"9px 13px",borderRadius:11,border:"2px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)",color:"#fff",fontSize:13,fontFamily:"Nunito,sans-serif",fontWeight:800,outline:"none",marginBottom:7,boxSizing:"border-box"}}/>
-        <button onClick={()=>admCmd("coins")} style={{width:"100%",fontSize:14,padding:"11px 13px",borderRadius:13,border:"none",cursor:"pointer",fontFamily:"Nunito,sans-serif",fontWeight:900,color:"#fff",marginBottom:7,textAlign:"left",background:"linear-gradient(135deg,#005522,#00aa44)"}}>🪙 Add Coins to Wallet</button>
-        <div style={{fontFamily:"'Fredoka One',cursive",fontSize:15,color:"#ffd700",margin:"12px 0 7px",borderBottom:"1px solid rgba(255,215,0,0.15)",paddingBottom:4}}>🌟 Secret Characters</div>
-        {[["🌊 Unlock AQUA","unlockAqua","#003388","#0055cc"],["👑 Unlock KING BOB","unlockBob","#883300","#ff6600"],["🌍 Unlock TERRAVUS","unlockTerra","#005522","#00aa44"],["⭐ Unlock ALL Heroes","unlockAll","#330066","#8800ff"]].map(([lbl,cmd,c1,c2],i)=>(
-          <button key={i} onClick={()=>admCmd(cmd)} style={{width:"100%",fontSize:14,padding:"11px 13px",borderRadius:13,border:"none",cursor:"pointer",fontFamily:"Nunito,sans-serif",fontWeight:900,color:"#fff",marginBottom:7,textAlign:"left",background:`linear-gradient(135deg,${c1},${c2})`}}>{lbl}</button>
-        ))}
-        {adminMsg&&<div style={{fontSize:13,fontWeight:800,marginBottom:8,textAlign:"center",color:"#00ff88"}}>{adminMsg}</div>}
-        <button onClick={()=>{setShowAdmin(false);setAdminMsg("");}} style={{fontFamily:"'Fredoka One',cursive",fontSize:18,color:"#fff",background:"linear-gradient(135deg,#330011,#660022)",border:"2px solid #ff446655",borderRadius:50,cursor:"pointer",display:"block",width:"100%",padding:"13px 0",marginTop:10,boxShadow:"0 5px 0 #200008"}}>✕ Exit Admin Panel</button>
-      </div>
-    </div>
-  )}
+// ═══════════════════════════════════════════════════════
+//  CODES / LEADERBOARD / ADMIN
+// ═══════════════════════════════════════════════════════
+function redeem(){const code=document.getElementById('ci').value.trim().toLowerCase();if(!code){notif('Enter a code!');return;}const e=CODES[code];if(!e){notif('❌ Invalid code!');return;}if(e.t==='coins'){U.coins+=e.n;notif(e.msg,'#ffd700');}else if(e.t==='admin'){U.isAdmin=true;U.ua=['kingbob','aqua','terrarus'];notif(e.msg,'#9c27b0');su(U);show('adm-scr');return;}else if(e.t==='char'){const id=e.id;if(!U.uc.includes(id)){U.uc.push(id);notif(`✅ ${id} unlocked!`);}else notif(`⚠️ Already unlocked!`);const ev=EVO.find(x=>x.code===code);if(ev&&!U.ue.includes(ev.id)){if(confirm(`Also unlock evolved: ${ev.name}?`)){U.ue.push(ev.id);notif(`✨ ${ev.name} unlocked!`);}}}if(!U.rc.includes(code))U.rc.push(code);su(U);document.getElementById('ci').value='';}
+function goLB(){const d=lu();const s=Object.values(d).sort((a,b)=>(b.hs||0)-(a.hs||0)).slice(0,10);const l=document.getElementById('lbl');l.innerHTML='';if(!s.length){l.innerHTML='<div style="color:#888;text-align:center;padding:14px;">No scores yet!</div>';}s.forEach((u,i)=>{const m=['🥇','🥈','🥉'];const r=document.createElement('div');r.className='lrow';r.innerHTML=`<div class="lrank">${m[i]||'#'+(i+1)}</div><div class="lname">${u.username}${u.isAdmin?' 🛡':''}</div><div class="lscore">${u.hs||0}</div>`;l.appendChild(r);});show('lb-scr');}
+function aC(cmd){if(!U.isAdmin){notif('❌ No admin access!');return;}const t=document.getElementById('at').value.trim();if(!t){notif('Enter target!');return;}const d=lu();if(cmd!=='rn'&&!d[t]){notif('❌ User not found!');return;}if(cmd==='ac'){d[t].coins+=500;notif(`✅ +500 to ${t}`);}else if(cmd==='rc'){d[t].coins=Math.max(0,(d[t].coins||0)-500);notif(`✅ -500 from ${t}`);}else if(cmd==='ul'){d[t].uc=['ron','den','lapse','blackdeath','reyshi'];d[t].ue=EVO.map(e=>e.id);d[t].ua=['kingbob','aqua','terrarus'];notif(`✅ All unlocked for ${t}`);}else if(cmd==='rs'){const p=d[t].password;d[t]=dd(t);d[t].password=p;notif(`✅ ${t} reset`);}else if(cmd==='rn'){const nn=document.getElementById('an').value.trim();if(!nn){notif('Enter new name!');return;}if(d[t]){d[nn]={...d[t],username:nn};delete d[t];if(U.username===t)U.username=nn;notif(`✅ Renamed ${t}→${nn}`);}}localStorage.setItem('rc3',JSON.stringify(d));if(d[U.username]){U=d[U.username];su(U);}}
 
-  {/* Coin Modal */}
-  {showCoin&&(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.93)",backdropFilter:"blur(10px)",zIndex:65,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{background:"linear-gradient(145deg,#0c001e,#160030)",border:"2px solid #ff335544",borderRadius:22,padding:"28px 24px",width:"min(320px,90vw)",textAlign:"center"}}>
-        <div style={{fontSize:58,marginBottom:10}}>🪙</div>
-        <div style={{fontFamily:"'Fredoka One',cursive",fontSize:26,color:"#ff4466",marginBottom:7}}>Not Enough Coins!</div>
-        <div style={{fontSize:14,color:"#88aacc",fontWeight:800,lineHeight:1.65,marginBottom:20,whiteSpace:"pre-line"}}>{coinMsg}</div>
-        <Btn children="OK, let's grind! 🏃" onClick={()=>setShowCoin(false)} style={{background:"linear-gradient(135deg,#ff3366,#ff6600)",boxShadow:"0 4px 0 #882233",padding:"11px 32px",fontSize:17}}/>
-      </div>
-    </div>
-  )}
-</div>
-```
+// ── BG STARS ──
+(()=>{const b=document.getElementById('bg');for(let i=0;i<55;i++){const s=document.createElement('div');s.className='st';const sz=Math.random()*2.8+.8;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2}s;`;b.appendChild(s);}})();
+</script>
 
-);
-
-// ── MODE SELECT ──
-if(screen===S.MODE) return (
-<div style={{width:“100%”,height:“100%”,background:“linear-gradient(160deg,#080014,#110022,#04000d)”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(28px,6vw,50px)”,color:heroObj.col,textShadow:`0 3px 0 ${heroObj.dark}`,marginBottom:5}}>{heroObj.name}</div>
-<div style={{fontSize:14,color:”#88aacc”,fontWeight:800,marginBottom:28}}>Choose how you want to play</div>
-<div style={{display:“flex”,gap:16,flexWrap:“wrap”,justifyContent:“center”,padding:“0 14px”}}>
-{[
-{icon:heroObj.flyMode?“✈️”:“🏃”,title:“Chase Mode”,desc:“Sprint away from Reyshi! Jump, slide and dodge obstacles to survive.”,cost:“FREE — Play anytime”,col:”#00cc77”,fn:()=>setScreen(S.GAME)},
-{icon:HERO_ICON[heroObj.id]||“⚔️”,title:“Fight Mode”,desc:“Enter the arena and battle Reyshi face to face. Move to dodge attacks!”,cost:“🪙 300 coins”,col:”#ff4466”,fn:()=>{if(infCoins||wallet>=300){if(!infCoins)setWallet(w=>w-300);setScreen(S.FIGHT);}else showCM(“Fight Mode costs 🪙300.\n\nYou have 🪙”+wallet+”.\n\nPlay Chase Mode to earn coins!”);}}
-].map((m,i)=>(
-<div key={i} onClick={m.fn} style={{width:“min(200px,43vw)”,borderRadius:22,padding:“22px 14px 20px”,cursor:“pointer”,background:“rgba(255,255,255,0.05)”,textAlign:“center”,transition:“transform 0.2s”,border:“3px solid transparent”}}
-onMouseEnter={e=>{e.currentTarget.style.transform=“translateY(-7px)”;e.currentTarget.style.borderColor=m.col+“55”;}}
-onMouseLeave={e=>{e.currentTarget.style.transform=“none”;e.currentTarget.style.borderColor=“transparent”;}}>
-<div style={{fontSize:50,display:“block”,marginBottom:10,filter:`drop-shadow(0 0 10px ${m.col})`}}>{m.icon}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:22,color:”#fff”,marginBottom:6}}>{m.title}</div>
-<div style={{fontSize:11,color:”#778”,fontWeight:800,lineHeight:1.55,marginBottom:6}}>{m.desc}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:14,color:”#ffd700”}}>{m.cost}</div>
-</div>
-))}
-</div>
-<button onClick={goHS} style={{fontSize:13,color:”#445”,fontWeight:800,background:“none”,border:“none”,cursor:“pointer”,marginTop:24,fontFamily:“Nunito,sans-serif”,textDecoration:“underline”}}>← Back to Hero Select</button>
-</div>
-);
-
-// ── GAME ──
-if(screen===S.GAME) return (
-<div style={{width:“100%”,height:“100%”,background:”#000”,position:“relative”}}>
-<canvas ref={canvasRef} style={{width:“100%”,height:“100%”,display:“block”}}/>
-{/* HUD */}
-<div style={{position:“fixed”,top:0,left:0,right:0,padding:“10px 14px”,display:“flex”,justifyContent:“space-between”,alignItems:“flex-start”,pointerEvents:“none”,zIndex:10}}>
-<div>
-<div style={{background:“rgba(0,0,0,0.75)”,borderRadius:13,padding:“6px 13px”,border:“1.5px solid rgba(255,255,255,0.1)”,marginBottom:5,backdropFilter:“blur(4px)”}}>
-<div style={{fontSize:9,fontWeight:900,letterSpacing:“2.5px”,color:”#888”,textTransform:“uppercase”}}>Distance</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:27,color:”#fff”,lineHeight:1.1}}>{gameScore}m</div>
-</div>
-<div style={{background:“rgba(0,0,0,0.75)”,borderRadius:13,padding:“6px 13px”,border:“1.5px solid rgba(255,255,255,0.1)”,backdropFilter:“blur(4px)”}}>
-<div style={{fontSize:9,fontWeight:900,letterSpacing:“2.5px”,color:”#888”,textTransform:“uppercase”}}>Coins</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:20,color:”#ffd700”,lineHeight:1.1}}>🪙 {infCoins?“∞”:gameCoins}</div>
-</div>
-</div>
-<div style={{display:“flex”,gap:4,alignItems:“center”,background:“rgba(0,0,0,0.75)”,borderRadius:13,padding:“7px 12px”,border:“1.5px solid rgba(255,255,255,0.1)”,backdropFilter:“blur(4px)”}}>
-{[…Array(Math.max(3,gameLives))].map((_,i)=><div key={i} style={{fontSize:20,opacity:i<gameLives?1:0.18,filter:i<gameLives?“drop-shadow(0 0 4px #ff4466)”:“grayscale(1)”}}>❤</div>)}
-</div>
-</div>
-{eGear!==“none”&&<div style={{position:“fixed”,top:10,left:“50%”,transform:“translateX(-50%)”,background:“rgba(0,0,0,0.6)”,borderRadius:20,padding:“4px 14px”,border:“1px solid rgba(255,255,255,0.1)”,pointerEvents:“none”}}><span style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:12,color:”#ff88cc”}}>{GEAR_LIST.find(g=>g.id===eGear)?.icon} {GEAR_LIST.find(g=>g.id===eGear)?.stat}</span></div>}
-{/* Tap to start */}
-{!gameReady&&(
-<div onClick={()=>{setGameReady(true);if(gRef.current)gRef.current.running=true;}} style={{position:“fixed”,inset:0,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,background:“rgba(0,0,0,0.5)”,cursor:“pointer”,zIndex:18}}>
-<div style={{width:105,height:105,background:“linear-gradient(155deg,#00dd77,#00aa44)”,borderRadius:“50%”,display:“flex”,alignItems:“center”,justifyContent:“center”,boxShadow:“0 0 50px #00ff7799,0 7px 0 #004422”,border:“3px solid rgba(255,255,255,0.25)”}}>
-<div style={{width:0,height:0,borderTop:“22px solid transparent”,borderBottom:“22px solid transparent”,borderLeft:“40px solid #fff”,marginLeft:8}}/>
-</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:26,color:”#fff”,marginTop:18,textShadow:“0 3px 0 rgba(0,0,0,0.4)”}}>TAP TO START RUNNING!</div>
-<div style={{fontSize:12,color:“rgba(255,255,255,0.7)”,fontWeight:800,marginTop:6}}>← → Lane  ·  ↑ Jump  ·  ↓ Slide  ·  F Attack</div>
-</div>
-)}
-{/* Touch controls */}
-<div style={{position:“fixed”,bottom:50,left:0,right:0,display:“flex”,justifyContent:“space-between”,padding:“0 16px”,zIndex:15,pointerEvents:“none”}}>
-<div style={{display:“flex”,gap:8,pointerEvents:“all”}}>
-{[[“◀”,()=>{if(gRef.current)gRef.current.lane=Math.max(0,gRef.current.lane-1);}],[“▶”,()=>{if(gRef.current)gRef.current.lane=Math.min(2,gRef.current.lane+1);}]].map(([lbl,fn],i)=>(
-<button key={i} onTouchStart={fn} onMouseDown={fn} style={{width:56,height:56,borderRadius:“50%”,background:“rgba(255,255,255,0.1)”,border:“2px solid rgba(255,255,255,0.2)”,color:”#fff”,fontSize:20,cursor:“pointer”,fontFamily:”‘Fredoka One’,cursive”}}>{lbl}</button>
-))}
-</div>
-<div style={{display:“flex”,gap:8,pointerEvents:“all”}}>
-<button onTouchStart={()=>{const g2=gRef.current;if(g2&&!g2.jumping&&g2.jumpY>=0){g2.velY=-28*(heroObj.jMul||1)*(gearFx.jumpMul||1);g2.jumping=true;}}} onMouseDown={()=>{const g2=gRef.current;if(g2&&!g2.jumping&&g2.jumpY>=0){g2.velY=-28*(heroObj.jMul||1)*(gearFx.jumpMul||1);g2.jumping=true;}}} style={{width:56,height:56,borderRadius:“50%”,background:“rgba(0,200,100,0.2)”,border:“2px solid rgba(0,200,100,0.4)”,color:”#fff”,fontSize:20,cursor:“pointer”,fontFamily:”‘Fredoka One’,cursive”}}>↑</button>
-<button onTouchStart={()=>{const g2=gRef.current;if(g2&&!g2.jumping){g2.sliding=true;g2.slideT=40;}}} onMouseDown={()=>{const g2=gRef.current;if(g2&&!g2.jumping){g2.sliding=true;g2.slideT=40;}}} style={{width:56,height:56,borderRadius:“50%”,background:“rgba(255,150,0,0.2)”,border:“2px solid rgba(255,150,0,0.4)”,color:”#fff”,fontSize:20,cursor:“pointer”,fontFamily:”‘Fredoka One’,cursive”}}>↓</button>
-</div>
-</div>
-<div style={{position:“fixed”,bottom:12,left:“50%”,transform:“translateX(-50%)”,background:“rgba(0,0,0,0.7)”,color:”#ddd”,fontSize:12,fontWeight:800,letterSpacing:1,padding:“6px 16px”,borderRadius:22,pointerEvents:“none”}}>← → Lane  ·  ↑ Jump  ·  ↓ Slide  ·  F Attack</div>
-{milestone&&<div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,0.88)”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,zIndex:88,pointerEvents:“none”}}><div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(22px,5vw,44px)”,color:”#fff”,textAlign:“center”,textShadow:“0 4px 0 #330066,0 0 50px #9944ff”,lineHeight:1.5}}>⚠️ THE ELEMENTAL WARRIORS<br/>ARE COMING FOR YOU…</div><div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(16px,3.5vw,28px)”,color:”#aa66ff”,marginTop:14}}>🌊 AQUA  ·  👑 KING BOB  ·  🌍 TERRAVUS</div></div>}
-<button onClick={()=>{if(gRef.current)gRef.current.done=true;goHS();}} style={{position:“fixed”,top:12,right:14,background:“rgba(0,0,0,0.5)”,border:“1px solid rgba(255,255,255,0.2)”,color:“rgba(255,255,255,0.6)”,borderRadius:20,padding:“5px 14px”,cursor:“pointer”,fontSize:12,fontWeight:800}}>✕ Quit</button>
-</div>
-);
-
-// ── FIGHT ──
-if(screen===S.FIGHT) return (
-<div style={{width:“100%”,height:“100%”,background:”#000”,position:“relative”}}>
-<canvas ref={fightRef} style={{width:“100%”,height:“100%”,display:“block”}}/>
-{/* HP Bars */}
-<div style={{position:“fixed”,top:0,left:0,right:0,padding:“10px 14px”,display:“flex”,justifyContent:“space-between”,alignItems:“flex-start”,gap:10,zIndex:30,pointerEvents:“none”}}>
-<div style={{flex:1}}><div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:14,color:heroObj.glow,marginBottom:3}}>{heroObj.name}</div><div style={{background:“rgba(0,0,0,0.55)”,borderRadius:20,height:13,border:“1.5px solid rgba(255,255,255,0.1)”}}><div style={{height:“100%”,borderRadius:20,background:`linear-gradient(90deg,${heroObj.dark},${heroObj.col})`,width:`${Math.max(0,fPHP)}%`,transition:“width 0.18s”}}/></div></div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:18,color:”#fff”,padding:“0 6px”,alignSelf:“center”,flexShrink:0,textShadow:“0 2px 0 #000”}}>VS</div>
-<div style={{flex:1,textAlign:“right”}}><div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:14,color:”#ff4466”,marginBottom:3}}>REYSHI 😈</div><div style={{background:“rgba(0,0,0,0.55)”,borderRadius:20,height:13,border:“1.5px solid rgba(255,255,255,0.1)”}}><div style={{height:“100%”,borderRadius:20,background:“linear-gradient(90deg,#ff2244,#ff6600)”,width:`${Math.max(0,fRHP)}%`,transition:“width 0.18s”}}/></div></div>
-</div>
-{/* Abilities */}
-<div style={{position:“fixed”,bottom:72,left:0,right:0,display:“flex”,justifyContent:“center”,gap:7,zIndex:30,padding:“0 8px”}}>
-{heroObj.abilities?.map((name,i)=>(
-<button key={i} onClick={()=>useAbility(i)} style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:13,padding:“10px 10px”,border:“none”,borderRadius:50,cursor:abilCDs[i]>0?“not-allowed”:“pointer”,color:”#fff”,flex:1,maxWidth:108,background:`linear-gradient(135deg,${heroObj.dark||heroObj.col},${heroObj.col})`,boxShadow:`0 4px 0 ${heroObj.dark||heroObj.col}`,opacity:abilCDs[i]>0?0.3:1}}>
-{abilCDs[i]>0?`${name.split(" ")[0]} ${Math.ceil(abilCDs[i]/60)}s`:name}
-</button>
-))}
-</div>
-{/* Move controls */}
-<div style={{position:“fixed”,bottom:10,left:0,right:0,display:“flex”,justifyContent:“space-between”,padding:“0 14px”,zIndex:29}}>
-<div style={{display:“flex”,gap:8}}>
-{[0,1].map((i)=>(
-<button key={i} onTouchStart={()=>{if(fRef.current)fRef.current.fDir=i===0?-1:1;}} onTouchEnd={()=>{if(fRef.current)fRef.current.fDir=0;}} onMouseDown={()=>{if(fRef.current)fRef.current.fDir=i===0?-1:1;}} onMouseUp={()=>{if(fRef.current)fRef.current.fDir=0;}} style={{width:56,height:56,borderRadius:“50%”,background:“rgba(255,255,255,0.1)”,border:“2px solid rgba(255,255,255,0.2)”,color:”#fff”,fontSize:20,cursor:“pointer”,fontFamily:”‘Fredoka One’,cursive”}}>{i===0?“◀”:“▶”}</button>
-))}
-</div>
-<button onTouchStart={()=>{if(fRef.current&&fRef.current.pGround)fRef.current.fJump=true;}} onMouseDown={()=>{if(fRef.current&&fRef.current.pGround)fRef.current.fJump=true;}} style={{width:56,height:56,borderRadius:“50%”,background:“rgba(0,200,100,0.2)”,border:“2px solid rgba(0,200,100,0.4)”,color:”#fff”,fontSize:20,cursor:“pointer”,fontFamily:”‘Fredoka One’,cursive”}}>▲</button>
-</div>
-{/* Result */}
-{fResult&&(
-<div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,0.9)”,backdropFilter:“blur(14px)”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,zIndex:35}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(44px,9vw,76px)”,color:fResult===“win”?heroObj.glow:”#ff4466”,marginBottom:7}}>{fResult===“win”?`${heroObj.name} WINS! 🎉`:“😈 REYSHI WINS!”}</div>
-<div style={{fontSize:15,color:”#aaa”,fontWeight:800,marginBottom:26,textAlign:“center”,padding:“0 18px”,lineHeight:1.6}}>{fResult===“win”?“Outstanding! You defeated Reyshi!\n+250 coins added. 🪙”:“Reyshi is relentless. Equip better gear and try again!”}</div>
-<div style={{display:“flex”,gap:10,flexWrap:“wrap”,justifyContent:“center”}}>
-<Btn children=“⚔️ Rematch — 300🪙” onClick={()=>{if(infCoins||wallet>=300){if(!infCoins)setWallet(w=>w-300);setScreen(S.FIGHT);}else showCM(“Need 🪙300!”);}} style={{background:“linear-gradient(160deg,#ff3366,#ff6600)”,boxShadow:“0 4px 0 #882233”,padding:“12px 24px”,fontSize:18}}/>
-<Btn children=“🏠 Menu” onClick={goHS} style={{background:“rgba(255,255,255,0.07)”,border:“2px solid #333”,color:”#bbb”,padding:“12px 24px”,fontSize:18}}/>
-</div>
-</div>
-)}
-<button onClick={()=>{if(fRef.current)fRef.current.done=true;goHS();}} style={{position:“fixed”,top:12,right:14,background:“rgba(0,0,0,0.5)”,border:“1px solid rgba(255,255,255,0.2)”,color:“rgba(255,255,255,0.6)”,borderRadius:20,padding:“5px 14px”,cursor:“pointer”,fontSize:12,fontWeight:800}}>✕ Quit</button>
-</div>
-);
-
-// ── GAME OVER ──
-if(screen===S.GO) return (
-<div style={{width:“100%”,height:“100%”,background:“rgba(0,0,0,0.97)”,backdropFilter:“blur(18px)”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(48px,10vw,86px)”,color:”#ff3366”,textShadow:“0 5px 0 #880022,0 0 40px #ff3366aa”}}>CAUGHT! 😱</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:46,color:”#ffd700”,textShadow:“0 4px 0 #886600”,margin:“10px 0 3px”}}>{lastScore} M</div>
-<div style={{fontSize:14,color:”#556”,fontWeight:800,marginBottom:6}}>Personal Best: {best}m</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:20,color:”#ffd700”,marginBottom:30}}>+{infCoins?“∞”:lastCoins} 🪙 earned this run</div>
-<div style={{display:“flex”,gap:12,flexWrap:“wrap”,justifyContent:“center”}}>
-<Btn children=“↺ Play Again” onClick={()=>{setGameReady(false);setScreen(S.GAME);}} style={{background:“linear-gradient(160deg,#00aa44,#00ff88)”,color:”#000”,boxShadow:“0 5px 0 #005522”,padding:“13px 32px”,fontSize:20}}/>
-<Btn children=“🏠 Menu” onClick={goHS} style={{background:“rgba(255,255,255,0.07)”,border:“2px solid #333”,color:”#bbb”,padding:“13px 32px”,fontSize:20}}/>
-</div>
-</div>
-);
-
-// ── SHOP ──
-if(screen===S.SHOP) return (
-<div style={{width:“100%”,height:“100%”,background:“linear-gradient(155deg,#080014,#0e0020,#04000e)”,display:“flex”,flexDirection:“column”,alignItems:“center”,padding:“20px 0”,overflowY:“auto”}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(26px,5.5vw,44px)”,color:”#ffd700”,textShadow:“0 3px 0 #886600”,marginTop:10}}>🛍️ Cosmetic Shop</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:17,color:”#ffd700”,margin:“4px 0 16px”}}>🪙 {wDisp}</div>
-<div style={{display:“grid”,gridTemplateColumns:“repeat(3,1fr)”,gap:9,maxWidth:400,width:“90vw”,padding:3}}>
-{OUTFITS.filter(o=>!o.adminOnly||isAdmin).map((o,i)=>{
-const owned=ownedOutfits.has(o.id)||isAdmin||o.cost===0,eq=eOutfit===o.id;
-return (
-<div key={i} onClick={()=>{if(!owned){if(wallet>=o.cost||infCoins){if(!infCoins)setWallet(w=>w-o.cost);setOwnedOutfits(s=>new Set([…s,o.id]));}else{showCM(`Need 🪙${o.cost}!`);return;}}setEOutfit(o.id);}} style={{borderRadius:13,padding:“11px 7px 9px”,background:eq?“rgba(255,215,0,0.06)”:“rgba(255,255,255,0.04)”,border:`2px solid ${eq?"#ffd700":owned?"#00cc77":"rgba(255,255,255,0.08)"}`,textAlign:“center”,cursor:“pointer”,position:“relative”,transition:“transform 0.15s”}} onMouseEnter={e=>e.currentTarget.style.transform=“translateY(-3px)”} onMouseLeave={e=>e.currentTarget.style.transform=“none”}>
-{(eq||owned)&&<div style={{position:“absolute”,top:4,right:4,fontSize:8,fontWeight:900,padding:“2px 5px”,borderRadius:9,background:eq?”#ffd700”:”#00cc77”,color:”#000”}}>{eq?“ON”:“Own”}</div>}
-<div style={{fontSize:28,marginBottom:4}}>{o.icon}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:11,color:”#fff”,marginBottom:2}}>{o.name}</div>
-<div style={{fontSize:10,fontWeight:800,color:”#ffd700”}}>{owned?(eq?“Equipped”:“Owned”):“🪙 “+o.cost}</div>
-</div>
-);
-})}
-</div>
-<button onClick={goHS} style={{fontSize:13,color:”#445”,fontWeight:800,background:“none”,border:“none”,cursor:“pointer”,margin:“16px 0”,fontFamily:“Nunito,sans-serif”,textDecoration:“underline”}}>← Back to Hero Select</button>
-</div>
-);
-
-// ── GEAR ──
-if(screen===S.GEAR) return (
-<div style={{width:“100%”,height:“100%”,background:“linear-gradient(155deg,#080010,#0e0018,#040008)”,display:“flex”,flexDirection:“column”,alignItems:“center”,padding:“20px 0”,overflowY:“auto”}}>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:“clamp(24px,5vw,40px)”,color:”#ff88cc”,textShadow:“0 3px 0 #880044”,marginTop:10}}>⚔️ Gear Shop</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:17,color:”#ffd700”,margin:“4px 0 8px”}}>🪙 {wDisp}</div>
-<div style={{fontSize:11,color:”#667”,fontWeight:800,marginBottom:14}}>Gear gives REAL gameplay bonuses — speed, jump, invincibility and more!</div>
-<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:10,maxWidth:420,width:“90vw”,padding:3}}>
-{GEAR_LIST.filter(g=>!g.adminOnly||isAdmin).map((item,i)=>{
-const owned=ownedGear.has(item.id)||isAdmin||item.cost===0,eq=eGear===item.id;
-return (
-<div key={i} onClick={()=>{if(!owned){if(wallet>=item.cost||infCoins){if(!infCoins)setWallet(w=>w-item.cost);setOwnedGear(s=>new Set([…s,item.id]));}else{showCM(`Need 🪙${item.cost.toLocaleString()}!`);return;}}setEGear(item.id);}} style={{borderRadius:15,padding:“13px 10px 11px”,background:eq?“rgba(255,136,204,0.06)”:“rgba(255,255,255,0.04)”,border:`2px solid ${eq?"#ff88cc":owned?"#00cc77":"rgba(255,255,255,0.08)"}`,textAlign:“center”,cursor:“pointer”,position:“relative”,transition:“transform 0.15s”}} onMouseEnter={e=>e.currentTarget.style.transform=“translateY(-3px)”} onMouseLeave={e=>e.currentTarget.style.transform=“none”}>
-{item.adminOnly&&<div style={{position:“absolute”,top:5,left:5,fontSize:8,fontWeight:900,padding:“2px 5px”,borderRadius:9,background:“linear-gradient(135deg,#ff3355,#ff6600)”,color:”#fff”}}>ADM</div>}
-{(eq||owned)&&<div style={{position:“absolute”,top:5,right:5,fontSize:8,fontWeight:900,padding:“2px 5px”,borderRadius:9,background:eq?”#ff88cc”:”#00cc77”,color:”#000”}}>{eq?“ON”:“Own”}</div>}
-<div style={{fontSize:36,marginBottom:6}}>{item.icon}</div>
-<div style={{fontFamily:”‘Fredoka One’,cursive”,fontSize:14,color:”#fff”,marginBottom:2}}>{item.name}</div>
-{item.stat&&<div style={{fontSize:10,fontWeight:900,color:”#00ff88”,marginBottom:3}}>{item.stat}</div>}
-<div style={{fontSize:11,fontWeight:800,color:”#ffd700”}}>{owned?(eq?“Equipped”:“Owned”):“🪙 “+item.cost.toLocaleString()}</div>
-</div>
-);
-})}
-</div>
-<button onClick={goHS} style={{fontSize:13,color:”#445”,fontWeight:800,background:“none”,border:“none”,cursor:“pointer”,margin:“16px 0”,fontFamily:“Nunito,sans-serif”,textDecoration:“underline”}}>← Back to Hero Select</button>
-</div>
-);
-
-return null;
-}
+</body><
+</html>

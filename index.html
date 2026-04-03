@@ -1187,11 +1187,24 @@ function toggleG(item){if(!U.oi.includes(item.id)){notif('Buy first!');return;}c
 // ═══════════════════════════════════════════════════════
 function redeem(){const code=document.getElementById('ci').value.trim().toLowerCase();if(!code){notif('Enter a code!');return;}const e=CODES[code];if(!e){notif('❌ Invalid code!');return;}if(e.t==='coins'){U.coins+=e.n;notif(e.msg,'#ffd700');}else if(e.t==='admin'){U.isAdmin=true;U.ua=['kingbob','aqua','terrarus'];notif(e.msg,'#9c27b0');su(U);show('adm-scr');return;}else if(e.t==='char'){const id=e.id;if(!U.uc.includes(id)){U.uc.push(id);notif(`✅ ${id} unlocked!`);}else notif(`⚠️ Already unlocked!`);const ev=EVO.find(x=>x.code===code);if(ev&&!U.ue.includes(ev.id)){if(confirm(`Also unlock evolved: ${ev.name}?`)){U.ue.push(ev.id);notif(`✨ ${ev.name} unlocked!`);}}}if(!U.rc.includes(code))U.rc.push(code);su(U);document.getElementById('ci').value='';}
 function goLB(){const d=lu();const s=Object.values(d).sort((a,b)=>(b.hs||0)-(a.hs||0)).slice(0,10);const l=document.getElementById('lbl');l.innerHTML='';if(!s.length){l.innerHTML='<div style="color:#888;text-align:center;padding:14px;">No scores yet!</div>';}s.forEach((u,i)=>{const m=['🥇','🥈','🥉'];const r=document.createElement('div');r.className='lrow';r.innerHTML=`<div class="lrank">${m[i]||'#'+(i+1)}</div><div class="lname">${u.username}${u.isAdmin?' 🛡':''}</div><div class="lscore">${u.hs||0}</div>`;l.appendChild(r);});show('lb-scr');}
-function aC(cmd){if(!U.isAdmin){notif('❌ No admin access!');return;}const t=document.getElementById('at').value.trim();if(!t){notif('Enter target!');return;}const d=lu();if(cmd!=='rn'&&!d[t]){notif('❌ User not found!');return;}if(cmd==='ac'){d[t].coins+=500;notif(`✅ +500 to ${t}`);}else if(cmd==='rc'){d[t].coins=Math.max(0,(d[t].coins||0)-500);notif(`✅ -500 from ${t}`);}else if(cmd==='ul'){d[t].uc=['ron','den','lapse','blackdeath','reyshi'];d[t].ue=EVO.map(e=>e.id);d[t].ua=['kingbob','aqua','terrarus'];notif(`✅ All unlocked for ${t}`);}else if(cmd==='rs'){const p=d[t].password;d[t]=dd(t);d[t].password=p;notif(`✅ ${t} reset`);}else if(cmd==='rn'){const nn=document.getElementById('an').value.trim();if(!nn){notif('Enter new name!');return;}if(d[t]){d[nn]={...d[t],username:nn};delete d[t];if(U.username===t)U.username=nn;notif(`✅ Renamed ${t}→${nn}`);}}localStorage.setItem('rc3',JSON.stringify(d));if(d[U.username]){U=d[U.username];su(U);}}
+function aC(cmd){if(!U.isAdmin){notif('❌ No admin access!');return;}const t=document.getElementById('at').value.trim();if(!t){notif('Enter target!');return;}const d=lu();if(cmd!=='rn'&&!d[t]){notif('❌ User not found!');return;}if(cmd==='ac'){d[t].coins+=500;notif(`✅ +500 to ${t}`);}else if(cmd==='rc'){d[t].coins=Math.max(0,(d[t].coins||0)-500);notif(`✅ -500 from ${t}`);}else if(cmd==='ul'){d[t].uc=['ron','den','lapse','blackdeath','reyshi'];d[t].ue=EVO.map(e=>e.id);d[t].ua=['kingbob','aqua','terrarus'];notif(`✅ All unlocked for ${t}`);}else if(cmd==='rs'){const p=d[t].password;d[t]=dd(t);d[t].password=p;notif(`✅ ${t} reset`);}else if(cmd==='rn'){const nn=document.getElementById('an').value.trim();if(!nn){notif('Enter new name!');return;}if(d[t]){d[nn]={...d[t],username:nn};delete d[t];if(U.username===t)U.username=nn;notif(`✅ Renamed ${t}→${nn}`);}}localStorage.setItem('rc3',JSON.stringify(d));if(d[U.username]){U=d[U.username];su(U);}} 
 
 // ── BG STARS ──
-(()=>{const b=document.getElementById('bg');for(let i=0;i<55;i++){const s=document.createElement('div');s.className='st';const sz=Math.random()*2.8+.8;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2}s;`;b.appendChild(s);}})();
-</script>
+(()=> {
+  const b = document.getElementById('bg');
+  if (!b) return;
 
-</body><
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.style.position = 'absolute';
+    s.style.width = '2px';
+    s.style.height = '2px';
+    s.style.background = 'white';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.left = Math.random() * 100 + '%';
+    b.appendChild(s);
+  }
+})();
+
+</body>
 </html>

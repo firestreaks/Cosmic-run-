@@ -1361,11 +1361,16 @@ function updateGame(){
   obstacles=obstacles.filter(function(o){
     if(o.depth>1.12)return false;
     if(o.depth>0.86&&o.depth<1.04){
-      var hit=o.big||o.lane===cl;
-      if(hit){
-        var jumpOk=pJumping&&pJY<-18&&(o.type==='monster'||o.type==='bird'||o.type==='flymonster');
-        var slideOk=pSlide>0&&(o.type==='spikes'||o.type==='bigmonster'||o.type==='cloud');
-        if(!jumpOk&&!slideOk&&!pParkour){
+      // Only collide when player is in the SAME lane as the obstacle
+      var inLane=o.lane===cl;
+      if(inLane){
+        // Can you escape it?
+        // Ground: monster=jump over, spikes+bigmonster=slide under
+        // Sky:    bird+flymonster=slide under(duck), cloud=jump over
+        var fly3=SC&&(SC.evo||hg('jp')||hg('ag'));
+        var jumpOk=pJumping&&pJY<-20&&(fly3?(o.type==='cloud'):(o.type==='monster'));
+        var slideOk=pSlide>0&&(fly3?(o.type==='bird'||o.type==='flymonster'):(o.type==='spikes'||o.type==='bigmonster'));
+        if(!jumpOk&&!slideOk){
           lives--;updateHUD();notif('💥 Hit!','#f44336');
           if(lives<=0){endGame();return false;}
           return false;
@@ -1811,7 +1816,7 @@ function _drawObs(o,s,p,W,H){
 
   } else if(o.type==='monster'){
     // ── 3D MONSTER — glowing cosmic beast blocking the track ──
-    var mh=o.big?200*s:155*s;
+    var mh=o.big?230*s:175*s;
     var mw=o.big?105*s:75*s;
     var mx=p.x, my=p.y;        // feet at ground level
     var anim=o.animOff||0;     // per-obstacle random phase
@@ -1934,7 +1939,7 @@ function _drawObs(o,s,p,W,H){
   } else if(o.type==='bigmonster'){
     // ── BIG SLIDE MONSTER — low crawling beast, slide to dodge ──
     var bms=o.depth, bmx=p.x, bmy=p.y;
-    var bmw=o.big?120*bms:90*bms, bmh=o.big?80*bms:60*bms;
+    var bmw=o.big?160*bms:120*bms, bmh=o.big?100*bms:75*bms;
     // Body — wide low hulking shape
     c2.fillStyle='#4a0080';
     c2.beginPath();c2.roundRect(bmx-bmw/2,bmy-bmh,bmw,bmh,[12*bms,12*bms,6*bms,6*bms]);c2.fill();
@@ -1965,36 +1970,56 @@ function _drawObs(o,s,p,W,H){
     c2.beginPath();c2.ellipse(bmx,bmy+3*bms,bmw*.55,8*bms,0,0,Math.PI*2);c2.fill();
 
   } else if(o.type==='bird'){
-    // ── SKY BIRD — white/grey fast bird ──
+    // ── SKY BIRD — large threatening bird ──
     var bs=o.depth, bx3=p.x, by3=p.y;
-    var bw3=55*bs;
-    var wingFlap=Math.sin(gf*.28+o.animOff)*0.6;
-    c2.save();c2.translate(bx3,by3-30*bs);
-    // Body
-    c2.fillStyle='#eceff1';c2.strokeStyle='#90a4ae';c2.lineWidth=1.5*bs;
-    c2.beginPath();c2.ellipse(0,0,18*bs,9*bs,0,0,Math.PI*2);c2.fill();c2.stroke();
-    // Left wing (flapping)
+    var bw3=o.big?120*bs:90*bs;  // much bigger wingspan
+    var wingFlap=Math.sin(gf*.22+o.animOff)*0.7;
+    c2.save();c2.translate(bx3,by3-40*bs);
+    // Shadow on ground
+    c2.fillStyle='rgba(0,0,0,.18)';c2.beginPath();c2.ellipse(0,55*bs,bw3*.5,10*bs,0,0,Math.PI*2);c2.fill();
+    // Left wing
     c2.save();c2.rotate(-wingFlap);
-    c2.fillStyle='#cfd8dc';
-    c2.beginPath();c2.moveTo(-4*bs,0);c2.bezierCurveTo(-bw3,-12*bs,-bw3*1.1,-2*bs,-6*bs,4*bs);c2.closePath();c2.fill();c2.stroke();
+    c2.fillStyle='#b0bec5';c2.strokeStyle='#78909c';c2.lineWidth=2*bs;
+    c2.beginPath();c2.moveTo(-6*bs,0);c2.bezierCurveTo(-bw3,-22*bs,-bw3*1.1,-4*bs,-10*bs,8*bs);c2.closePath();c2.fill();c2.stroke();
+    // Wing tip dark feathers
+    c2.fillStyle='#546e7a';
+    c2.beginPath();c2.moveTo(-bw3*.7,-18*bs);c2.lineTo(-bw3,-22*bs);c2.lineTo(-bw3*.85,-10*bs);c2.closePath();c2.fill();
     c2.restore();
-    // Right wing (flapping opposite)
+    // Right wing
     c2.save();c2.rotate(wingFlap);
-    c2.fillStyle='#cfd8dc';
-    c2.beginPath();c2.moveTo(4*bs,0);c2.bezierCurveTo(bw3,-12*bs,bw3*1.1,-2*bs,6*bs,4*bs);c2.closePath();c2.fill();c2.stroke();
+    c2.fillStyle='#b0bec5';c2.strokeStyle='#78909c';c2.lineWidth=2*bs;
+    c2.beginPath();c2.moveTo(6*bs,0);c2.bezierCurveTo(bw3,-22*bs,bw3*1.1,-4*bs,10*bs,8*bs);c2.closePath();c2.fill();c2.stroke();
+    c2.fillStyle='#546e7a';
+    c2.beginPath();c2.moveTo(bw3*.7,-18*bs);c2.lineTo(bw3,-22*bs);c2.lineTo(bw3*.85,-10*bs);c2.closePath();c2.fill();
     c2.restore();
+    // Body
+    c2.fillStyle='#eceff1';c2.strokeStyle='#90a4ae';c2.lineWidth=2*bs;
+    c2.beginPath();c2.ellipse(0,0,26*bs,13*bs,0,0,Math.PI*2);c2.fill();c2.stroke();
     // Head
-    c2.fillStyle='#eceff1';c2.beginPath();c2.arc(16*bs,-3*bs,8*bs,0,Math.PI*2);c2.fill();c2.stroke();
-    // Beak
-    c2.fillStyle='#ffd700';c2.beginPath();c2.moveTo(24*bs,-3*bs);c2.lineTo(32*bs,-1*bs);c2.lineTo(24*bs,1*bs);c2.closePath();c2.fill();
+    c2.fillStyle='#eceff1';c2.beginPath();c2.arc(22*bs,-6*bs,12*bs,0,Math.PI*2);c2.fill();c2.stroke();
+    // Sharp beak
+    c2.fillStyle='#ffa000';c2.strokeStyle='#e65100';c2.lineWidth=bs;
+    c2.beginPath();c2.moveTo(34*bs,-6*bs);c2.lineTo(48*bs,-2*bs);c2.lineTo(34*bs,2*bs);c2.closePath();c2.fill();c2.stroke();
     // Eye
-    c2.fillStyle='#37474f';c2.beginPath();c2.arc(19*bs,-5*bs,2.5*bs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#212121';c2.beginPath();c2.arc(27*bs,-9*bs,4*bs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#fff';c2.beginPath();c2.arc(25*bs,-10*bs,2*bs,0,Math.PI*2);c2.fill();
+    // Talons
+    [-10*bs,0,10*bs].forEach(function(tx2){
+      c2.strokeStyle='#546e7a';c2.lineWidth=2*bs;c2.lineCap='round';
+      c2.beginPath();c2.moveTo(tx2,12*bs);c2.lineTo(tx2-6*bs,22*bs);c2.stroke();
+      c2.beginPath();c2.moveTo(tx2,12*bs);c2.lineTo(tx2+6*bs,22*bs);c2.stroke();
+    });
+    // DUCK hint
+    if(bs>0.45&&bs<0.72){
+      c2.fillStyle='rgba(255,220,50,.95)';c2.font='bold '+Math.round(14*bs)+'px Bangers';c2.textAlign='center';
+      c2.fillText('SLIDE!',0,-bw3*.3-8*bs);
+    }
     c2.restore();
 
   } else if(o.type==='flymonster'){
     // ── FLYING MONSTER — dark winged demon in the sky ──
     var fs=o.depth, fx=p.x, fy=p.y-25*o.depth;
-    var fw=o.big?90*fs:65*fs, fh=o.big?80*fs:58*fs;
+    var fw=o.big?140*fs:100*fs, fh=o.big?120*fs:85*fs;
     var fwing=Math.sin(gf*.18+o.animOff)*0.7;
     c2.save();c2.translate(fx,fy);
     // Wings
@@ -2015,43 +2040,62 @@ function _drawObs(o,s,p,W,H){
     c2.restore();
     // Body
     c2.fillStyle='#2d0050';c2.strokeStyle='#7c4dff';c2.lineWidth=1.5*fs;
-    c2.beginPath();c2.ellipse(0,5*fs,16*fs,22*fs,0,0,Math.PI*2);c2.fill();c2.stroke();
+    c2.beginPath();c2.ellipse(0,5*fs,22*fs,30*fs,0,0,Math.PI*2);c2.fill();c2.stroke();
     // Head
-    c2.fillStyle='#3d0070';c2.beginPath();c2.arc(0,-14*fs,12*fs,0,Math.PI*2);c2.fill();c2.stroke();
+    c2.fillStyle='#3d0070';c2.beginPath();c2.arc(0,-18*fs,18*fs,0,Math.PI*2);c2.fill();c2.stroke();
     // Horns
     c2.fillStyle='#7c4dff';
-    [[-7*fs,-22*fs],[ 7*fs,-22*fs]].forEach(function(h){
-      c2.beginPath();c2.moveTo(h[0],h[1]);c2.lineTo(h[0]-3*fs,h[1]-14*fs);c2.lineTo(h[0]+3*fs,h[1]-10*fs);c2.closePath();c2.fill();
+    [[-10*fs,-30*fs],[ 10*fs,-30*fs]].forEach(function(h){
+      c2.beginPath();c2.moveTo(h[0],h[1]);c2.lineTo(h[0]-5*fs,h[1]-22*fs);c2.lineTo(h[0]+5*fs,h[1]-16*fs);c2.closePath();c2.fill();
     });
     // Glowing eyes
-    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(-5*fs,-15*fs,4*fs,0,Math.PI*2);c2.fill();
-    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(5*fs,-15*fs,4*fs,0,Math.PI*2);c2.fill();
-    c2.fillStyle='#fff';c2.beginPath();c2.arc(-4*fs,-16*fs,1.5*fs,0,Math.PI*2);c2.fill();
-    c2.beginPath();c2.arc(6*fs,-16*fs,1.5*fs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(-7*fs,-19*fs,7*fs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(7*fs,-19*fs,7*fs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#fff';c2.beginPath();c2.arc(-5*fs,-21*fs,2.5*fs,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(9*fs,-21*fs,2.5*fs,0,Math.PI*2);c2.fill();
     // Fangs
     c2.fillStyle='#f5f5f5';
     [[-4*fs, 0],[0,-1*fs],[4*fs,0]].forEach(function(t){
       c2.beginPath();c2.moveTo(t[0],-8*fs+t[1]);c2.lineTo(t[0]-2*fs,0);c2.lineTo(t[0]+2*fs,0);c2.closePath();c2.fill();
     });
+    // JUMP hint
+    if(fs>0.45&&fs<0.72){
+      c2.fillStyle='rgba(255,70,70,.95)';c2.font='bold '+Math.round(15*fs)+'px Bangers';c2.textAlign='center';
+      c2.fillText('JUMP!',0,-(fh+20*fs));c2.shadowBlur=0;
+    }
     c2.restore();
 
   } else if(o.type==='cloud'){
-    // ── CLOUD — dodge or slide through ──
-    var cs2=o.depth, cx4=p.x, cy4=p.y-20*o.depth;
-    // Dark storm cloud (dangerous)
-    c2.fillStyle='rgba(80,90,110,.85)';
-    c2.beginPath();c2.arc(cx4,cy4,28*cs2,0,Math.PI*2);c2.fill();
-    c2.beginPath();c2.arc(cx4-20*cs2,cy4+8*cs2,20*cs2,0,Math.PI*2);c2.fill();
-    c2.beginPath();c2.arc(cx4+22*cs2,cy4+6*cs2,22*cs2,0,Math.PI*2);c2.fill();
-    c2.beginPath();c2.arc(cx4+5*cs2,cy4+14*cs2,16*cs2,0,Math.PI*2);c2.fill();
-    // Lightning bolt inside
-    c2.fillStyle='rgba(255,235,59,.9)';
-    c2.strokeStyle='rgba(255,200,0,.8)';c2.lineWidth=2*cs2;c2.lineCap='round';
+    // ── STORM CLOUD — big dangerous electric cloud ──
+    var cs2=o.depth, cx4=p.x, cy4=p.y-30*o.depth;
+    var cbase=o.big?55*cs2:42*cs2; // much bigger
+    // Multiple layered cloud puffs
+    c2.fillStyle='rgba(55,65,85,.9)';
+    c2.beginPath();c2.arc(cx4,cy4,cbase,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4-cbase*.65,cy4+cbase*.25,cbase*.75,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4+cbase*.7,cy4+cbase*.18,cbase*.8,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4+cbase*.2,cy4+cbase*.45,cbase*.6,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4-cbase*.25,cy4-cbase*.35,cbase*.55,0,Math.PI*2);c2.fill();
+    // Darker inner core
+    c2.fillStyle='rgba(30,35,55,.7)';
+    c2.beginPath();c2.arc(cx4,cy4,cbase*.6,0,Math.PI*2);c2.fill();
+    // Electric glow
+    c2.fillStyle='rgba(180,200,255,.15)';
+    c2.beginPath();c2.arc(cx4,cy4,cbase*1.2,0,Math.PI*2);c2.fill();
+    // Lightning bolt — big and visible
+    c2.fillStyle='rgba(255,240,60,.95)';
+    c2.strokeStyle='rgba(255,200,0,.9)';c2.lineWidth=3*cs2;c2.lineCap='round';c2.lineJoin='round';
+    var lx5=cx4+3*cs2, ly5=cy4-cbase*.4;
     c2.beginPath();
-    c2.moveTo(cx4+2*cs2,cy4-10*cs2);c2.lineTo(cx4-6*cs2,cy4+4*cs2);
-    c2.lineTo(cx4+1*cs2,cy4+4*cs2);c2.lineTo(cx4-7*cs2,cy4+18*cs2);
-    c2.lineTo(cx4+6*cs2,cy4+5*cs2);c2.lineTo(cx4-1*cs2,cy4+5*cs2);c2.closePath();
+    c2.moveTo(lx5,ly5);c2.lineTo(lx5-10*cs2,ly5+16*cs2);
+    c2.lineTo(lx5+2*cs2,ly5+16*cs2);c2.lineTo(lx5-12*cs2,ly5+36*cs2);
+    c2.lineTo(lx5+8*cs2,ly5+18*cs2);c2.lineTo(lx5-3*cs2,ly5+18*cs2);c2.closePath();
     c2.fill();c2.stroke();
+    // SLIDE hint
+    if(cs2>0.45&&cs2<0.72){
+      c2.fillStyle='rgba(255,220,50,.95)';c2.font='bold '+Math.round(14*cs2)+'px Bangers';c2.textAlign='center';
+      c2.fillText('SLIDE!',cx4,cy4-cbase-14*cs2);
+    }
 
   } else {
     // ── 3D FIRE BARREL ──

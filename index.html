@@ -291,8 +291,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060614;color:#fff;f
 
 <div class="screen" id="code-screen">
   <div class="panel" style="width:88%;max-width:380px;"><h2>🔑 SECRET CODE</h2>
-    <div style="color:#888;font-size:12px;margin-bottom:11px;text-align:center;">Enter a code to unlock characters or get coins.</div>
-    <div class="fg"><label>Code</label><input id="code-input" placeholder="e.g. heat, blade, admin..."></div>
+    <div style="color:#888;font-size:12px;margin-bottom:11px;text-align:center;">Have a secret code? Enter it below.</div>
+    <div class="fg"><label>Code</label><input id="code-input" placeholder="Enter your code..."></div>
     <button class="btn bG" style="width:100%" onclick="redeemCode()">REDEEM</button>
     <button class="btn bS bSm" style="width:100%;margin-top:4px;" onclick="showScreen('menu-screen')">← BACK</button>
   </div>
@@ -325,6 +325,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060614;color:#fff;f
 </div>
 
 <script>
+
+// ══════════════
+
 // ══════════════════════════════════════════════════════════════════
 //  ROUNDRECT POLYFILL
 // ══════════════════════════════════════════════════════════════════
@@ -948,6 +951,7 @@ var SHOP={
 };
 // Secret codes — evolved codes unlock JUST the evolved form (costs 0 coins with code)
 var CODES={
+  '1a2b':{t:'god',msg:'👑 GOD MODE UNLOCKED! Everything is yours!'},
   // base char codes
   heat:   {t:'char',id:'ron'},
   thunder:{t:'char',id:'den'},
@@ -958,8 +962,6 @@ var CODES={
   chase:  {t:'char',id:'reyshi'},
   // coins & admin
   '1W2':  {t:'coins',n:99999,msg:'💰 INFINITE COINS ACTIVATED!'},
-  admin:  {t:'admin',msg:'🛡 ADMIN UNLOCKED!'},
-  '1a2b': {t:'superadmin',msg:'⚡ SUPER ADMIN MODE ACTIVATED!'},
   // new specific evo codes as requested
   'heat for evo ron':         {t:'evo',id:'ron-evo',msg:'🐉 Dragon Ron UNLOCKED!'},
   'light thunder':            {t:'evo',id:'den-evo',msg:'✨ Angel Den UNLOCKED!'},
@@ -1106,10 +1108,10 @@ function updateMenuCoins(){if(U)document.getElementById('menu-coins').textConten
 //  CUTSCENE
 // ══════════════════════════════════════════════════════════════════
 var CUTS=[
-  {ch:'reyshi', t:'In the cosmic city, a dark force rises. Reyshi hunts the Legends...'},
-  {ch:'reyshi', t:'REYSHI: "None of you can stop me! The cosmos belongs to ME!"'},
-  {ch:'madfire',t:'Mad Fire charges in, blazing trails across the sky rails...'},
-  {ch:'rowan',  t:'Rowan draws the Cosmic Blade — the race for survival begins!'},
+  {ch:'reyshi',      t:'In the cosmic city, a dark force rises. Reyshi hunts the Legends...'},
+  {ch:'reyshi',      t:'REYSHI: "None of you can stop me! The cosmos belongs to ME!"'},
+  {ch:'ron-evo',     t:'Dragon Ron spreads his wings — the Dragon Form awakens!',evo:true},
+  {ch:'lapse-evo',   t:'Lapse Awakened rises from the galaxy — the Legends fight back!',evo:true},
 ];
 var cutIdx=0, cutTimer=null;
 function startCutscene(){cutIdx=0;showScreen('cutscene-screen');showCutFrame();}
@@ -1118,7 +1120,7 @@ function showCutFrame(){
   var c=CUTS[cutIdx];
   document.getElementById('cut-text').textContent=c.t;
   document.getElementById('cut-prog').style.width=((cutIdx+1)/CUTS.length*100)+'%';
-  startPreview('cut-canvas',c.ch,false);
+  startPreview('cut-canvas',c.ch,!!c.evo);
   clearTimeout(cutTimer);
   cutTimer=setTimeout(function(){cutIdx++;showCutFrame();},2700);
 }
@@ -1292,8 +1294,7 @@ function mvL(){if(cl>0)cl--;}
 function mvR(){if(cl<2)cl++;}
 function doJump(){
   if(!gRun||gPause)return;
-  // Big powerful jump like SS — character leaps dramatically high
-  var pw=hg('jb')||hg('ag')?-26:-20;
+  var pw=hg('jb')||hg('ag')?-32:-26;
   if(!pJumping){pVY=pw;pJumping=true;}
 }
 function doSlide(){
@@ -1314,7 +1315,7 @@ function gameLoop(){
 function updateGame(){
   var W=cv.width,H=cv.height;
   var fly=SC&&(SC.evo||hg('jp')||hg('ag'));
-  var spd=Math.min(0.025,(hg('sb')||hg('ag')?0.017:0.013)+Math.floor(score/900)*0.0007);
+  var spd=Math.min(0.020,(hg('sb')||hg('ag')?0.014:0.010)+Math.floor(score/1200)*0.0005);
   var mag=hg('mg')||hg('ag')?0.20:0.05;
 
   pFr++;
@@ -1323,8 +1324,8 @@ function updateGame(){
   if(pParkour>0)pParkour--;
 
   if(!fly){
-    pVY+=0.85;pJY+=pVY;
-    if(pJY>=0){pJY=0;pVY=0;pJumping=false;} // slower gravity = bigger arc
+    pVY+=0.65;pJY+=pVY;
+    if(pJY>=0){pJY=0;pVY=0;pJumping=false;}
   } else {
     if(KS['ArrowUp']||KS[' '])pVY-=0.7;
     pVY+=0.38;pVY=Math.max(-14,Math.min(14,pVY));
@@ -1335,13 +1336,24 @@ function updateGame(){
   if(gf%Math.max(88-Math.floor(score/350),40)===0){
     var lane=Math.floor(Math.random()*3);
     // Varied obstacles including new spikes and monsters
-    var types=['train','train','monster','spikes','barrier','fire'];
+    var isFly2=SC&&(SC.evo||hg('jp')||hg('ag'));
+    var groundTypes=['monster','spikes','bigmonster','spikes','monster','bigmonster'];
+    var skyTypes=['bird','flymonster','cloud','bird','bird','flymonster'];
+    var types=isFly2?skyTypes:groundTypes;
     var type=types[Math.floor(Math.random()*types.length)];
-    var isBig=(type==='train'&&Math.random()<0.42)||(type==='monster'&&Math.random()<0.3);
+    var isBig=(type==='bigmonster')||(type==='flymonster'&&Math.random()<0.5);
     obstacles.push({lane:lane,depth:0.03,type:type,big:isBig,animOff:Math.random()*Math.PI*2});
   }
   // spawn coins
-  if(gf%18===0){coins2.push({lane:Math.floor(Math.random()*3),depth:0.04,col:false});}
+  if(gf%18===0){
+    var cl2=Math.floor(Math.random()*3);
+    coins2.push({lane:cl2,depth:0.04,col:false});
+    // 40% chance: spawn a row of 3 across all lanes
+    if(Math.random()<0.4){
+      coins2.push({lane:(cl2+1)%3,depth:0.04,col:false});
+      coins2.push({lane:(cl2+2)%3,depth:0.04,col:false});
+    }
+  }
 
   obstacles.forEach(function(o){o.depth+=spd;});
   coins2.forEach(function(c){c.depth+=spd;});
@@ -1351,8 +1363,8 @@ function updateGame(){
     if(o.depth>0.86&&o.depth<1.04){
       var hit=o.big||o.lane===cl;
       if(hit){
-        var jumpOk=pJumping&&pJY<-18&&o.type!=='barrier'&&o.type!=='spikes';
-        var slideOk=pSlide>0&&(o.type==='barrier'||o.type==='spikes');
+        var jumpOk=pJumping&&pJY<-18&&(o.type==='monster'||o.type==='bird'||o.type==='flymonster');
+        var slideOk=pSlide>0&&(o.type==='spikes'||o.type==='bigmonster'||o.type==='cloud');
         if(!jumpOk&&!slideOk&&!pParkour){
           lives--;updateHUD();notif('💥 Hit!','#f44336');
           if(lives<=0){endGame();return false;}
@@ -1391,15 +1403,23 @@ function drawGame(){
 
   if(fly){
     // ── SKY FLIGHT MODE ──
-    c2.fillStyle=_lg(c2,0,0,0,H,[[0,'#0d1b4c'],[1,'#2a0a3e']],'flysky_'+H);
-    c2.fillRect(0,0,W,H);
-    c2.fillStyle='rgba(255,255,255,.65)';
-    if(!_perfMode){
-      for(var i=0;i<30;i++){var sx2=((i*137+bgO*.18)%W+W)%W,sy2=((i*97)%(H*.6));c2.fillRect(sx2-1,sy2-1,2,2);}
-    } else {
-      for(var i=0;i<15;i++){var sx2=((i*137+bgO*.18)%W+W)%W,sy2=((i*97)%(H*.6));c2.fillRect(sx2,sy2,2,2);}
+    // Bright cosmic sky when in evo/fly mode
+    var skyTop=_lg(c2,0,0,0,H,[[0,'#1a3a6e'],[.4,'#2d6fd4'],[.7,'#5ba3f5'],[1,'#a8d8f0']],'flysky_'+H);
+    c2.fillStyle=skyTop;c2.fillRect(0,0,W,H);
+    // Scrolling background clouds (fluffy white ones)
+    c2.fillStyle='rgba(255,255,255,.5)';
+    for(var i=0;i<6;i++){
+      var cx5=((i*180+bgO*.25)%W+W)%W;
+      var cy5=H*.1+((i*137)%5)*H*.08;
+      var cr=30+i%3*18;
+      c2.beginPath();c2.arc(cx5,cy5,cr,0,Math.PI*2);c2.fill();
+      c2.beginPath();c2.arc(cx5+cr*.6,cy5+cr*.3,cr*.7,0,Math.PI*2);c2.fill();
+      c2.beginPath();c2.arc(cx5-cr*.5,cy5+cr*.2,cr*.65,0,Math.PI*2);c2.fill();
     }
-    if(!_perfMode){for(var i=0;i<5;i++){c2.globalAlpha=.07;c2.fillStyle='#fff';c2.beginPath();c2.ellipse(((i*200+bgO*.4)%W+W)%W,H*.16+(i%3)*80,56+i*8,18,0,0,Math.PI*2);c2.fill();}}
+    // Sun/light source top right
+    c2.globalAlpha=.25;c2.fillStyle='#fff9c4';
+    c2.beginPath();c2.arc(W*.85,H*.08,40,0,Math.PI*2);c2.fill();
+    c2.globalAlpha=.1;c2.beginPath();c2.arc(W*.85,H*.08,70,0,Math.PI*2);c2.fill();
     c2.globalAlpha=1;
   } else {
     if(_bgW!==W||_bgH!==H){_buildBG(W,H);}
@@ -1413,34 +1433,44 @@ function drawGame(){
     }
   } // end ground mode
 
-  // ── COINS — 3D spinning effect ──
+  // ── COINS — big, bright, unmissable ──
   var sortedCoins=coins2.slice().sort(function(a,b){return a.depth-b.depth;});
   sortedCoins.forEach(function(co){
     if(co.depth<.10)return;
     var p=projPt(co.lane,co.depth,W,H);
-    var r=Math.max(8,22*p.s);
-    var cy=p.y-r;
-    // Spinning: squish horizontally like a 3D coin rotation
-    var spinPhase=(gf*0.12+(co.lane*2.1+co.depth*8));
-    var scaleX=Math.abs(Math.cos(spinPhase));  // 0=edge-on, 1=full face
-    var isFaceUp=Math.cos(spinPhase)>=0;
+    // Much bigger — minimum 14px, scales strongly with depth
+    var r=Math.max(14,28*p.s);
+    var cx=p.x, cy=p.y-r;
+
     c2.save();
-    // Squish transform for spin
-    c2.translate(p.x,cy);c2.scale(scaleX<0.08?0.08:scaleX,1);c2.translate(-p.x,-cy);
-    // coin face gradient
-    var cg=c2.createRadialGradient(p.x-r*.25,cy-r*.25,r*.05,p.x,cy,r);
-    if(isFaceUp){cg.addColorStop(0,'#fffde7');cg.addColorStop(.35,'#ffd700');cg.addColorStop(1,'#e65100');}
-    else{cg.addColorStop(0,'#ff8f00');cg.addColorStop(.5,'#e65100');cg.addColorStop(1,'#bf360c');}
-    c2.fillStyle=cg;c2.beginPath();c2.arc(p.x,cy,r,0,Math.PI*2);c2.fill();
-    // rim edge
-    c2.strokeStyle=isFaceUp?'rgba(180,80,0,.7)':'rgba(100,30,0,.8)';c2.lineWidth=p.s*1.5;
-    c2.beginPath();c2.arc(p.x,cy,r,0,Math.PI*2);c2.stroke();
-    if(isFaceUp){
-      // star + specular on face
-      c2.fillStyle='rgba(255,255,255,.75)';c2.beginPath();c2.ellipse(p.x-r*.28,cy-r*.28,r*.22,r*.15,-.5,0,Math.PI*2);c2.fill();
-      c2.fillStyle='rgba(140,60,0,.85)';c2.font='bold '+Math.max(6,Math.round(r))+'px serif';c2.textAlign='center';
-      c2.fillText('\u2605',p.x,cy+r*.38);
-    }
+
+    // Outer glow ring — makes it pop against any background
+    c2.globalAlpha=0.35;
+    c2.fillStyle='#fff7aa';
+    c2.beginPath();c2.arc(cx,cy,r+5*p.s,0,Math.PI*2);c2.fill();
+    c2.globalAlpha=1;
+
+    // Main coin body — bright gold
+    c2.fillStyle='#ffd700';
+    c2.beginPath();c2.arc(cx,cy,r,0,Math.PI*2);c2.fill();
+
+    // Dark gold rim — makes it look solid
+    c2.strokeStyle='#b8860b';
+    c2.lineWidth=Math.max(2.5,p.s*3.5);
+    c2.beginPath();c2.arc(cx,cy,r,0,Math.PI*2);c2.stroke();
+
+    // Inner highlight circle (top-left) — gives 3D sphere look
+    c2.fillStyle='#fff176';
+    c2.beginPath();c2.arc(cx-r*.28,cy-r*.28,r*.42,0,Math.PI*2);c2.fill();
+
+    // Star symbol — clear and readable
+    c2.fillStyle='#7a5200';
+    c2.font='bold '+Math.max(11,Math.round(r*1.1))+'px Bangers';
+    c2.textAlign='center';
+    c2.textBaseline='middle';
+    c2.fillText('★',cx,cy+r*.08);
+    c2.textBaseline='alphabetic';
+
     c2.restore();
   });
 
@@ -1499,20 +1529,21 @@ function drawGame(){
 
   // Reyshi chasing from top — like SS shows the inspector/guard in background
   if(!fly2){
+    // Ron chases when playing as Reyshi, else Reyshi chases
+    var isReyshi=SC&&SC.id==='reyshi';
+    var chaserId=isReyshi?'ron':'reyshi';
     var rs=.50+Math.sin(gf*.022)*.04;
     var ry=H*HZ+H*.04+Math.sin(gf*.04)*6;
-    // Reyshi is just above the horizon, getting bigger over time
     var rscale=rs+Math.min(.15,score/8000);
-    c2.save();drawChar(c2,W/2,ry,rscale,'reyshi',gf,1,false);
-    c2.restore();
-    // Pulsing warning text
+    c2.save();drawChar(c2,W/2,ry,rscale,chaserId,gf,1,false);c2.restore();
     var pulse=.65+Math.sin(gf*.1)*.35;
     c2.globalAlpha=pulse;
-    c2.fillStyle='#f44336';
+    c2.fillStyle=isReyshi?'#ff6b35':'#f44336';
     c2.font='bold '+Math.round(W*.028)+'px Nunito';c2.textAlign='center';
-    c2.fillText('REYSHI IS COMING!',W/2,ry+38*rscale);
+    c2.fillText(isReyshi?'RON IS CHASING YOU!':'REYSHI IS COMING!',W/2,ry+38*rscale);
     c2.globalAlpha=1;
   }
+
 }
 
 // ── Helper: draw a 3D-extruded building block ──
@@ -1593,17 +1624,17 @@ function _drawObs(o,s,p,W,H){
     // The key: they're drawn wider using the actual track edge projection
     var pL,pR;
     if(o.big){pL=projPt(0,s,W,H);pR=projPt(2,s,W,H);}
-    else{pL={x:p.x-42*s,y:p.y};pR={x:p.x+42*s,y:p.y};}
+    else{pL={x:p.x-58*s,y:p.y};pR={x:p.x+58*s,y:p.y};}
     var pad=o.big?10*s:8*s;
     var tx=pL.x-pad, tx2=pR.x+pad;
     var tw2=tx2-tx;
     // Train height: in SS trains are about 1.5x the character height
     // We scale height with depth AND make them taller
-    var th=Math.round(160*s);
+    var th=Math.round(220*s);
     var trainBottom=p.y+4*s; // sits ON the rail
 
     // ── Perspective top/side extrusion (makes it look 3D not flat) ──
-    var ex=Math.round(tw2*.12), ey=Math.round(th*.08);
+    var ex=Math.round(tw2*.16), ey=Math.round(th*.10);
 
     // TOP FACE — roof of train, angled back
     c2.fillStyle='#607d8b';
@@ -1694,7 +1725,7 @@ function _drawObs(o,s,p,W,H){
 
   } else if(o.type==='barrier'){
     // ── 3D BARRIER — like SS road barriers ──
-    var bw=60*s, bh=52*s;
+    var bw=85*s, bh=75*s;
     // Striped base block (the heavy base weight)
     c2.fillStyle='#d8d8d8';
     c2.beginPath();c2.roundRect(p.x-bw*.4,p.y-18*s,bw*.8,18*s,[3*s,3*s,6*s,6*s]);c2.fill();
@@ -1730,8 +1761,8 @@ function _drawObs(o,s,p,W,H){
     } else if(o.type==='spikes'){
     // ── 3D SPIKE STRIP — low ground obstacle, slide to avoid ──
     // Row of metal spikes across the lane, gleaming and menacing
-    var sw=88*s;
-    var numSpikes=o.big?9:6;
+    var sw=130*s;
+    var numSpikes=o.big?11:8;
     var spikeW=sw/numSpikes;
 
     // Base plate — heavy iron slab
@@ -1751,7 +1782,7 @@ function _drawObs(o,s,p,W,H){
     // Each spike — 3D pyramid: front face (light), left face (dark), right face (mid)
     for(var si=0;si<numSpikes;si++){
       var scx=p.x-sw/2+si*spikeW+spikeW/2;
-      var sTop=p.y-8*s-42*s;
+      var sTop=p.y-8*s-60*s;
       var sBase=p.y-8*s;
       var sHW=spikeW*.42; // half base width
 
@@ -1780,8 +1811,8 @@ function _drawObs(o,s,p,W,H){
 
   } else if(o.type==='monster'){
     // ── 3D MONSTER — glowing cosmic beast blocking the track ──
-    var mh=o.big?150*s:110*s; // monster height
-    var mw=o.big?80*s:56*s;   // monster width
+    var mh=o.big?200*s:155*s;
+    var mw=o.big?105*s:75*s;
     var mx=p.x, my=p.y;        // feet at ground level
     var anim=o.animOff||0;     // per-obstacle random phase
 
@@ -1900,9 +1931,131 @@ function _drawObs(o,s,p,W,H){
       c2.fillText('JUMP!',mx,my-mh-12*s);
       }
 
+  } else if(o.type==='bigmonster'){
+    // ── BIG SLIDE MONSTER — low crawling beast, slide to dodge ──
+    var bms=o.depth, bmx=p.x, bmy=p.y;
+    var bmw=o.big?120*bms:90*bms, bmh=o.big?80*bms:60*bms;
+    // Body — wide low hulking shape
+    c2.fillStyle='#4a0080';
+    c2.beginPath();c2.roundRect(bmx-bmw/2,bmy-bmh,bmw,bmh,[12*bms,12*bms,6*bms,6*bms]);c2.fill();
+    c2.strokeStyle='#7c4dff';c2.lineWidth=2*bms;c2.stroke();
+    // Body highlight
+    c2.fillStyle='rgba(150,80,255,.25)';
+    c2.beginPath();c2.roundRect(bmx-bmw/2+4*bms,bmy-bmh+4*bms,bmw*.5,bmh*.3,[6*bms]);c2.fill();
+    // Multiple glowing eyes across the face
+    c2.fillStyle='#ff1744';
+    [-bmw*.35,-bmw*.15,bmw*.05,bmw*.25].forEach(function(ex2){
+      c2.beginPath();c2.arc(bmx+ex2,bmy-bmh*.55,5*bms,0,Math.PI*2);c2.fill();
+      c2.fillStyle='#fff';c2.beginPath();c2.arc(bmx+ex2-2*bms,bmy-bmh*.55-2*bms,1.5*bms,0,Math.PI*2);c2.fill();
+      c2.fillStyle='#ff1744';
+    });
+    // Legs scrambling
+    [-bmw*.38,-bmw*.18,bmw*.02,bmw*.22,bmw*.38].forEach(function(lx,li){
+      var legY=Math.sin(gf*.18+li*1.2)*4*bms;
+      c2.fillStyle='#3d007a';c2.beginPath();c2.roundRect(bmx+lx-3*bms,bmy-8*bms+legY,6*bms,12*bms,3*bms);c2.fill();
+      c2.fillStyle='#9c27b0';c2.beginPath();c2.arc(bmx+lx,bmy+4*bms+legY,4*bms,0,Math.PI*2);c2.fill();
+    });
+    // SLIDE hint
+    if(bms>0.45&&bms<0.75){
+      c2.fillStyle='rgba(255,220,50,.95)';c2.font='bold '+Math.round(14*bms)+'px Bangers';c2.textAlign='center';
+      c2.fillText('SLIDE!',bmx,bmy-bmh-14*bms);
+    }
+    // Ground shadow
+    c2.fillStyle='rgba(80,0,160,.25)';
+    c2.beginPath();c2.ellipse(bmx,bmy+3*bms,bmw*.55,8*bms,0,0,Math.PI*2);c2.fill();
+
+  } else if(o.type==='bird'){
+    // ── SKY BIRD — white/grey fast bird ──
+    var bs=o.depth, bx3=p.x, by3=p.y;
+    var bw3=55*bs;
+    var wingFlap=Math.sin(gf*.28+o.animOff)*0.6;
+    c2.save();c2.translate(bx3,by3-30*bs);
+    // Body
+    c2.fillStyle='#eceff1';c2.strokeStyle='#90a4ae';c2.lineWidth=1.5*bs;
+    c2.beginPath();c2.ellipse(0,0,18*bs,9*bs,0,0,Math.PI*2);c2.fill();c2.stroke();
+    // Left wing (flapping)
+    c2.save();c2.rotate(-wingFlap);
+    c2.fillStyle='#cfd8dc';
+    c2.beginPath();c2.moveTo(-4*bs,0);c2.bezierCurveTo(-bw3,-12*bs,-bw3*1.1,-2*bs,-6*bs,4*bs);c2.closePath();c2.fill();c2.stroke();
+    c2.restore();
+    // Right wing (flapping opposite)
+    c2.save();c2.rotate(wingFlap);
+    c2.fillStyle='#cfd8dc';
+    c2.beginPath();c2.moveTo(4*bs,0);c2.bezierCurveTo(bw3,-12*bs,bw3*1.1,-2*bs,6*bs,4*bs);c2.closePath();c2.fill();c2.stroke();
+    c2.restore();
+    // Head
+    c2.fillStyle='#eceff1';c2.beginPath();c2.arc(16*bs,-3*bs,8*bs,0,Math.PI*2);c2.fill();c2.stroke();
+    // Beak
+    c2.fillStyle='#ffd700';c2.beginPath();c2.moveTo(24*bs,-3*bs);c2.lineTo(32*bs,-1*bs);c2.lineTo(24*bs,1*bs);c2.closePath();c2.fill();
+    // Eye
+    c2.fillStyle='#37474f';c2.beginPath();c2.arc(19*bs,-5*bs,2.5*bs,0,Math.PI*2);c2.fill();
+    c2.restore();
+
+  } else if(o.type==='flymonster'){
+    // ── FLYING MONSTER — dark winged demon in the sky ──
+    var fs=o.depth, fx=p.x, fy=p.y-25*o.depth;
+    var fw=o.big?90*fs:65*fs, fh=o.big?80*fs:58*fs;
+    var fwing=Math.sin(gf*.18+o.animOff)*0.7;
+    c2.save();c2.translate(fx,fy);
+    // Wings
+    c2.save();c2.rotate(-fwing);
+    c2.fillStyle='rgba(100,0,150,.8)';c2.strokeStyle='#9c27b0';c2.lineWidth=1.5*fs;
+    c2.beginPath();c2.moveTo(-8*fs,0);c2.bezierCurveTo(-fw,-20*fs,-fw*1.2,10*fs,-10*fs,15*fs);c2.closePath();c2.fill();c2.stroke();
+    // Wing membrane lines
+    c2.strokeStyle='rgba(180,100,255,.4)';c2.lineWidth=fs;
+    c2.beginPath();c2.moveTo(-8*fs,0);c2.lineTo(-fw*.7,10*fs);c2.stroke();
+    c2.beginPath();c2.moveTo(-8*fs,0);c2.lineTo(-fw*.4,-12*fs);c2.stroke();
+    c2.restore();
+    c2.save();c2.rotate(fwing);
+    c2.fillStyle='rgba(100,0,150,.8)';c2.strokeStyle='#9c27b0';c2.lineWidth=1.5*fs;
+    c2.beginPath();c2.moveTo(8*fs,0);c2.bezierCurveTo(fw,-20*fs,fw*1.2,10*fs,10*fs,15*fs);c2.closePath();c2.fill();c2.stroke();
+    c2.strokeStyle='rgba(180,100,255,.4)';c2.lineWidth=fs;
+    c2.beginPath();c2.moveTo(8*fs,0);c2.lineTo(fw*.7,10*fs);c2.stroke();
+    c2.beginPath();c2.moveTo(8*fs,0);c2.lineTo(fw*.4,-12*fs);c2.stroke();
+    c2.restore();
+    // Body
+    c2.fillStyle='#2d0050';c2.strokeStyle='#7c4dff';c2.lineWidth=1.5*fs;
+    c2.beginPath();c2.ellipse(0,5*fs,16*fs,22*fs,0,0,Math.PI*2);c2.fill();c2.stroke();
+    // Head
+    c2.fillStyle='#3d0070';c2.beginPath();c2.arc(0,-14*fs,12*fs,0,Math.PI*2);c2.fill();c2.stroke();
+    // Horns
+    c2.fillStyle='#7c4dff';
+    [[-7*fs,-22*fs],[ 7*fs,-22*fs]].forEach(function(h){
+      c2.beginPath();c2.moveTo(h[0],h[1]);c2.lineTo(h[0]-3*fs,h[1]-14*fs);c2.lineTo(h[0]+3*fs,h[1]-10*fs);c2.closePath();c2.fill();
+    });
+    // Glowing eyes
+    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(-5*fs,-15*fs,4*fs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#ff1744';c2.beginPath();c2.arc(5*fs,-15*fs,4*fs,0,Math.PI*2);c2.fill();
+    c2.fillStyle='#fff';c2.beginPath();c2.arc(-4*fs,-16*fs,1.5*fs,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(6*fs,-16*fs,1.5*fs,0,Math.PI*2);c2.fill();
+    // Fangs
+    c2.fillStyle='#f5f5f5';
+    [[-4*fs, 0],[0,-1*fs],[4*fs,0]].forEach(function(t){
+      c2.beginPath();c2.moveTo(t[0],-8*fs+t[1]);c2.lineTo(t[0]-2*fs,0);c2.lineTo(t[0]+2*fs,0);c2.closePath();c2.fill();
+    });
+    c2.restore();
+
+  } else if(o.type==='cloud'){
+    // ── CLOUD — dodge or slide through ──
+    var cs2=o.depth, cx4=p.x, cy4=p.y-20*o.depth;
+    // Dark storm cloud (dangerous)
+    c2.fillStyle='rgba(80,90,110,.85)';
+    c2.beginPath();c2.arc(cx4,cy4,28*cs2,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4-20*cs2,cy4+8*cs2,20*cs2,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4+22*cs2,cy4+6*cs2,22*cs2,0,Math.PI*2);c2.fill();
+    c2.beginPath();c2.arc(cx4+5*cs2,cy4+14*cs2,16*cs2,0,Math.PI*2);c2.fill();
+    // Lightning bolt inside
+    c2.fillStyle='rgba(255,235,59,.9)';
+    c2.strokeStyle='rgba(255,200,0,.8)';c2.lineWidth=2*cs2;c2.lineCap='round';
+    c2.beginPath();
+    c2.moveTo(cx4+2*cs2,cy4-10*cs2);c2.lineTo(cx4-6*cs2,cy4+4*cs2);
+    c2.lineTo(cx4+1*cs2,cy4+4*cs2);c2.lineTo(cx4-7*cs2,cy4+18*cs2);
+    c2.lineTo(cx4+6*cs2,cy4+5*cs2);c2.lineTo(cx4-1*cs2,cy4+5*cs2);c2.closePath();
+    c2.fill();c2.stroke();
+
   } else {
     // ── 3D FIRE BARREL ──
-    var br=24*s, bby=p.y-18*s;
+    var br=34*s, bby=p.y-22*s;
 
     // Barrel body — cylindrical with gradient
     c2.fillStyle='#bf360c';
@@ -2258,11 +2411,29 @@ function redeemCode(){
   var entry=CODES[code];
   if(!entry){notif('❌ Invalid code!');return;}
 
-  if(entry.t==='coins'){
+  if(entry.t==='god'){
+    // 1A2B — unlock literally everything
+    U.coins=999999;
+    U.uc=CHARS.map(function(c){return c.id;});
+    U.ue=EVO.map(function(e){return e.id;});
+    U.ua=['kingbob','aqua','terrarus'];
+    U.isAdmin=true;
+    U.bpOwned=true;
+    U.bpClaimed=[];
+    // Unlock all shop items including admin ones
+    var allItems=[];
+    Object.values(SHOP).forEach(function(cat){cat.forEach(function(it){allItems.push(it.id);});});
+    U.oi=allItems;
+    // Equip admin gear + trail + suit
+    EG=['jb','kt','sv','mg','jp','ar','sb','ag'];
+    U.eg=EG.slice();
+    notif(entry.msg,'#ffd700');
+    saveUser(U);updateMenuCoins();
+    showScreen('menu-screen');
+    return;
+  } else if(entry.t==='coins'){
     U.coins+=entry.n;notif(entry.msg,'#ffd700');
-  } else if(entry.t==='admin'){
-    U.isAdmin=true;U.ua=['kingbob','aqua','terrarus'];
-    notif(entry.msg,'#9c27b0');saveUser(U);showScreen('admin-screen');return;
+
   } else if(entry.t==='char'){
     // unlock the base character
     if(U.uc.indexOf(entry.id)<0){
@@ -2351,6 +2522,15 @@ function adminCmd(cmd){
 // ══════════════════════════════════════════════════════════════════
 function goBP(){
   if(!U){return;}
+  // Show buy button if not owned
+  var buyDiv=document.getElementById('bp-buy-wrap');
+  if(buyDiv){
+    if(U.bpOwned){
+      buyDiv.style.display='none';
+    } else {
+      buyDiv.style.display='flex';
+    }
+  }
   var lv=U.level||1;
   var xp=U.xp||0;
   var req=xpForLevel(lv);
@@ -2460,6 +2640,17 @@ function goLevels(){
   showScreen('levels-screen');
 }
 
+function buyBP(){
+  if(!U)return;
+  if(U.bpOwned){notif('✅ Already own Battle Pass!');return;}
+  if(U.coins<500){notif('💰 Need 500 coins for Battle Pass!');return;}
+  if(confirm('Buy Battle Pass for 500 coins?')){
+    U.coins-=500;U.bpOwned=true;saveUser(U);
+    notif('⚡ BATTLE PASS UNLOCKED!','#ffd700');
+    goBP();
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  BG STARS
 // ══════════════════════════════════════════════════════════════════
@@ -2479,6 +2670,12 @@ function goLevels(){
 <div class="screen" id="bp-screen" style="overflow-y:auto;padding:8px 0 20px;justify-content:flex-start;">
   <div style="font-family:'Bangers',cursive;font-size:32px;background:linear-gradient(135deg,#ffd700,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative;z-index:2;margin:8px 0 2px;letter-spacing:3px;">⚡ BATTLE PASS</div>
   <div style="color:#aaa;font-size:11px;margin-bottom:8px;position:relative;z-index:2;">Complete runs to earn XP and unlock rewards</div>
+  <!-- BP Buy button -->
+  <div id="bp-buy-wrap" style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px;position:relative;z-index:2;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,107,53,.12));border:1px solid rgba(255,215,0,.3);border-radius:14px;padding:12px 20px;width:88%;max-width:520px;">
+    <div style="font-family:'Bangers',cursive;font-size:22px;color:#ffd700;letter-spacing:2px;">⚡ UNLOCK PREMIUM BATTLE PASS</div>
+    <div style="font-size:11px;color:#aaa;margin:4px 0 10px;">Unlock all premium tier rewards as you level up</div>
+    <button class="btn bG" onclick="buyBP()" style="font-size:20px;padding:10px 32px;">BUY FOR 500 🪙</button>
+  </div>
   <div style="font-family:'Bangers',cursive;font-size:15px;color:var(--go);position:relative;z-index:2;margin-bottom:6px;">🏅 LEVEL <span id="bp-level">1</span> · <span id="bp-xp">0</span>/<span id="bp-xp-req">500</span> XP</div>
   <div style="width:88%;max-width:600px;height:14px;background:rgba(255,255,255,.1);border-radius:7px;overflow:hidden;position:relative;z-index:2;margin-bottom:14px;">
     <div id="bp-bar" style="height:100%;background:linear-gradient(90deg,#ffd700,#ff6b35);border-radius:7px;transition:width .4s;width:0%"></div>

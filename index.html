@@ -3,8 +3,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Cosmic Run</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cosmic Run">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#9c27b0">
+<meta name="description" content="The World of Cosmic Legends - Endless Runner">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMDAyMCIvPjx0ZXh0IHg9IjI1NiIgeT0iMzYwIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMjAiIGZvbnQtd2VpZ2h0PSI5MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5YzI3YjAiIHN0cm9rZT0iI2VhODBmYyIgc3Ryb2tlLXdpZHRoPSI4Ij5DPC90ZXh0PjxjaXJjbGUgY3g9IjM3MCIgY3k9IjE0MCIgcj0iMjgiIGZpbGw9IiNmZmQ3MDAiLz48Y2lyY2xlIGN4PSIzNzAiIGN5PSIxNDAiIHI9IjE2IiBmaWxsPSIjZmY2YjM1Ii8+PC9zdmc+">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ29zbWljIFJ1biIsInNob3J0X25hbWUiOiJDb3NtaWMgUnVuIiwiZGVzY3JpcHRpb24iOiJUaGUgV29ybGQgb2YgQ29zbWljIExlZ2VuZHMiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCIsImJhY2tncm91bmRfY29sb3IiOiIjMDYwNjE0IiwidGhlbWVfY29sb3IiOiIjOWMyN2IwIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0ExTVRJZ05URXlJajQ4Y21WamRDQjNhV1IwYUQwaU5URXlJaUJvWldsbmFIUTlJalV4TWlJZ2NuZzlJakV4TWlJZ1ptbHNiRDBpSXpCa01EQXlNQ0l2UGp4MFpYaDBJSGc5SWpJMU5pSWdlVDBpTXpZd0lpQm1iMjUwTFdaaGJXbHNlVDBpUVhKcFlXd2dRbXhoWTJzc2MyRnVjeTF6WlhKcFppSWdabTl1ZEMxemFYcGxQU0l6TWpBaUlHWnZiblF0ZDJWcFoyaDBQU0k1TURBaUlIUmxlSFF0WVc1amFHOXlQU0p0YVdSa2JHVWlJR1pwYkd3OUlpTTVZekkzWWpBaUlITjBjbTlyWlQwaUkyVmhPREJtWXlJZ2MzUnliMnRsTFhkcFpIUm9QU0k0SWo1RFBDOTBaWGgwUGp4amFYSmpiR1VnWTNnOUlqTTNNQ0lnWTNrOUlqRTBNQ0lnY2owaU1qZ2lJR1pwYkd3OUlpTm1abVEzTURBaUx6NDhZMmx5WTJ4bElHTjRQU0l6TnpBaUlHTjVQU0l4TkRBaUlISTlJakUySWlCbWFXeHNQU0lqWm1ZMllqTTFJaTgrUEM5emRtYysiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBkMDAyMCIvPjx0ZXh0IHg9IjI1NiIgeT0iMzYwIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMjAiIGZvbnQtd2VpZ2h0PSI5MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5YzI3YjAiIHN0cm9rZT0iI2VhODBmYyIgc3Ryb2tlLXdpZHRoPSI4Ij5DPC90ZXh0PjxjaXJjbGUgY3g9IjM3MCIgY3k9IjE0MCIgcj0iMjgiIGZpbGw9IiNmZmQ3MDAiLz48Y2lyY2xlIGN4PSIzNzAiIGN5PSIxNDAiIHI9IjE2IiBmaWxsPSIjZmY2YjM1Ii8+PC9zdmc+">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap');
 :root{--or:#ff6b35;--go:#ffd700;--bl:#4fc3f7;--pu:#9c27b0;--rd:#e53935;--pk:rgba(8,8,24,.95);}
@@ -102,6 +111,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060614;color:#fff;f
 </head>
 <body>
 <div id="notif-container"></div>
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#1a0030,#2d0050);border-top:2px solid #9c27b0;padding:14px 16px;flex-direction:row;align-items:center;gap:12px;box-shadow:0 -4px 24px rgba(156,39,176,.5);">
+  <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6a1b9a,#9c27b0);display:flex;align-items:center;justify-content:center;font-family:Arial Black,sans-serif;font-size:28px;font-weight:900;color:#ea80fc;flex-shrink:0;">C</div>
+  <div style="flex:1;">
+    <div style="font-family:'Bangers',cursive;font-size:17px;color:#fff;letter-spacing:1px;">COSMIC RUN</div>
+    <div style="font-size:11px;color:#ce93d8;margin-top:2px;" id="install-sub">Add to your home screen for the full experience</div>
+  </div>
+  <button id="install-btn" onclick="doInstall()" style="background:linear-gradient(135deg,#9c27b0,#6a1b9a);color:#fff;border:none;border-radius:20px;padding:9px 16px;font-family:'Bangers',cursive;font-size:15px;letter-spacing:1px;cursor:pointer;white-space:nowrap;box-shadow:0 0 12px rgba(156,39,176,.6);">INSTALL</button>
+  <button onclick="document.getElementById('install-banner').style.display='none'" style="background:none;border:none;color:#888;font-size:22px;cursor:pointer;padding:4px 8px;flex-shrink:0;line-height:1;">x</button>
+</div>
 <div id="bg-anim"></div>
 
 <!-- ══ LOGIN ══ -->
@@ -2707,6 +2725,50 @@ function buyBP(){
     bg.appendChild(s);
   }
 })();
+
+// ═══════════════════════════════════════════
+//  PWA INSTALL PROMPT
+// ═══════════════════════════════════════════
+var _deferredPrompt=null;
+var _isIOS=(/iphone|ipad|ipod/i).test(navigator.userAgent||'');
+var _isStandalone=(window.navigator.standalone===true)||window.matchMedia('(display-mode: standalone)').matches;
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();_deferredPrompt=e;
+  if(!_isStandalone){showInstallBanner('android');}
+});
+window.addEventListener('appinstalled',function(){
+  hideInstallBanner();
+  notif('Cosmic Run installed!','#9c27b0');
+});
+if(_isIOS&&!_isStandalone){
+  setTimeout(function(){showInstallBanner('ios');},3000);
+}
+function showInstallBanner(platform){
+  var b=document.getElementById('install-banner');
+  var sub=document.getElementById('install-sub');
+  var btn=document.getElementById('install-btn');
+  if(!b)return;
+  if(platform==='ios'){
+    if(sub)sub.textContent='Tap Share then "Add to Home Screen" to install';
+    if(btn){btn.textContent='GOT IT';btn.onclick=function(){hideInstallBanner();};}
+  }
+  b.style.display='flex';
+}
+function hideInstallBanner(){
+  var b=document.getElementById('install-banner');
+  if(b)b.style.display='none';
+}
+function doInstall(){
+  if(_deferredPrompt){
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(function(){
+      _deferredPrompt=null;hideInstallBanner();
+    });
+  } else {
+    hideInstallBanner();
+  }
+}
 </script>
 
 <!-- ══ BATTLE PASS ══ -->
@@ -2741,5 +2803,16 @@ function buyBP(){
   <div class="panel" style="width:88%;max-width:400px;max-height:340px;overflow-y:auto;" id="lv-perks"></div>
   <button class="btn bS bSm" onclick="showScreen('menu-screen')" style="margin-top:10px;">← BACK</button>
 </div>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    var swCode='const C="cr1";self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(["/"]))));self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match("/")))));';
+    try{
+      var blob=new Blob([swCode],{type:'application/javascript'});
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(){});
+    }catch(e){}
+  });
+}
+</script>
 </body>
 </html>

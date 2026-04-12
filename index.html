@@ -1332,7 +1332,8 @@ function gameLoop(){
 
 function updateGame(){
   var W=cv.width,H=cv.height;
-  var fly=SC&&(SC.evo||hg('jp')||hg('ag'));
+  var _skyIds=['ron-evo','den-evo','lapse-evo','blackdeath-evo'];
+  var fly=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
   var spd=Math.min(0.020,(hg('sb')||hg('ag')?0.014:0.010)+Math.floor(score/1200)*0.0005);
   var mag=hg('mg')||hg('ag')?0.20:0.05;
 
@@ -1354,7 +1355,7 @@ function updateGame(){
   if(gf%Math.max(88-Math.floor(score/350),40)===0){
     var lane=Math.floor(Math.random()*3);
     // Varied obstacles including new spikes and monsters
-    var isFly2=SC&&(SC.evo||hg('jp')||hg('ag'));
+    var isFly2=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
     var groundTypes=['monster','spikes','bigmonster','spikes','monster','bigmonster'];
     var skyTypes=['bird','flymonster','cloud','bird','bird','flymonster'];
     var types=isFly2?skyTypes:groundTypes;
@@ -1385,7 +1386,7 @@ function updateGame(){
         // Can you escape it?
         // Ground: monster=jump over, spikes+bigmonster=slide under
         // Sky:    bird+flymonster=slide under(duck), cloud=jump over
-        var fly3=SC&&(SC.evo||hg('jp')||hg('ag'));
+        var fly3=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
         var jumpOk=pJumping&&pJY<-20&&(fly3?(o.type==='cloud'):(o.type==='monster'));
         var slideOk=pSlide>0&&(fly3?(o.type==='bird'||o.type==='flymonster'):(o.type==='spikes'||o.type==='bigmonster'));
         if(!jumpOk&&!slideOk){
@@ -1420,7 +1421,8 @@ function updateGame(){
 
 function drawGame(){
   var W=cv.width,H=cv.height;
-  var fly=SC&&(SC.evo||hg('jp')||hg('ag'));
+  var _skyIds=['ron-evo','den-evo','lapse-evo','blackdeath-evo'];
+  var fly=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
   c2.clearRect(0,0,W,H);
   var hz=HZ*H, tw=W*TW;
 
@@ -1508,7 +1510,7 @@ function drawGame(){
   });
 
   // ── PLAYER (back-view, bottom-centre, like SS) ──
-  var fly2=SC&&(SC.evo||hg('jp')||hg('ag'));
+  var fly2=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
   // Player sits in the BOTTOM THIRD of the screen, centre lane
   var groundY=fly2?H*.55:H*.88;
   var playerX=W/2+(clF-1)*(W*TW*.72); // lanes are narrower near player

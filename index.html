@@ -361,6 +361,9 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
   };
 }
 
+// Global sky-mode character IDs
+var _skyIds=['ron-evo','den-evo','lapse-evo','blackdeath-evo'];
+
 // ══════════════════════════════════════════════════════════════════
 //  PERFORMANCE — gradient cache + perf mode
 // ══════════════════════════════════════════════════════════════════
@@ -953,18 +956,56 @@ var ADMIN_CHARS=[
   {id:'terrarus',name:'Terrarus', title:'Earth Colossus', el:'🗿',col:'#8d6e63',admin:true},
 ];
 var SHOP={
-  costumes:[{id:'nj',name:'Ninja Suit',icon:'🥷',price:800},{id:'sm',name:'Samurai',icon:'⚔️',price:1200},{id:'cy',name:'Cyber Suit',icon:'🤖',price:1500},{id:'ry',name:'Royal Robe',icon:'👑',price:2000},{id:'sd',name:'Shadow Cloak',icon:'🌑',price:1000},{id:'as2',name:'ADMIN SUIT',icon:'🛡',price:9999,adm:true}],
-  trails:[{id:'ft2',name:'Fire Trail',icon:'🔥',price:600},{id:'lt2',name:'Lightning Trail',icon:'⚡',price:700},{id:'gt2',name:'Galaxy Trail',icon:'🌌',price:900},{id:'vt2',name:'Void Trail',icon:'🌑',price:850},{id:'rt2',name:'Rainbow Trail',icon:'🌈',price:1100},{id:'at2',name:'ADMIN TRAIL',icon:'💠',price:9999,adm:true}],
-  signs:[{id:'f3',name:'Fire Sign',icon:'🔥',price:400},{id:'s3',name:'Star Sign',icon:'⭐',price:500},{id:'g3',name:'Galaxy Sign',icon:'🌌',price:700},{id:'d3',name:'Doom Sign',icon:'☠️',price:650},{id:'c3',name:'Crown Sign',icon:'👑',price:900}],
+  costumes:[
+    {id:'nj', name:'Ninja Suit',    icon:'🥷', price:800,  col:'#263238', bodyCol:'#1a1a1a', hiCol:'#ff1744', desc:'Dark ninja wrap'},
+    {id:'sm', name:'Samurai',       icon:'⚔️', price:1200, col:'#b71c1c', bodyCol:'#8b0000', hiCol:'#ffd700', desc:'Feudal warrior armour'},
+    {id:'cy', name:'Cyber Suit',    icon:'🤖', price:1500, col:'#006064', bodyCol:'#00363a', hiCol:'#00e5ff', desc:'Neon cyberpunk shell'},
+    {id:'ry', name:'Royal Robe',    icon:'👑', price:2000, col:'#4a148c', bodyCol:'#2a0060', hiCol:'#ffd700', desc:'King ceremonial robe'},
+    {id:'sd', name:'Shadow Cloak',  icon:'🌑', price:1000, col:'#212121', bodyCol:'#0a0a0a', hiCol:'#7c4dff', desc:'Void-touched cloak'},
+    {id:'bp_fire',name:'Mad Fire Suit',icon:'🔥',price:0,  col:'#bf360c', bodyCol:'#870000', hiCol:'#ff6d00', desc:'Battle Pass reward',bp:true},
+    {id:'bp_blade',name:'Blade Suit',icon:'⚔️',price:0,   col:'#004d40', bodyCol:'#002a20', hiCol:'#64ffda', desc:'Battle Pass reward',bp:true},
+    {id:'as2',name:'ADMIN SUIT',    icon:'🛡', price:9999, col:'#4a148c', bodyCol:'#1a0040', hiCol:'#ea80fc', desc:'Admin exclusive',adm:true},
+  ],
+  trails:[
+    {id:'ft2',name:'Fire Trail',    icon:'🔥',price:600,  trailCol:'#ff6b35',trailCol2:'#ff3d00'},
+    {id:'lt2',name:'Lightning Trail',icon:'⚡',price:700, trailCol:'#ffd700',trailCol2:'#4fc3f7'},
+    {id:'gt2',name:'Galaxy Trail',  icon:'🌌',price:900,  trailCol:'#ea80fc',trailCol2:'#7c4dff'},
+    {id:'vt2',name:'Void Trail',    icon:'🌑',price:850,  trailCol:'#7c4dff',trailCol2:'#0d0d0d'},
+    {id:'rt2',name:'Rainbow Trail', icon:'🌈',price:1100, trailCol:'#ff1744',trailCol2:'#ffd700'},
+    {id:'bp_cosmic',name:'Cosmic Trail',icon:'💫',price:0,trailCol:'#ea80fc',trailCol2:'#ffd700',bp:true},
+    {id:'at2',name:'ADMIN TRAIL',   icon:'💠',price:9999, trailCol:'#00e5ff',trailCol2:'#ea80fc',adm:true},
+  ],
+  signs:[
+    {id:'f3',name:'Fire Sign',  icon:'🔥',price:400, signCol:'#ff6b35'},
+    {id:'s3',name:'Star Sign',  icon:'⭐',price:500, signCol:'#ffd700'},
+    {id:'g3',name:'Galaxy Sign',icon:'🌌',price:700, signCol:'#ea80fc'},
+    {id:'d3',name:'Doom Sign',  icon:'☠️',price:650, signCol:'#7c4dff'},
+    {id:'c3',name:'Crown Sign', icon:'👑',price:900, signCol:'#ff8c00'},
+  ],
+  weapons:[
+    {id:'w_katana',  name:'Katana',     icon:'🗡️', price:1000,desc:'+20 ATK in fight',  eff:'wk', dmg:20, col:'#b0bec5'},
+    {id:'w_blade',   name:'Cosmic Blade',icon:'⚔️',price:1800,desc:'+35 ATK + speed',   eff:'wb', dmg:35, col:'#64ffda'},
+    {id:'w_staff',   name:'Void Staff', icon:'🪄', price:1400,desc:'+28 ATK + life drain',eff:'ws',dmg:28, col:'#9c27b0'},
+    {id:'w_hammer',  name:'Thunder Fist',icon:'👊',price:1200,desc:'+25 ATK stun chance', eff:'wh',dmg:25, col:'#ffd700'},
+    {id:'w_scythe',  name:'Dark Scythe', icon:'🔱',price:2200,desc:'+45 ATK rare drop',  eff:'wsc',dmg:45, col:'#f44336'},
+    {id:'w_admin',   name:'ADMIN BLADE', icon:'🌟',price:9999,desc:'Instant win fights',  eff:'wag',dmg:999,col:'#ea80fc',adm:true},
+  ],
   gear:[
-    {id:'jb',name:'Jump Boots', icon:'🥾',price:700, desc:'Jump higher',      eff:'jb'},
-    {id:'kt',name:'Katana',     icon:'🗡️',price:1000,desc:'+20 fight ATK',    eff:'kt'},
-    {id:'sv',name:'Shield',     icon:'🛡', price:800, desc:'+1 extra life',    eff:'sv'},
-    {id:'mg',name:'Coin Magnet',icon:'🧲',price:600, desc:'Auto-collect coins',eff:'mg'},
-    {id:'jp',name:'Jetpack',    icon:'🚀',price:1500,desc:'Float in runner',   eff:'jp'},
-    {id:'ar',name:'Armor',      icon:'🦺',price:1200,desc:'-15 dmg Reyshi',    eff:'ar'},
-    {id:'sb',name:'Speed Boots',icon:'👟',price:900, desc:'Run faster',        eff:'sb'},
-    {id:'ag',name:'ADMIN GEAR', icon:'⚙️',price:9999,desc:'All effects!',      eff:'ag',adm:true},
+    {id:'jb',name:'Jump Boots', icon:'🥾',price:700, desc:'Jump higher',       eff:'jb'},
+    {id:'sv',name:'Shield',     icon:'🛡', price:800, desc:'+1 extra life',     eff:'sv'},
+    {id:'mg',name:'Coin Magnet',icon:'🧲',price:600, desc:'Auto-collect coins', eff:'mg'},
+    {id:'jp',name:'Jetpack',    icon:'🚀',price:1500,desc:'Float in runner',    eff:'jp'},
+    {id:'ar',name:'Armor',      icon:'🦺',price:1200,desc:'-15 dmg in fight',   eff:'ar'},
+    {id:'sb',name:'Speed Boots',icon:'👟',price:900, desc:'Run faster',         eff:'sb'},
+    {id:'ag',name:'ADMIN GEAR', icon:'⚙️',price:9999,desc:'All effects!',       eff:'ag',adm:true},
+  ],
+  weapons:[
+    {id:'w_katana',  name:'Katana',      icon:'🗡️',price:1000,desc:'+20 ATK in fight',    eff:'wk', dmg:20,col:'#b0bec5'},
+    {id:'w_blade',   name:'Cosmic Blade',icon:'⚔️', price:1800,desc:'+35 ATK + power',    eff:'wb', dmg:35,col:'#64ffda'},
+    {id:'w_staff',   name:'Void Staff',  icon:'🪄', price:1400,desc:'+28 ATK void power', eff:'ws', dmg:28,col:'#9c27b0'},
+    {id:'w_hammer',  name:'Thunder Fist',icon:'👊', price:1200,desc:'+25 ATK stun chance', eff:'wh', dmg:25,col:'#ffd700'},
+    {id:'w_scythe',  name:'Dark Scythe', icon:'🔱', price:2200,desc:'+45 ATK heavy strike',eff:'wsc',dmg:45,col:'#f44336'},
+    {id:'w_admin',   name:'ADMIN BLADE', icon:'🌟', price:9999,desc:'Max damage in fights',eff:'wag',dmg:99,col:'#ea80fc',adm:true},
   ]
 };
 // Secret codes — evolved codes unlock JUST the evolved form (costs 0 coins with code)
@@ -1038,7 +1079,14 @@ function claimBPTier(tier,paid){
   else if(reward.type==='char'){if(U.uc.indexOf(reward.id)<0)U.uc.push(reward.id);notif('🎁 '+reward.label+' unlocked!','#ff6b35');}
   else if(reward.type==='evo'){if(U.ue.indexOf(reward.id)<0)U.ue.push(reward.id);notif('⚡ '+reward.label+' unlocked!','#ffd700');}
   else if(reward.type==='gear'){if(U.oi.indexOf(reward.id)<0){U.oi.push(reward.id);EG.push(reward.eff);U.eg=EG.slice();}notif('⚙️ '+reward.label+' unlocked!','#4fc3f7');}
-  else if(reward.type==='costume'||reward.type==='trail'){if(U.oi.indexOf(reward.id)<0)U.oi.push(reward.id);notif('✨ '+reward.label+' unlocked!','#ea80fc');}
+  else if(reward.type==='costume'){
+    if(U.oi.indexOf(reward.id)<0)U.oi.push(reward.id);
+    notif('👕 '+reward.label+' unlocked from Battle Pass!','#ff6b35');
+  }
+  else if(reward.type==='trail'){
+    if(U.oi.indexOf(reward.id)<0)U.oi.push(reward.id);
+    notif('✨ '+reward.label+' unlocked from Battle Pass!','#ffd700');
+  }
   else if(reward.type==='xpboost'){U.xpBoost=(reward.val||1);notif('⚡ XP Boost x'+reward.val+' active!','#ffd700');}
 }
 
@@ -1049,7 +1097,7 @@ var U=null, SC=null, charTab='normal', EG=[];
 function getUsers(){try{return JSON.parse(localStorage.getItem('cr6')||'{}')}catch(e){return{};}}
 function saveUsers(d){localStorage.setItem('cr6',JSON.stringify(d));}
 function saveUser(u){var d=getUsers();d[u.username]=u;saveUsers(d);}
-function newUser(n){return{username:n,password:null,coins:250,uc:['ron','den','lapse','blackdeath','rowan','madfire'],ue:[],ua:[],oi:[],eg:[],isAdmin:false,hs:0,rc:[],level:1,xp:0,xpBoost:1,bpOwned:false,bpClaimed:[]};}
+function newUser(n){return{username:n,password:null,coins:250,uc:['ron','den','lapse','blackdeath','rowan','madfire'],ue:[],ua:[],oi:[],eg:[],isAdmin:false,hs:0,rc:[],level:1,xp:0,xpBoost:1,bpOwned:false,bpClaimed:[],costume:'',trail:'',sign:'',weapon:''};}
 function hg(e){return EG.indexOf(e)>=0||EG.indexOf('ag')>=0;}
 
 // ══════════════════════════════════════════════════════════════════
@@ -1084,6 +1132,10 @@ function doLogin(){
   if(!U.xpBoost)U.xpBoost=1;
   if(!U.bpClaimed)U.bpClaimed=[];
   EG=U.eg.slice();
+  if(!U.costume)U.costume='';
+  if(!U.trail)U.trail='';
+  if(!U.sign)U.sign='';
+  if(!U.weapon)U.weapon='';
   saveUser(U);
   startCutscene();
 }
@@ -1274,16 +1326,21 @@ function startGame(){
   cv=document.getElementById('game-canvas');
   c2=cv.getContext('2d');
   var W=Math.min(window.innerWidth,480), H=window.innerHeight;
-  cv.width=W; cv.height=H; GW=W; GH=H; _clearGC(); _bgW=0;
+  cv.width=W; cv.height=H; GW=W; GH=H; _clearGC(); _bgW=0; _bgH=0;
   score=0;coinC=0;gf=0;bgO=0;cl=1;clF=1;
   lives=3+(hg('sv')?1:0)+(hg('ag')?2:0);
-  obstacles=[];coins2=[];gRun=true;gPause=false;
+  obstacles=[];coins2=[];parts=[];gRun=true;gPause=false;
   pJY=0;pVY=0;pJumping=false;pFr=0;pSlide=0;pParkour=0;
   updateHUD();updateGearBar();bindKeys();gameLoop();
 }
 
 function updateGearBar(){
   var b=document.getElementById('gear-bar');b.innerHTML='';
+  // Show equipped costume/trail/sign/weapon as icons
+  if(U&&U.costume)(SHOP.costumes||[]).forEach(function(c){if(c.id===U.costume)b.innerHTML+='<span title="'+c.name+'">'+c.icon+'</span>';});
+  if(U&&U.trail)(SHOP.trails||[]).forEach(function(tr){if(tr.id===U.trail)b.innerHTML+='<span title="'+tr.name+'">'+tr.icon+'</span>';});
+  if(U&&U.sign)(SHOP.signs||[]).forEach(function(sg){if(sg.id===U.sign)b.innerHTML+='<span title="'+sg.name+'">'+sg.icon+'</span>';});
+  if(U&&U.weapon)(SHOP.weapons||[]).forEach(function(w){if(w.id===U.weapon)b.innerHTML+='<span title="'+w.name+'">'+w.icon+'</span>';});
   var a=[];
   if(hg('jb'))a.push('🥾+');if(hg('mg'))a.push('🧲');if(hg('sv'))a.push('🛡+');
   if(hg('jp'))a.push('🚀');if(hg('sb'))a.push('👟+');if(hg('ar'))a.push('🦺');
@@ -1323,17 +1380,21 @@ function gameLoop(){
   if(!gRun)return;
   animId=requestAnimationFrame(gameLoop);
   if(gPause)return;
-  _perfCheck();
-  gf++;score++;
-  updateGame();
-  if(!_perfMode||gf%2===0){drawGame();}
-  if(gf%3===0){updateHUD();}
+  try{
+    _perfCheck();
+    gf++;score++;
+    updateGame();
+    if(!_perfMode||gf%2===0){drawGame();}
+    if(gf%3===0){updateHUD();}
+  }catch(e){
+    // Swallow frame errors so one bad frame doesn't freeze the game
+    console.warn('Frame error:',e.message);
+  }
 }
 
 function updateGame(){
   var W=cv.width,H=cv.height;
-  var _skyIds=['ron-evo','den-evo','lapse-evo','blackdeath-evo'];
-  var fly=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
+  var fly=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
   var spd=Math.min(0.020,(hg('sb')||hg('ag')?0.014:0.010)+Math.floor(score/1200)*0.0005);
   var mag=hg('mg')||hg('ag')?0.20:0.05;
 
@@ -1355,7 +1416,7 @@ function updateGame(){
   if(gf%Math.max(88-Math.floor(score/350),40)===0){
     var lane=Math.floor(Math.random()*3);
     // Varied obstacles including new spikes and monsters
-    var isFly2=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
+    var isFly2=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
     var groundTypes=['monster','spikes','bigmonster','spikes','monster','bigmonster'];
     var skyTypes=['bird','flymonster','cloud','bird','bird','flymonster'];
     var types=isFly2?skyTypes:groundTypes;
@@ -1379,6 +1440,11 @@ function updateGame(){
 
   obstacles=obstacles.filter(function(o){
     if(o.depth>1.12)return false;
+    // Remove wrong-mode obstacles immediately on mode switch
+    var _ff=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
+    var _st=['bird','flymonster','cloud'],_gt=['monster','spikes','bigmonster'];
+    if(_ff&&_gt.indexOf(o.type)>=0)return false;
+    if(!_ff&&_st.indexOf(o.type)>=0)return false;
     if(o.depth>0.86&&o.depth<1.04){
       // Only collide when player is in the SAME lane as the obstacle
       var inLane=o.lane===cl;
@@ -1386,7 +1452,7 @@ function updateGame(){
         // Can you escape it?
         // Ground: monster=jump over, spikes+bigmonster=slide under
         // Sky:    bird+flymonster=slide under(duck), cloud=jump over
-        var fly3=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
+        var fly3=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
         var jumpOk=pJumping&&pJY<-20&&(fly3?(o.type==='cloud'):(o.type==='monster'));
         var slideOk=pSlide>0&&(fly3?(o.type==='bird'||o.type==='flymonster'):(o.type==='spikes'||o.type==='bigmonster'));
         if(!jumpOk&&!slideOk){
@@ -1421,8 +1487,7 @@ function updateGame(){
 
 function drawGame(){
   var W=cv.width,H=cv.height;
-  var _skyIds=['ron-evo','den-evo','lapse-evo','blackdeath-evo'];
-  var fly=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
+  var fly=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
   c2.clearRect(0,0,W,H);
   var hz=HZ*H, tw=W*TW;
 
@@ -1510,7 +1575,7 @@ function drawGame(){
   });
 
   // ── PLAYER (back-view, bottom-centre, like SS) ──
-  var fly2=SC&&(_skyIds.indexOf(SC.id)>=0||hg('jp')||hg('ag'));
+  var fly2=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
   // Player sits in the BOTTOM THIRD of the screen, centre lane
   var groundY=fly2?H*.55:H*.88;
   var playerX=W/2+(clF-1)*(W*TW*.72); // lanes are narrower near player
@@ -1531,11 +1596,21 @@ function drawGame(){
     c2.globalAlpha=1;
   }
 
-  // Power trail
-  var tCol=(CP[SC?SC.id:'ron']||CP.ron).glow;
+  // Power trail — use equipped trail colour if any
+  var _trailItem=null;
+  if(U&&U.trail)(SHOP.trails||[]).forEach(function(tr){if(tr.id===U.trail)_trailItem=tr;});
+  var tCol=_trailItem?_trailItem.trailCol:(CP[SC?SC.id:'ron']||CP.ron).glow;
+  var tCol2=_trailItem?_trailItem.trailCol2:tCol;
   for(var i=6;i>0;i--){
-    c2.globalAlpha=(1-i/7)*.35;c2.fillStyle=tCol;
-    c2.beginPath();c2.ellipse(playerX,playerY,13-i,16-i,0,0,Math.PI*2);c2.fill();
+    c2.globalAlpha=(1-i/7)*.4;
+    c2.fillStyle=i>3?tCol:tCol2;
+    c2.beginPath();c2.ellipse(playerX,playerY,14-i,18-i,0,0,Math.PI*2);c2.fill();
+  }
+  // Trail sparkles for special trails
+  if(_trailItem&&gf%3===0){
+    var sa=Math.random()*Math.PI*2;
+    c2.globalAlpha=.7;c2.fillStyle=tCol;
+    c2.beginPath();c2.arc(playerX+Math.cos(sa)*12,playerY+Math.sin(sa)*16,2.5,0,Math.PI*2);c2.fill();
   }
   c2.globalAlpha=1;
 
@@ -1549,9 +1624,32 @@ function drawGame(){
     var vaultLean=Math.sin((22-pParkour)/22*Math.PI)*.5;
     c2.translate(playerX,playerY-20*playerScale);c2.rotate(vaultLean);c2.translate(-playerX,-(playerY-20*playerScale));
   }
-  drawChar(c2,playerX,playerY,playerScale,SC?SC.id:'ron',pFr,1,SC&&SC.evo);
+  // Apply equipped costume to character palette
+  if(U&&U.costume){
+    var cos=null;(SHOP.costumes||[]).forEach(function(c){if(c.id===U.costume)cos=c;});
+    if(cos&&CP[SC?SC.id:'ron']){
+      var _cp2=CP[SC?SC.id:'ron'];
+      var _ob=_cp2.body,_od=_cp2.dark,_oh=_cp2.hi;
+      _cp2.body=cos.bodyCol||_cp2.body;_cp2.dark=cos.col||_cp2.dark;_cp2.hi=cos.hiCol||_cp2.hi;
+      drawChar(c2,playerX,playerY,playerScale,SC?SC.id:'ron',pFr,1,SC&&SC.evo);
+      _cp2.body=_ob;_cp2.dark=_od;_cp2.hi=_oh;
+    } else {drawChar(c2,playerX,playerY,playerScale,SC?SC.id:'ron',pFr,1,SC&&SC.evo);}
+  } else {drawChar(c2,playerX,playerY,playerScale,SC?SC.id:'ron',pFr,1,SC&&SC.evo);}
   c2.restore();
 
+  // Equipped sign floats above player
+  if(U&&U.sign){
+    var _signItem=null;(SHOP.signs||[]).forEach(function(sg){if(sg.id===U.sign)_signItem=sg;});
+    if(_signItem){
+      var sx3=playerX,sy3=playerY-140*playerScale;
+      c2.globalAlpha=.8+Math.sin(gf*.12)*.15;
+      c2.fillStyle=_signItem.signCol||'#ffd700';
+      c2.font='bold '+Math.round(18*playerScale)+'px Bangers,cursive';
+      c2.textAlign='center';
+      c2.fillText(_signItem.icon,sx3,sy3);
+      c2.globalAlpha=1;
+    }
+  }
   // Reyshi chasing from top — like SS shows the inspector/guard in background
   if(!fly2){
     // Ron chases when playing as Reyshi, else Reyshi chases
@@ -1642,6 +1740,12 @@ function _buildBG(W,H){
 
 // ── Helper: draw an obstacle with full 3D ──
 function _drawObs(o,s,p,W,H){
+  // Safety: skip sky obstacles in ground mode and vice versa
+  var _inFly=_skyIds.indexOf(SC&&SC.id||'')>=0||hg('jp')||hg('ag');
+  var _skyTypes=['bird','flymonster','cloud'];
+  var _gndTypes=['monster','spikes','bigmonster'];
+  if(_inFly&&_gndTypes.indexOf(o.type)>=0)return;
+  if(!_inFly&&_skyTypes.indexOf(o.type)>=0)return;
   var hz=HZ*H, tw=W*TW;
   if(o.type==='train'){
     // ── SS-STYLE 3D TRAIN ──
@@ -2366,7 +2470,8 @@ function fightAction(act){
   if(act==='attack'){
     if(now-lastAtk<17){notif('⏳ Cooldown!');return;}
     lastAtk=now;
-    var b=hg('kt')?20:(hg('ag')?33:0);
+    var _witem=null;if(U&&U.weapon)(SHOP.weapons||[]).forEach(function(w){if(w.id===U.weapon)_witem=w;});
+    var b=_witem?_witem.dmg:(hg('ag')?33:0);
     var dmg=10+Math.floor(Math.random()*14)+b;
     eHP=Math.max(0,eHP-dmg);fEn.sk=15;
     fEffects.push({x:fEn.x,y:fEn.y-44,t:'-'+dmg,c:'#ff6b35',l:40});
@@ -2417,7 +2522,7 @@ function goShop(){
 }
 function renderShopTabs(){
   var t=document.getElementById('shop-tabs');t.innerHTML='';
-  var ico={costumes:'👕',trails:'✨',signs:'🪧',gear:'⚙️'};
+  var ico={costumes:'👕',trails:'✨',signs:'🪧',weapons:'⚔️',gear:'⚙️'};
   Object.keys(SHOP).forEach(function(k){
     var b=document.createElement('div');
     b.className='tab'+(k===shopTab?' active':'');
@@ -2430,20 +2535,29 @@ function renderShopItems(){
   var g=document.getElementById('shop-grid');g.innerHTML='';
   (SHOP[shopTab]||[]).forEach(function(item){
     if(item.adm&&!U.isAdmin)return;
+    if(item.bp&&!U.bpOwned)return; // hide BP items if not owned
     var own=U.oi.indexOf(item.id)>=0;
-    var eqd=item.eff&&EG.indexOf(item.eff)>=0;
+    // Check equipped state for each category
+    var eqd=false;
+    if(shopTab==='gear')eqd=item.eff&&EG.indexOf(item.eff)>=0;
+    else if(shopTab==='costumes')eqd=U.costume===item.id;
+    else if(shopTab==='trails')eqd=U.trail===item.id;
+    else if(shopTab==='signs')eqd=U.sign===item.id;
+    else if(shopTab==='weapons')eqd=U.weapon===item.id;
     var d=document.createElement('div');
     d.className='sitem'+(own?' own':'')+(eqd?' eqp':'');
+    var canEquip=shopTab==='gear'||shopTab==='costumes'||shopTab==='trails'||shopTab==='signs'||shopTab==='weapons';
     var ph=own
-      ?(shopTab==='gear'
-        ?'<div style="color:'+(eqd?'#ffd700':'#4caf50')+';font-family:Bangers,cursive;font-size:13px;margin-top:3px;">'+(eqd?'✅ EQUIPPED':'⬆️ EQUIP')+'</div>'
-        :'<div style="color:#4caf50;font-family:Bangers,cursive;font-size:12px;margin-top:3px;">✅ OWNED</div>')
-      :'<div style="color:#ffd700;font-family:Bangers,cursive;font-size:15px;margin-top:3px;">'+item.price+'🪙</div>';
+      ?'<div style="color:'+(eqd?'#ffd700':'#4caf50')+';font-family:Bangers,cursive;font-size:13px;margin-top:3px;">'+(eqd?'✅ EQUIPPED':'⬆️ EQUIP')+'</div>'
+      :(item.price===0?'<div style="color:#4fc3f7;font-size:11px;margin-top:3px;">BP Reward</div>':'<div style="color:#ffd700;font-family:Bangers,cursive;font-size:15px;margin-top:3px;">'+item.price+'🪙</div>');
     d.innerHTML='<div style="font-size:28px;margin-bottom:4px;">'+item.icon+'</div>'
       +'<div style="font-size:10px;font-weight:700;">'+item.name+'</div>'
       +(item.desc?'<div style="font-size:9px;color:#888;margin-top:1px;">'+item.desc+'</div>':'')
       +ph;
-    d.onclick=function(it){return function(){if(!own)buyItem(it);else if(shopTab==='gear'&&it.eff)toggleGear(it);};}(item);
+    d.onclick=(function(it,o,eq){return function(){
+      if(!o){if(it.price>0)buyItem(it);}
+      else if(canEquip)toggleEquip(it);
+    };})(item,own,eqd);
     g.appendChild(d);
   });
 }
@@ -2456,13 +2570,29 @@ function buyItem(item){
     if(shopTab==='gear'&&item.eff)toggleGear(item);else renderShopItems();
   }
 }
-function toggleGear(item){
+function toggleGear(item){toggleEquip(item);}
+function toggleEquip(item){
   if(U.oi.indexOf(item.id)<0){notif('Buy it first!');return;}
-  var e=item.eff;
-  var idx=EG.indexOf(e);
-  if(idx>=0){EG.splice(idx,1);notif('Unequipped '+item.name);}
-  else{EG.push(e);notif('⚙️ '+item.name+' equipped!','#ffd700');}
-  U.eg=EG.slice();saveUser(U);renderShopItems();
+  var tab=shopTab;
+  if(tab==='gear'){
+    var e=item.eff,idx=EG.indexOf(e);
+    if(idx>=0){EG.splice(idx,1);notif('Unequipped '+item.name);}
+    else{EG.push(e);notif('⚙️ '+item.name+' equipped!','#ffd700');}
+    U.eg=EG.slice();
+  } else if(tab==='costumes'){
+    if(U.costume===item.id){U.costume='';notif('Costume removed');}
+    else{U.costume=item.id;notif('👕 '+item.name+' equipped!','#ff6b35');}
+  } else if(tab==='trails'){
+    if(U.trail===item.id){U.trail='';notif('Trail removed');}
+    else{U.trail=item.id;notif('✨ '+item.name+' trail equipped!','#ffd700');}
+  } else if(tab==='signs'){
+    if(U.sign===item.id){U.sign='';notif('Sign removed');}
+    else{U.sign=item.id;notif('🪧 '+item.name+' sign equipped!','#4fc3f7');}
+  } else if(tab==='weapons'){
+    if(U.weapon===item.id){U.weapon='';notif('Weapon unequipped');}
+    else{U.weapon=item.id;notif('⚔️ '+item.name+' equipped!','#f44336');}
+  }
+  saveUser(U);updateGearBar();renderShopItems();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2489,8 +2619,9 @@ function redeemCode(){
     Object.values(SHOP).forEach(function(cat){cat.forEach(function(it){allItems.push(it.id);});});
     U.oi=allItems;
     // Equip admin gear + trail + suit
-    EG=['jb','kt','sv','mg','jp','ar','sb','ag'];
+    EG=['jb','sv','mg','jp','ar','sb','ag'];
     U.eg=EG.slice();
+    U.costume='as2';U.trail='at2';U.sign='c3';U.weapon='w_admin';
     notif(entry.msg,'#ffd700');
     saveUser(U);updateMenuCoins();
     showScreen('menu-screen');
@@ -2706,12 +2837,15 @@ function goLevels(){
 
 function buyBP(){
   if(!U)return;
-  if(U.bpOwned){notif('✅ Already own Battle Pass!');return;}
-  if(U.coins<500){notif('💰 Need 500 coins for Battle Pass!');return;}
-  if(confirm('Buy Battle Pass for 500 coins?')){
-    U.coins-=500;U.bpOwned=true;saveUser(U);
-    notif('⚡ BATTLE PASS UNLOCKED!','#ffd700');
-    goBP();
+  if(U.bpOwned){notif('Already own Battle Pass!');return;}
+  if(U.coins<500){notif('Need 500 coins for Battle Pass!');return;}
+  if(confirm('Buy Battle Pass Premium for 500 coins? You will instantly receive the Mad Fire Suit!')){
+    U.coins-=500;U.bpOwned=true;
+    // Instantly give Mad Fire Suit (bp_fire) on purchase
+    if(U.oi.indexOf('bp_fire')<0)U.oi.push('bp_fire');
+    U.costume='bp_fire'; // auto-equip it
+    notif('BATTLE PASS UNLOCKED! Mad Fire Suit equipped!','#ffd700');
+    saveUser(U);goBP();
   }
 }
 
@@ -2732,18 +2866,18 @@ function buyBP(){
 //  PWA INSTALL PROMPT
 // ═══════════════════════════════════════════
 var _deferredPrompt=null;
-var _isIOS=(/iphone|ipad|ipod/i).test(navigator.userAgent||'');
-var _isStandalone=(window.navigator.standalone===true)||window.matchMedia('(display-mode: standalone)').matches;
+var _isIOS=(typeof navigator!=='undefined')&&(/iphone|ipad|ipod/i).test(navigator.userAgent||'');
+var _isStandalone=(typeof window!=='undefined'&&window.navigator&&window.navigator.standalone===true)||(typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||false;
 
-window.addEventListener('beforeinstallprompt',function(e){
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('beforeinstallprompt',function(e){
   e.preventDefault();_deferredPrompt=e;
   if(!_isStandalone){showInstallBanner('android');}
 });
-window.addEventListener('appinstalled',function(){
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('appinstalled',function(){
   hideInstallBanner();
   notif('Cosmic Run installed!','#9c27b0');
 });
-if(_isIOS&&!_isStandalone){
+if(typeof window!=='undefined'&&_isIOS&&!_isStandalone){
   setTimeout(function(){showInstallBanner('ios');},3000);
 }
 function showInstallBanner(platform){
@@ -2805,16 +2939,6 @@ function doInstall(){
   <div class="panel" style="width:88%;max-width:400px;max-height:340px;overflow-y:auto;" id="lv-perks"></div>
   <button class="btn bS bSm" onclick="showScreen('menu-screen')" style="margin-top:10px;">← BACK</button>
 </div>
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){
-    var swCode='const C="cr1";self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(["/"]))));self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match("/")))));';
-    try{
-      var blob=new Blob([swCode],{type:'application/javascript'});
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(){});
-    }catch(e){}
-  });
-}
-</script>
+
 </body>
 </html>
